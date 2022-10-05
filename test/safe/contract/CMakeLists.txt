@@ -1,0 +1,4 @@
+test_static_assert_fail(assign_constant_max_violation)
+test_static_assert_fail(assign_constant_min_violation)
+test_static_assert_fail(construct_constant_max_violation)
+test_static_assert_fail(construct_constant_min_violation)
