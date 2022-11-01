@@ -1,0 +1,1 @@
+test_static_assert_fail(array_constant_access_max_violation)
