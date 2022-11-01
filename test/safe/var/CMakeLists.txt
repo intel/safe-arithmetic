@@ -1,0 +1,8 @@
+test_static_assert_fail(assign_constant_max_violation)
+test_static_assert_fail(assign_constant_min_violation)
+test_static_assert_fail(construct_constant_max_violation)
+test_static_assert_fail(construct_constant_min_violation)
+test_static_assert_fail(interval_larger_than_type)
+test_static_assert_fail(assign_lhs_rhs_union)
+test_static_assert_fail(assign_lhs_union)
+test_static_assert_fail(assign_rhs_union)

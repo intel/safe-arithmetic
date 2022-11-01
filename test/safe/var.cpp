@@ -1,0 +1,149 @@
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+
+#include <safe.hpp>
+
+
+using ::testing::_;
+using ::testing::Return;
+using ::testing::InSequence;
+
+
+using namespace safe::interval_types;
+using namespace safe::int_types;
+using namespace safe::literals;
+
+using safe::ival;
+
+template <typename T>
+class safe_int_assign_test : public testing::Test { };
+
+using safe_int_types = ::testing::Types<
+    safe::u8, safe::u16, safe::u32, safe::u64,
+    safe::s8, safe::s16, safe::s32, safe::s64>;
+
+TYPED_TEST_SUITE(safe_int_assign_test, safe_int_types);
+
+TYPED_TEST(safe_int_assign_test, init_vars) {
+    TypeParam value{42_s32};
+    EXPECT_EQ(value.unsafe_value(), 42);
+}
+
+TYPED_TEST(safe_int_assign_test, assign_vars) {
+    TypeParam value{0_s32};
+    value = 33_s32;
+    EXPECT_EQ(value.unsafe_value(), 33);
+}
+
+template <typename T>
+class safe_var_ops_test : public testing::Test { };
+
+using std_int_types = ::testing::Types<
+    uint8_t, uint16_t, uint32_t, uint64_t,
+     int8_t,  int16_t,  int32_t,  int64_t>;
+
+TYPED_TEST_SUITE(safe_var_ops_test, std_int_types);
+
+TYPED_TEST(safe_var_ops_test, add_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 13_s32;
+    safe::var<TypeParam, ival<0, 100>> const b = 29_s32;
+    auto const result = a + b;
+    EXPECT_EQ(result.unsafe_value(), 42);
+}
+
+TYPED_TEST(safe_var_ops_test, minus_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 32_s32;
+    safe::var<TypeParam, ival<0, 100>> const b = 8_s32;
+    auto const result = a - b;
+    EXPECT_EQ(result.unsafe_value(), 24);
+}
+
+TYPED_TEST(safe_var_ops_test, multiply_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 7_s32;
+    safe::var<TypeParam, ival<0, 100>> const b = 11_s32;
+    auto const result = a * b;
+    EXPECT_EQ(result.unsafe_value(), 77);
+}
+
+TYPED_TEST(safe_var_ops_test, divide_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 45_s32;
+    safe::var<TypeParam, ival<1, 100>> const b = 5_s32;
+    auto const result = a / b;
+    EXPECT_EQ(result.unsafe_value(), 9);
+}
+
+TYPED_TEST(safe_var_ops_test, modulo_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 12_s32;
+    safe::var<TypeParam, ival<1, 100>> const b = 5_s32;
+    auto const result = a % b;
+    EXPECT_EQ(result.unsafe_value(), 2);
+}
+
+TYPED_TEST(safe_var_ops_test, left_shift_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 12_s32;
+    safe::var<TypeParam, ival<0, 8>> const b = 2_s32;
+    auto const result = a << b;
+    EXPECT_EQ(result.unsafe_value(), 48);
+}
+
+TYPED_TEST(safe_var_ops_test, right_shift_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 48_s32;
+    safe::var<TypeParam, ival<0, 8>> const b = 2_s32;
+    auto const result = a >> b;
+    EXPECT_EQ(result.unsafe_value(), 12);
+}
+
+TYPED_TEST(safe_var_ops_test, spaceship_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 45_s32;
+    safe::var<TypeParam, ival<0, 100>> const b = 87_s32;
+
+    EXPECT_TRUE(a == a);
+    EXPECT_TRUE(b == b);
+    EXPECT_TRUE(b >= b);
+    EXPECT_TRUE(b <= b);
+
+    EXPECT_FALSE(a == b);
+    EXPECT_TRUE(a != b);
+
+    EXPECT_TRUE(a < b);
+    EXPECT_TRUE(b > a);
+    EXPECT_TRUE(a <= b);
+    EXPECT_TRUE(b >= a);
+
+    EXPECT_FALSE(a > b);
+    EXPECT_FALSE(b < a);
+    EXPECT_FALSE(a >= b);
+    EXPECT_FALSE(b <= a);
+}
+
+TYPED_TEST(safe_var_ops_test, max_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 48_s32;
+    safe::var<TypeParam, ival<0, 100>> const b = 32_s32;
+    auto const result = std::max(a, b);
+    EXPECT_EQ(result.unsafe_value(), 48);
+}
+
+TYPED_TEST(safe_var_ops_test, min_op) {
+    safe::var<TypeParam, ival<0, 100>> const a = 48_s32;
+    safe::var<TypeParam, ival<0, 100>> const b = 32_s32;
+    auto const result = std::min(a, b);
+    EXPECT_EQ(result.unsafe_value(), 32);
+}
+
+TYPED_TEST(safe_var_ops_test, clamp_op) {
+    safe::var<TypeParam, ival<0, 100>> const min = 32_s32;
+    safe::var<TypeParam, ival<0, 100>> const max = 48_s32;
+    auto const result = std::clamp(65, min, max);
+    EXPECT_EQ(result.unsafe_value(), 48);
+}
+
+TEST(safe_var_test, negate_op) {
+    auto const result = -42_s32;
+    EXPECT_EQ(result.unsafe_value(), -42);
+}
+
+TEST(safe_var_test, abs_op) {
+    auto const result = std::abs(-42_s32);
+    EXPECT_EQ(result.unsafe_value(), 42);
+}
+

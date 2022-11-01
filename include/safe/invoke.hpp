@@ -1,6 +1,7 @@
 #pragma once
 
-#include <safe/contract.hpp>
+#include <safe/var.hpp>
+#include <safe/runtime_check.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -24,22 +25,13 @@ namespace safe {
     using function_args_t = typename function_args<F>::type;
 
     template<
-        typename ContractT,
-        typename ArgT>
-    constexpr bool check_arg(
-        ArgT arg
-    ) {
-        return ContractT::check(arg);
-    }
-
-    template<
         typename... ContractTs,
         typename... ArgTs>
     constexpr bool check(
         mp_list<ContractTs...>,
         ArgTs... args
     ) {
-        return (check_arg<ContractTs>(args) && ...);
+        return (check<ContractTs, ArgTs>(args) && ...);
     }
 
     template<typename Callable, typename... ArgTs>
@@ -47,15 +39,15 @@ namespace safe {
         Callable c,
         ArgTs... args
     ) {
-        using contract_list = function_args_t<Callable>;
+        using var_list = function_args_t<Callable>;
         using input_args = mp_list<ArgTs...>;
 
         static_assert(
-            mp_size<contract_list>::value ==
+            mp_size<var_list>::value ==
             mp_size<input_args>::value);
 
         bool const is_safe =
-            check(contract_list{}, args...);
+            check(var_list{}, args...);
 
         if (is_safe) {
             c(args...);
