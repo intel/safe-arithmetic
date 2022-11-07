@@ -4,6 +4,11 @@ namespace safe_dsl {
     template<typename... Intervals>
     struct union_t {
         using type = union_t;
+
+        template<typename T>
+        [[nodiscard]] constexpr static bool check(T value) {
+            return (Intervals::check(value) || ...);
+        }
     };
 
     template<
