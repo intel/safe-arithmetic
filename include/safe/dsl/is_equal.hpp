@@ -9,11 +9,13 @@ namespace safe_dsl {
     template<
         typename LhsT,
         typename RhsT>
-    [[nodiscard]] constexpr bool operator==(LhsT, RhsT) {
-        return std::is_same_v<
-            detail::simplify_t<LhsT>,
-            detail::simplify_t<RhsT>
-        >;
+    [[nodiscard]] constexpr bool operator==(LhsT lhs, RhsT rhs) {
+        auto const simp_lhs = detail::simp(lhs);
+        auto const simp_rhs = detail::simp(rhs);
+
+        return
+            (simp_lhs <= simp_rhs) &&
+            (simp_lhs >= simp_rhs);
     }
 
     template<

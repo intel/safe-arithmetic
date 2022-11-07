@@ -5,6 +5,7 @@
 #include <safe/constant.hpp>
 
 #include <compare>
+#include <array>
 
 namespace safe {
     template<typename T, std::size_t Size>
