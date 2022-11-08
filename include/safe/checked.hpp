@@ -41,6 +41,11 @@ namespace safe {
             , overflow_{overflow}
         {}
 
+        constexpr checked(checked const & rhs)
+            : value_{rhs.value_}
+            , overflow_{rhs.overflow_}
+        {}
+
         [[nodiscard]] constexpr T value() const {
             return value_;
         }
@@ -50,17 +55,56 @@ namespace safe {
         }
 
         template<typename U>
-        [[nodiscard]] constexpr checked<bool> operator==(checked<U> rhs) const {
-            return {value_ == rhs.value_, overflow_ || rhs.overflow_};
+        [[nodiscard]] friend constexpr checked<bool> operator==(checked<T> lhs, checked<U> rhs) {
+            return {
+                lhs.value_ == rhs.value_,
+                lhs.overflow_ || rhs.overflow_
+            };
+        }
+
+        template<typename U>
+        [[nodiscard]] friend constexpr checked<bool> operator<(checked<T> lhs, checked<U> rhs) {
+            if (lhs.overflow_ | rhs.overflow_) {
+                return {false, true};
+            } else {
+                return {lhs.value_ < rhs.value_, false};
+            }
+        }
+
+        template<typename U>
+        [[nodiscard]] friend constexpr checked<bool> operator<=(checked<T> lhs, checked<U> rhs) {
+            if (lhs.overflow_ | rhs.overflow_) {
+                return {false, true};
+            } else {
+                return {lhs.value_ <= rhs.value_, false};
+            }
+        }
+
+        template<typename U>
+        [[nodiscard]] friend constexpr checked<bool> operator>(checked<T> lhs, checked<U> rhs) {
+            if (lhs.overflow_ | rhs.overflow_) {
+                return {false, true};
+            } else {
+                return {lhs.value_ > rhs.value_, false};
+            }
+        }
+
+        template<typename U>
+        [[nodiscard]] friend constexpr checked<bool> operator>=(checked<T> lhs, checked<U> rhs) {
+            if (lhs.overflow_ | rhs.overflow_) {
+                return {false, true};
+            } else {
+                return {lhs.value_ >= rhs.value_, false};
+            }
         }
 
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
         template<typename U>
-        [[nodiscard]] constexpr auto operator+(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator+(checked<T> lhs, checked<U> rhs) {
             using ret_t =
                 decltype(value_ + rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
             constexpr auto zero = static_cast<ret_t>(0);
@@ -82,20 +126,20 @@ namespace safe {
                 }
             }();
 
-            if (overflow | underflow | overflow_ | rhs.overflow_) {
+            if (overflow | underflow | lhs.overflow_ | rhs.overflow_) {
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{value_ + rhs.value_, false};
+                return checked<ret_t>{lhs.value_ + rhs.value_, false};
             }
         }
 
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
         template<typename U>
-        [[nodiscard]] constexpr auto operator-(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator-(checked<T> lhs, checked<U> rhs) {
             using ret_t =
                 decltype(value_ - rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
             constexpr auto zero = static_cast<ret_t>(0);
@@ -110,20 +154,20 @@ namespace safe {
                 (right_value > zero) &
                 (left_value < lowest + right_value);
 
-            if (overflow | underflow | overflow_ | rhs.overflow_) {
+            if (overflow | underflow | lhs.overflow_ | rhs.overflow_) {
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{value_ - rhs.value_, false};
+                return checked<ret_t>{lhs.value_ - rhs.value_, false};
             }
         }
 
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
         template<typename U>
-        [[nodiscard]] constexpr auto operator*(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator*(checked<T> lhs, checked<U> rhs) {
             using ret_t =
                 decltype(value_ * rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
             constexpr auto zero = static_cast<ret_t>(0);
@@ -161,20 +205,20 @@ namespace safe {
                 }
             }();
 
-            if (overflow | underflow | negation_overflow | overflow_ | rhs.overflow_) {
+            if (overflow | underflow | negation_overflow | lhs.overflow_ | rhs.overflow_) {
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{value_ * rhs.value_, false};
+                return checked<ret_t>{lhs.value_ * rhs.value_, false};
             }
         }
 
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
         template<typename U>
-        [[nodiscard]] constexpr auto operator/(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator/(checked<T> lhs, checked<U> rhs) {
             using ret_t =
-                decltype(value_ / rhs.value_);
+                decltype(lhs.value_ / rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
             constexpr auto zero = static_cast<ret_t>(0);
@@ -199,19 +243,19 @@ namespace safe {
                 }
             }();
 
-            if (divide_by_zero | negation_overflow | overflow_ | rhs.overflow_) {
+            if (divide_by_zero | negation_overflow | lhs.overflow_ | rhs.overflow_) {
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{value_ / rhs.value_, false};
+                return checked<ret_t>{lhs.value_ / rhs.value_, false};
             }
         }
 
         template<typename U>
-        [[nodiscard]] constexpr auto operator%(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator%(checked<T> lhs, checked<U> rhs) {
             using ret_t =
                 decltype(value_ % rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
             constexpr auto zero = static_cast<ret_t>(0);
@@ -219,7 +263,7 @@ namespace safe {
             bool const divide_by_zero =
                 right_value == zero;
 
-            if (divide_by_zero | overflow_ | rhs.overflow_) {
+            if (divide_by_zero | lhs.overflow_ | rhs.overflow_) {
                 return checked<ret_t>{zero, true};
             } else {
                 return checked<ret_t>{left_value % right_value, false};
@@ -228,11 +272,11 @@ namespace safe {
 
 
         template<typename U>
-        [[nodiscard]] constexpr auto operator<<(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator<<(checked<T> lhs, checked<U> rhs) {
             using ret_t = T;
 
             int const ret_bit_width = std::numeric_limits<ret_t>::digits;
-            int const lhs_bit_width = detail::log2(value_);
+            int const lhs_bit_width = detail::log2(lhs.value_);
             int const shift_amt = rhs.value_;
 
             bool const overflow =
@@ -241,16 +285,16 @@ namespace safe {
             bool const negative_shift =
                 shift_amt < 0;
 
-            if (overflow | negative_shift | overflow_ | rhs.overflow_) {
+            if (overflow | negative_shift | lhs.overflow_ | rhs.overflow_) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{value_ << shift_amt, false};
+                return checked<ret_t>{lhs.value_ << shift_amt, false};
             }
         }
 
         template<typename U>
-        [[nodiscard]] constexpr auto operator>>(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator>>(checked<T> lhs, checked<U> rhs) {
             using ret_t = T;
 
             int const shift_amt = rhs.value_;
@@ -258,23 +302,23 @@ namespace safe {
             bool const negative_shift =
                 shift_amt < 0;
 
-            if (negative_shift | overflow_ | rhs.overflow_) {
+            if (negative_shift | lhs.overflow_ | rhs.overflow_) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{value_ >> shift_amt, false};
+                return checked<ret_t>{lhs.value_ >> shift_amt, false};
             }
         }
 
         template<typename U>
-        [[nodiscard]] constexpr auto operator&(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator&(checked<T> lhs, checked<U> rhs) {
             using ret_t =
-                decltype(value_ & rhs.value_);
+                decltype(lhs.value_ & rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
-            if (overflow_ | rhs.overflow_) {
+            if (lhs.overflow_ | rhs.overflow_) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
@@ -283,14 +327,14 @@ namespace safe {
         }
 
         template<typename U>
-        [[nodiscard]] constexpr auto operator|(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator|(checked<T> lhs, checked<U> rhs) {
             using ret_t =
                 decltype(value_ | rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
-            if (overflow_ | rhs.overflow_) {
+            if (lhs.overflow_ | rhs.overflow_) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
@@ -299,18 +343,51 @@ namespace safe {
         }
 
         template<typename U>
-        [[nodiscard]] constexpr auto operator^(checked<U> rhs) const {
+        [[nodiscard]] friend constexpr auto operator^(checked<T> lhs, checked<U> rhs) {
             using ret_t =
-                decltype(value_ ^ rhs.value_);
+                decltype(lhs.value_ ^ rhs.value_);
 
-            auto const left_value = static_cast<ret_t>(value_);
+            auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
 
-            if (overflow_ | rhs.overflow_) {
+            if (lhs.overflow_ | rhs.overflow_) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
                 return checked<ret_t>{left_value ^ right_value, false};
+            }
+        }
+
+
+        template<typename U>
+        [[nodiscard]] friend constexpr auto operator&&(checked<T> lhs, checked<U> rhs) {
+            using ret_t =
+                decltype(lhs.value_ && rhs.value_);
+
+            auto const left_value = static_cast<ret_t>(lhs.value_);
+            auto const right_value = static_cast<ret_t>(rhs.value_);
+
+            if (lhs.overflow_ | rhs.overflow_) {
+                constexpr auto zero = static_cast<ret_t>(0);
+                return checked<ret_t>{zero, true};
+            } else {
+                return checked<ret_t>{left_value && right_value, false};
+            }
+        }
+
+        template<typename U>
+        [[nodiscard]] friend constexpr auto operator||(checked<T> lhs, checked<U> rhs) {
+            using ret_t =
+                decltype(value_ || rhs.value_);
+
+            auto const left_value = static_cast<ret_t>(lhs.value_);
+            auto const right_value = static_cast<ret_t>(rhs.value_);
+
+            if (lhs.overflow_ | rhs.overflow_) {
+                constexpr auto zero = static_cast<ret_t>(0);
+                return checked<ret_t>{zero, true};
+            } else {
+                return checked<ret_t>{left_value || right_value, false};
             }
         }
     };

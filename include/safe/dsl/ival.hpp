@@ -3,10 +3,8 @@
 #include <type_traits>
 
 namespace safe_dsl {
-    // FIXME: make sure these are the same integral type
     template<auto Min, auto Max>
     struct ival_t {
-//        static_assert(std::is_same_v< decltype(Min), decltype(Max)>, "ival_t min and max values must have the same type.");
         using type = ival_t;
 
         constexpr static auto min = Min;

@@ -45,8 +45,8 @@ TEST(safe_checked_test, overflow_plus_overflow) {
 
 
 TEST(safe_checked_test, addition_edges) {
-    EXPECT_TRUE((checked{0} + checked{INT_MAX} == checked{INT_MAX}).value());
-    EXPECT_TRUE((checked{1} + checked{INT_MAX}).is_overflow());
+    EXPECT_TRUE((0 + checked{INT_MAX} == checked{INT_MAX}).value());
+    EXPECT_TRUE((1 + checked{INT_MAX}).is_overflow());
 
     EXPECT_TRUE((checked{0} + checked{INT_MIN} == checked{INT_MIN}).value());
     EXPECT_TRUE((checked{-1} + checked{INT_MIN}).is_overflow());
