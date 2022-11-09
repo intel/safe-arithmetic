@@ -5,7 +5,7 @@
 
 #include <type_traits>
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<
         typename LhsT,
         typename RhsT>

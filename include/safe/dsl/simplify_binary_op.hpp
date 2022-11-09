@@ -6,7 +6,7 @@
 
 #include <type_traits>
 
-namespace safe_dsl::detail {
+namespace safe::dsl::detail {
     template<typename T>
     using enable_for_binary_op_t = typename std::enable_if_t<std::is_base_of_v<binary_op, T>>;
 

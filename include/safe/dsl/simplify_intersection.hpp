@@ -7,7 +7,7 @@
 
 #include <type_traits>
 
-namespace safe_dsl::detail {
+namespace safe::dsl::detail {
     using namespace boost::mp11;
 
 
@@ -27,18 +27,18 @@ namespace safe_dsl::detail {
     };
 
     template<typename NextInterval>
-    struct interval_intersection_merge<safe_dsl::intersection_t<>, NextInterval> {
-        using type = safe_dsl::intersection_t<NextInterval>;
+    struct interval_intersection_merge<safe::dsl::intersection_t<>, NextInterval> {
+        using type = safe::dsl::intersection_t<NextInterval>;
     };
 
     template<typename IntervalList, typename NextInterval>
     using interval_intersection_merge_t = typename interval_intersection_merge<IntervalList, NextInterval>::type;
 
     template<typename T0, typename T1, typename... Ts>
-    struct simplify<safe_dsl::intersection_t<T0, T1, Ts...>> {
-        using flat_intersection = mp_flatten<safe_dsl::intersection_t<simplify_t<T0>, simplify_t<T1>, simplify_t<Ts>...>>;
+    struct simplify<safe::dsl::intersection_t<T0, T1, Ts...>> {
+        using flat_intersection = mp_flatten<safe::dsl::intersection_t<simplify_t<T0>, simplify_t<T1>, simplify_t<Ts>...>>;
         using sorted_intersection = mp_sort<flat_intersection, interval_less>;
-        using merged_intersection = mp_fold<sorted_intersection, safe_dsl::intersection_t<>, interval_intersection_merge_t>;
+        using merged_intersection = mp_fold<sorted_intersection, safe::dsl::intersection_t<>, interval_intersection_merge_t>;
 
         using type =
             mp_if<
@@ -53,7 +53,7 @@ namespace safe_dsl::detail {
 
 
     template<typename T>
-    struct simplify<safe_dsl::intersection_t<T>> {
+    struct simplify<safe::dsl::intersection_t<T>> {
         using type = T;
     };
 }

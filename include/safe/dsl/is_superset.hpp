@@ -4,7 +4,7 @@
 #include <safe/dsl/is_subset.hpp>
 #include <safe/dsl/simplify_fwd.hpp>
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<typename T, typename U>
     using is_superset = is_subset<U, T>;
 

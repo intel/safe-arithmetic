@@ -6,7 +6,7 @@
 #include <safe/dsl/simplify_fwd.hpp>
 
 
-namespace safe_dsl::detail {
+namespace safe::dsl::detail {
     template<typename... Ts>
     struct all_of {
         using type = all_of;
@@ -29,17 +29,17 @@ namespace safe_dsl::detail {
 
 
     template<typename... LhsTs, typename RhsT>
-    struct simplify<safe_dsl::is_subset<union_t<LhsTs...>, RhsT>>
-        : public all_of<safe_dsl::is_subset<LhsTs, simplify_t<RhsT>>...>
+    struct simplify<safe::dsl::is_subset<union_t<LhsTs...>, RhsT>>
+        : public all_of<safe::dsl::is_subset<LhsTs, simplify_t<RhsT>>...>
     {};
 
     template<typename LhsT, typename... RhsTs>
-    struct simplify<safe_dsl::is_subset<LhsT, union_t<RhsTs...>>>
-        : public any_of<safe_dsl::is_subset<simplify_t<LhsT>, RhsTs>...>
+    struct simplify<safe::dsl::is_subset<LhsT, union_t<RhsTs...>>>
+        : public any_of<safe::dsl::is_subset<simplify_t<LhsT>, RhsTs>...>
     {};
 
     template<typename... LhsTs, typename... RhsTs>
-    struct simplify<safe_dsl::is_subset<union_t<LhsTs...>, union_t<RhsTs...>>>
-        : public all_of<safe_dsl::is_subset<LhsTs, union_t<RhsTs...>>...>
+    struct simplify<safe::dsl::is_subset<union_t<LhsTs...>, union_t<RhsTs...>>>
+        : public all_of<safe::dsl::is_subset<LhsTs, union_t<RhsTs...>>...>
     {};
 }

@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<typename T, typename U>
     struct modulo : public binary_op {};
 

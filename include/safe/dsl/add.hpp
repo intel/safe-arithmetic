@@ -3,7 +3,9 @@
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/fwd.hpp>
 
-namespace safe_dsl {
+#include <safe/checked.hpp>
+
+namespace safe::dsl {
     template<typename T, typename U>
     struct add : public binary_op {};
 
@@ -16,7 +18,10 @@ namespace safe_dsl {
     >
         : public binary_op
     {
-        using type = ival_t<lhs_min + rhs_min, lhs_max + rhs_max>;
+        using type = ival_t<
+            c_<lhs_min> + c_<rhs_min>,
+            c_<lhs_max> + c_<rhs_max>
+        >;
     };
 
     template<

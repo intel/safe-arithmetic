@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-namespace safe_dsl {
+namespace safe::dsl {
     namespace detail {
         template<typename T>
         [[nodiscard]] constexpr T abs(T value) {

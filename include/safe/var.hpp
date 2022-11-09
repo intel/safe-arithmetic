@@ -102,7 +102,7 @@ namespace safe {
         [[nodiscard]] constexpr auto bin_op(RhsT rhs, OpT op) const {
             auto result = op(value_, rhs.value_);
             using result_t = decltype(result);
-            auto result_req = safe_dsl::detail::simp(op(requirement, rhs.requirement));
+            auto result_req = safe::dsl::detail::simp(op(requirement, rhs.requirement));
             return var<result_t, result_req>{result};
         }
 
@@ -240,7 +240,7 @@ namespace std {
         using common_type = std::common_type_t<LhsT, RhsT>;
         auto result = std::min<common_type>(lhs.value_, rhs.value_);
         using result_t = decltype(result);
-        auto result_req = safe_dsl::detail::simp(safe_dsl::min(lhs.requirement, rhs.requirement));
+        auto result_req = safe::dsl::detail::simp(safe::dsl::min(lhs.requirement, rhs.requirement));
         return safe::var<result_t, result_req>{result};
     }
 
@@ -257,7 +257,7 @@ namespace std {
         using common_type = std::common_type_t<LhsT, RhsT>;
         auto result = std::max<common_type>(lhs.value_, rhs.value_);
         using result_t = decltype(result);
-        auto result_req = safe_dsl::detail::simp(safe_dsl::max(lhs.requirement, rhs.requirement));
+        auto result_req = safe::dsl::detail::simp(safe::dsl::max(lhs.requirement, rhs.requirement));
         return safe::var<result_t, result_req>{result};
     }
 
@@ -339,7 +339,7 @@ namespace std {
         safe::var<U, OtherRequirement> const value
     ) {
         auto result = std::abs(value.value_);
-        auto result_req = safe_dsl::detail::simp(safe_dsl::abs(value.requirement));
+        auto result_req = safe::dsl::detail::simp(safe::dsl::abs(value.requirement));
         return safe::var<U, result_req>{result};
     }
 }

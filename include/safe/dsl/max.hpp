@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<typename T, typename U>
     struct max_t : public binary_op {};
 

@@ -1,11 +1,12 @@
 
 add_subdirectory(array)
 add_subdirectory(var)
+add_subdirectory(dsl)
 
-test_static_assert_pass(checked)
 
 # Google tests
-add_executable(gtests var.cpp invoke.cpp dsl.cpp array.cpp runtime_check.cpp)
+add_executable(gtests var.cpp invoke.cpp dsl.cpp array.cpp runtime_check.cpp checked.cpp)
+
 target_link_libraries(gtests PRIVATE safe_arithmetic gmock gtest gmock_main)
 
 include(GoogleTest)
