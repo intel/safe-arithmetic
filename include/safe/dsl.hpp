@@ -28,12 +28,12 @@
 
 
 namespace safe {
-    using safe_dsl::ival;
-    using safe_dsl::ival_t;
+    using safe::dsl::ival;
+    using safe::dsl::ival_t;
 
-    using safe_dsl::set;
-    using safe_dsl::set_t;
+    using safe::dsl::set;
+    using safe::dsl::set_t;
 
-    using safe_dsl::union_t;
-    using safe_dsl::intersection_t;
+    using safe::dsl::union_t;
+    using safe::dsl::intersection_t;
 }

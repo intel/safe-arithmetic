@@ -1,6 +1,6 @@
 #pragma once
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<typename... Intervals>
     struct union_t {
         using type = union_t;

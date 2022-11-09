@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<auto Min, auto Max>
     struct ival_t {
         using type = ival_t;

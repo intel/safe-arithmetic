@@ -7,7 +7,7 @@
 
 #include <type_traits>
 
-namespace safe_dsl::detail {
+namespace safe::dsl::detail {
     using namespace boost::mp11;
 
     template<typename LhsT, typename RhsT>

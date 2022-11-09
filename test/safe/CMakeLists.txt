@@ -1,6 +1,7 @@
 
 add_subdirectory(array)
 add_subdirectory(var)
+add_subdirectory(dsl)
 
 
 # Google tests

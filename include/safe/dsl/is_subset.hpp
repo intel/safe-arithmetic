@@ -3,7 +3,7 @@
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/simplify_fwd.hpp>
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<typename T, typename U>
     struct is_subset {};
 

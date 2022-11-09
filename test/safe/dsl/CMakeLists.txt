@@ -1,0 +1,2 @@
+test_static_assert_fail(ival_shift_left_overflow)
+test_static_assert_fail(ival_unsigned_shift_left_overflow)

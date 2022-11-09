@@ -78,7 +78,7 @@ struct modulo_test_op {
                 calc_interval<long>(lhs, rhs, [](auto a, auto b){return a % b;});
 
             constexpr auto actual =
-                safe_dsl::detail::simp(lhs % rhs);
+                safe::dsl::detail::simp(lhs % rhs);
 
             EXPECT_TRUE(expected <= actual);
         }
@@ -100,7 +100,7 @@ struct divide_test_op {
                 calc_interval<long>(lhs, rhs, [](auto a, auto b){return a / b;});
 
             constexpr auto actual =
-                safe_dsl::detail::simp(lhs / rhs);
+                safe::dsl::detail::simp(lhs / rhs);
 
             EXPECT_EQ(expected.min, actual.min);
             EXPECT_EQ(expected.max, actual.max);
@@ -118,7 +118,7 @@ struct add_test_op {
             calc_interval<long>(lhs, rhs, [](auto a, auto b){return a + b;});
 
         constexpr auto actual =
-            safe_dsl::detail::simp(lhs + rhs);
+            safe::dsl::detail::simp(lhs + rhs);
 
         EXPECT_EQ(expected.min, actual.min);
         EXPECT_EQ(expected.max, actual.max);
@@ -135,7 +135,7 @@ struct minus_test_op {
             calc_interval<long>(lhs, rhs, [](auto a, auto b){return a - b;});
 
         constexpr auto actual =
-            safe_dsl::detail::simp(lhs - rhs);
+            safe::dsl::detail::simp(lhs - rhs);
 
         EXPECT_EQ(expected.min, actual.min);
         EXPECT_EQ(expected.max, actual.max);
@@ -152,7 +152,7 @@ struct multiply_test_op {
             calc_interval<long>(lhs, rhs, [](auto a, auto b){return a * b;});
 
         constexpr auto actual =
-            safe_dsl::detail::simp(lhs * rhs);
+            safe::dsl::detail::simp(lhs * rhs);
 
         EXPECT_EQ(expected.min, actual.min);
         EXPECT_EQ(expected.max, actual.max);

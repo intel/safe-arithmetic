@@ -102,7 +102,7 @@ namespace safe {
         template<typename U>
         [[nodiscard]] friend constexpr auto operator+(checked<T> lhs, checked<U> rhs) {
             using ret_t =
-                decltype(value_ + rhs.value_);
+                decltype(lhs.value_ + rhs.value_);
 
             auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
@@ -112,13 +112,13 @@ namespace safe {
             constexpr auto lowest = std::numeric_limits<ret_t>::lowest();
 
             bool const overflow =
-                (right_value > zero) &
+                (right_value > zero) &&
                 (left_value > max - right_value);
 
             bool const underflow = [&](){
                 if constexpr (std::numeric_limits<ret_t>::is_signed) {
                     return
-                        (right_value < zero) &
+                        (right_value < zero) &&
                         (left_value < lowest - right_value);
 
                 } else {
@@ -137,7 +137,7 @@ namespace safe {
         template<typename U>
         [[nodiscard]] friend constexpr auto operator-(checked<T> lhs, checked<U> rhs) {
             using ret_t =
-                decltype(value_ - rhs.value_);
+                decltype(lhs.value_ - rhs.value_);
 
             auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
@@ -147,11 +147,11 @@ namespace safe {
             constexpr auto lowest = std::numeric_limits<ret_t>::lowest();
 
             bool const overflow =
-                (right_value < zero) &
+                (right_value < zero) &&
                 (left_value > max + right_value);
 
             bool const underflow =
-                (right_value > zero) &
+                (right_value > zero) &&
                 (left_value < lowest + right_value);
 
             if (overflow | underflow | lhs.overflow_ | rhs.overflow_) {
@@ -162,10 +162,11 @@ namespace safe {
         }
 
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
+        // https://stackoverflow.com/questions/1815367/catch-and-compute-overflow-during-multiplication-of-two-large-integers
         template<typename U>
         [[nodiscard]] friend constexpr auto operator*(checked<T> lhs, checked<U> rhs) {
             using ret_t =
-                decltype(value_ * rhs.value_);
+                decltype(lhs.value_ * rhs.value_);
 
             auto const left_value = static_cast<ret_t>(lhs.value_);
             auto const right_value = static_cast<ret_t>(rhs.value_);
@@ -175,13 +176,13 @@ namespace safe {
             constexpr auto lowest = std::numeric_limits<ret_t>::lowest();
 
             bool const overflow =
-                (right_value != zero) &
+                (right_value > zero) &&
                 (left_value > (max / right_value));
 
             bool const underflow = [&](){
                 if constexpr (std::numeric_limits<ret_t>::is_signed) {
                     return
-                        (right_value != zero) &
+                        (right_value > zero) &&
                         (left_value < (lowest / right_value));
 
                 } else {
@@ -197,8 +198,8 @@ namespace safe {
                     constexpr auto neg_one = static_cast<ret_t>(-1);
 
                     return
-                        ((left_value == neg_one) & (right_value == lowest)) |
-                        ((right_value == neg_one) & (left_value == lowest));
+                        ((left_value == neg_one) && (right_value == lowest)) |
+                        ((right_value == neg_one) && (left_value == lowest));
 
                 } else {
                     return false;
@@ -235,8 +236,8 @@ namespace safe {
                     constexpr auto neg_one = static_cast<ret_t>(-1);
 
                     return
-                        ((left_value == neg_one) & (right_value == lowest)) |
-                        ((right_value == neg_one) & (left_value == lowest));
+                        ((left_value == neg_one) && (right_value == lowest)) |
+                        ((right_value == neg_one) && (left_value == lowest));
 
                 } else {
                     return false;
@@ -391,4 +392,57 @@ namespace safe {
             }
         }
     };
+
+    template<auto V>
+    struct checked_t {
+        constexpr static auto value{V};
+    };
+
+    template<auto V>
+    constexpr checked_t<V> checked_{};
+
+    template<auto V>
+    constexpr checked_t<V> c_{};
+
+    template<auto lhs, auto rhs>
+    [[nodiscard]] constexpr auto operator+(checked_t<lhs>, checked_t<rhs>) {
+        constexpr auto result = checked{lhs} + checked{rhs};
+        static_assert(!result.is_overflow());
+        return result.value();
+    }
+
+    template<auto lhs, auto rhs>
+    [[nodiscard]] constexpr auto operator-(checked_t<lhs>, checked_t<rhs>) {
+        constexpr auto result = checked{lhs} - checked{rhs};
+        static_assert(!result.is_overflow());
+        return result.value();
+    }
+
+    template<auto lhs, auto rhs>
+    [[nodiscard]] constexpr auto operator*(checked_t<lhs>, checked_t<rhs>) {
+        constexpr auto result = checked{lhs} * checked{rhs};
+        static_assert(!result.is_overflow());
+        return result.value();
+    }
+
+    template<auto lhs, auto rhs>
+    [[nodiscard]] constexpr auto operator/(checked_t<lhs>, checked_t<rhs>) {
+        constexpr auto result = checked{lhs} / checked{rhs};
+        static_assert(!result.is_overflow());
+        return result.value();
+    }
+
+    template<auto lhs, auto rhs>
+    [[nodiscard]] constexpr auto operator<<(checked_t<lhs>, checked_t<rhs>) {
+        constexpr auto result = checked{lhs} << checked{rhs};
+        static_assert(!result.is_overflow());
+        return result.value();
+    }
+
+    template<auto lhs, auto rhs>
+    [[nodiscard]] constexpr auto operator>>(checked_t<lhs>, checked_t<rhs>) {
+        constexpr auto result = checked{lhs} >> checked{rhs};
+        static_assert(!result.is_overflow());
+        return result.value();
+    }
 }

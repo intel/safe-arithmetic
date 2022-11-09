@@ -1,6 +1,6 @@
 #pragma once
 
-namespace safe_dsl {
+namespace safe::dsl {
     template<typename... Intervals>
     struct intersection_t {
         using type = intersection_t;
