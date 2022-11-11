@@ -23,6 +23,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/set.hpp>
+#include <safe/dsl/mask.hpp>
 
 #include <safe/dsl/simplify.hpp>
 
@@ -30,6 +31,9 @@
 namespace safe {
     using safe::dsl::ival;
     using safe::dsl::ival_t;
+
+    using safe::dsl::mask;
+    using safe::dsl::mask_t;
 
     using safe::dsl::set;
     using safe::dsl::set_t;
