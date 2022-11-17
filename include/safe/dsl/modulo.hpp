@@ -5,19 +5,72 @@
 
 #include <cstdint>
 
+
+/*
+ * C++ `%` operator is not modulo, but it is close.
+ *
+ * a % -b == a % b
+ * -a % b = -(a % b)
+ *
+ * return [0, rhs.max - 1] (worst case)
+ *                                   -0+                       |-- lhs --|
+ *                                   -0+            |-- rhs --|
+ *
+ * return [0, lhs.max - lhs.min] u [lhs.min, lhs.max - 1]
+ *                                   -0+            |-- lhs --|
+ *                                   -0+            |-- rhs --|
+ *
+ * return lhs
+ *                                   -0+ |-- lhs --|
+ *                                   -0+            |-- rhs --|
+ *
+ * return lhs
+ *                       |-- lhs --| -0+ :   lhs   :
+ *            :   rhs   :            -0+            |-- rhs --|
+ *
+ * return [abs(lhs.max - lhs.min), 0] u [lhs.min + 1, lhs.max] // [lhs.min + 1, 0]
+ *            |-- lhs --|            -0+            :   lhs   :
+ *            :   rhs   :            -0+            |-- rhs --|
+ *
+ * return -[0, rhs.max - 1] (worst case)
+ * |-- lhs --|                       -0+                       :   lhs   :
+ *            :   rhs   :            -0+            |-- rhs --|
+ *
+ */
+
 namespace safe::dsl {
     template<typename T, typename U>
     struct modulo : public binary_op {};
 
     namespace detail {
-        // https://stackoverflow.com/questions/31057473/calculating-the-modulo-of-two-intervals
-
         struct interval_value {
             int64_t min;
             int64_t max;
+
+            // empty interval
+            constexpr interval_value()
+                : min{1}
+                , max{-1}
+            {}
+
+            constexpr interval_value(
+                int64_t min_arg,
+                int64_t max_arg
+            )
+                : min{min_arg}
+                , max{max_arg}
+            {}
+
+            [[nodiscard]] constexpr bool empty() const {
+                return min > max;
+            }
         };
 
-        constexpr int64_t abs(int64_t v) {
+        [[nodiscard]] constexpr interval_value operator-(interval_value v) {
+            return interval_value{-v.max, -v.min};
+        }
+
+        [[nodiscard]] constexpr int64_t abs(int64_t v) {
             if (v < 0) {
                 return -v;
             } else {
@@ -25,96 +78,154 @@ namespace safe::dsl {
             }
         }
 
-        constexpr interval_value operator-(interval_value v) {
-            return interval_value{-v.max, -v.min};
-        }
+        [[nodiscard]] constexpr interval_value abs(interval_value v) {
+            if (v.empty()) {
+                return {};
 
-        constexpr interval_value operator|(interval_value lhs, interval_value rhs) {
-            return interval_value{
-                std::min(lhs.min, rhs.min),
-                std::max(lhs.max, rhs.max)
-            };
-        }
+            } else if (v.min >= 0 && v.max >= 0) {
+                return v;
 
+            } else if (v.min <= 0 && v.max <= 0) {
+                return -v;
 
-        constexpr interval_value mod1_body(
-            interval_value lhs,
-            int64_t rhs
-        ) {
-            // (4): there is no k > 0 such that lhs.min < k*rhs <= lhs.max
-            if (
-                ((lhs.max - lhs.min) < abs(rhs)) &&
-                ((lhs.min % rhs) <= (lhs.max % rhs))
-            ) {
-                return {lhs.min % rhs, lhs.max % rhs};
-
-            // (5): we can't do better than that
             } else {
-                return {0, abs(rhs) - 1};
+                return {0, std::max(std::abs(v.min), std::abs(v.max))};
             }
         }
 
-        constexpr interval_value mod1(
-            interval_value lhs,
-            int64_t rhs
-        ) {
-            // (2): compute modulo with positive ival and negate
-            if (lhs.max < 0) {
-                return -mod1_body(-lhs, rhs);
+        [[nodiscard]] constexpr interval_value operator|(interval_value lhs, interval_value rhs) {
+            if (lhs.empty()) {
+                return rhs;
 
-            // (3): split into negative and non-negative ival, compute and join
-            } else if (lhs.min < 0) {
-                return mod1_body({lhs.min, -1}, rhs) | mod1_body({0, lhs.max}, rhs);
+            } else if (rhs.empty()) {
+                return lhs;
 
             } else {
-                return mod1_body(lhs, rhs);
+                return interval_value{
+                    std::min(lhs.min, rhs.min),
+                    std::max(lhs.max, rhs.max)
+                };
             }
         }
 
-        constexpr interval_value mod2(
+        [[nodiscard]] constexpr interval_value operator&(interval_value lhs, interval_value rhs) {
+            if (lhs.empty() || rhs.empty()) {
+                return {};
+            } else {
+                return interval_value{
+                    std::max(lhs.min, rhs.min),
+                    std::min(lhs.max, rhs.max)
+                };
+            }
+        }
+
+        /**
+         * Get portion of lhs that is less than rhs.
+         *
+         * @param lhs
+         * @param rhs
+         * @return
+         */
+        [[nodiscard]] constexpr interval_value get_lower(
             interval_value lhs,
             interval_value rhs
         ) {
-            // (2): compute modulo with positive ival and negate
-            if (lhs.max < 0) {
-                return -mod2(-lhs, rhs);
+            return {lhs.min, std::min(lhs.max, rhs.min - 1)};
+        }
 
-            // (3): split into negative and non-negative ival, compute, and join
-            } else if (lhs.min < 0) {
-                return mod2({lhs.min, -1}, rhs) | mod2({0, lhs.max}, rhs);
+        /**
+         * Get portion of lhs that is greater than rhs.
+         *
+         * @param lhs
+         * @param rhs
+         * @return
+         */
+        [[nodiscard]] constexpr interval_value get_upper(
+            interval_value lhs,
+            interval_value rhs
+        ) {
+            return {std::max(lhs.min, rhs.max + 1), lhs.max};
+        }
 
-            // (4): use the simpler function from before
-            } else if (rhs.min == rhs.max) {
-                return mod1(lhs, rhs.min);
+        [[nodiscard]] constexpr interval_value get_positive(interval_value v) {
+            return {std::max(0ll, v.min), v.max};
+        }
 
-            // (5): use only non-negative rhs
-            } else if (rhs.max <= 0) {
-                return mod2(lhs, -rhs);
+        [[nodiscard]] constexpr interval_value get_negative(interval_value v) {
+            return {v.min, std::min(v.max, -1ll)};
+        }
 
-            // (6): similar to (5), make modulus non-negative
-            } else if (rhs.min <= 0) {
-                return mod2(lhs, {1, std::max(-rhs.min, rhs.max)});
-
-            // (7): compare to (4) in mod1, check lhs.max-lhs.min < |modulus|
-            } else if (lhs.max - lhs.min >= rhs.max) {
-                return {0, rhs.max - 1};
-
-            // (8): similar to (7), split ival, compute, and join
-            } else if (lhs.max - lhs.min >= rhs.min) {
-                return interval_value{0, lhs.max - lhs.min - 1} | mod2(lhs, {lhs.max - lhs.min + 1, rhs.max});
-
-            // (9): modulo has no effect
-            } else if (rhs.min > lhs.max) {
+        [[nodiscard]] constexpr interval_value mod_lhs_low(
+            interval_value lhs,
+            interval_value rhs
+        ) {
+            if (lhs.empty() || rhs.empty()) {
+                return {};
+            } else {
                 return lhs;
+            }
+        }
 
-            // (10): there is some overlapping of lhs and rhs
-            } else if (rhs.max > lhs.max) {
-                return {0, lhs.max};
-
-            // (11): either compute all possibilities and join, or be imprecise
+        [[nodiscard]] constexpr interval_value mod_lhs_high(
+            interval_value lhs,
+            interval_value rhs
+        ) {
+            // TODO: this could be smaller
+            if (lhs.empty() || rhs.empty()) {
+                return {};
             } else {
                 return {0, rhs.max - 1};
             }
+        }
+
+        [[nodiscard]] constexpr interval_value mod_mid(
+            interval_value mid
+        ) {
+            if (mid.empty()) {
+                return {};
+            } else {
+                return interval_value{0, 0} | interval_value{mid.min, mid.max - 1};
+            }
+        }
+
+        [[nodiscard]] constexpr interval_value pos_mod(
+            interval_value lhs,
+            interval_value rhs
+        ) {
+            if (lhs.empty() || rhs.empty()) {
+                return {};
+            } else {
+                auto const lhs_low = get_lower(lhs, rhs);
+                auto const lhs_high = get_upper(lhs, rhs);
+
+                auto const mid = lhs & rhs;
+
+                auto const rhs_low = get_lower(rhs, lhs);
+                auto const rhs_high = get_upper(rhs, lhs);
+
+                return
+                    mod_lhs_low(lhs_low, mid) |
+                    mod_lhs_low(lhs_low, rhs_high) |
+                    mod_lhs_high(mid, rhs_low) |
+                    mod_mid(mid) |
+                    mod_lhs_low(mid, rhs_high) |
+                    mod_lhs_high(lhs_high, rhs_low) |
+                    mod_lhs_high(lhs_high, mid);
+            }
+        }
+
+        [[nodiscard]] constexpr interval_value mod(
+            interval_value lhs,
+            interval_value rhs
+        ) {
+            auto const pos_lhs = get_positive(lhs);
+            auto const neg_lhs = get_negative(lhs);
+
+            auto const pos_rhs = abs(rhs);
+
+            return
+                pos_mod(pos_lhs, pos_rhs) |
+                -pos_mod(-neg_lhs, pos_rhs);
         }
     }
 
@@ -134,7 +245,7 @@ namespace safe::dsl {
         );
 
         constexpr static detail::interval_value value =
-            detail::mod2({lhs_min, lhs_max}, {rhs_min, rhs_max});
+            detail::mod({lhs_min, lhs_max}, {rhs_min, rhs_max});
 
         using type = ival_t<value.min, value.max>;
     };

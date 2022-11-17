@@ -206,6 +206,11 @@ TEST(safe_dsl_test, divide_op) {
     >();
 }
 
+template<typename T>
+struct show {
+    constexpr static bool value = false;
+};
+
 TEST(safe_dsl_test, modulo_op) {
     test_operation<
         modulo_test_op,
@@ -225,15 +230,18 @@ TEST(safe_dsl_test, modulo_op) {
         operands<5>
     >();
 
+
     EXPECT_EQ(
         (ival<0, 1000> % ival<100, 100>),
         (ival<0l, 99l>)
     );
 
+
     EXPECT_EQ(
         (ival<0, 50> % ival<100, 100>),
         (ival<0l, 50l>)
     );
+
 
     EXPECT_EQ(
         (ival<0, 300> % ival<1000, 1000>),
@@ -269,6 +277,8 @@ TEST(safe_dsl_test, modulo_op) {
         (ival<0, 100> % ival<1, 50>),
         (ival<0l, 49l>)
     );
+
+
 }
 
 TEST(safe_dsl_test, ival_union_simplification) {
