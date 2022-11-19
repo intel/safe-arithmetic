@@ -506,3 +506,24 @@ TEST(safe_dsl_test, mask_bitwise_invert) {
 }
 
 
+TEST(safe_dsl_test, mask_shift_left) {
+    EXPECT_EQ((mask<0b0> << ival<0, 0>), mask<0b0>);
+    EXPECT_EQ((mask<0b1> << ival<1, 1>), mask<0b10>);
+
+    EXPECT_EQ((mask<0b1> << ival<0, 1>), mask<0b11>);
+    EXPECT_EQ((mask<0b1> << ival<0, 4>), mask<0b11111>);
+    EXPECT_EQ((mask<0b1> << ival<4, 8>), mask<0b111110000>);
+
+
+    EXPECT_EQ((mask<0b1000001> << ival<0, 1>), mask<0b11000011>);
+    EXPECT_EQ((mask<0b1000001> << ival<2, 4>), mask<0b11100011100>);
+}
+
+
+TEST(safe_dsl_test, mask_shift_right) {
+    EXPECT_EQ((mask<0b1000> >> ival<0, 0>), mask<0b1000>);
+    EXPECT_EQ((mask<0b1000> >> ival<1, 1>), mask<0b0100>);
+
+    EXPECT_EQ((mask<0b1000> >> ival<0, 1>), mask<0b1100>);
+    EXPECT_EQ((mask<0b10000000> >> ival<4, 6>), mask<0b1110>);
+}
