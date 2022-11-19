@@ -3,18 +3,19 @@
 #include <type_traits>
 
 namespace safe::dsl {
-    template<auto AllowedBits>
+    template<auto VariableBits, auto ConstantBits = 0u>
     struct mask_t {
         using type = mask_t;
 
-        constexpr static auto allowed_bits = AllowedBits;
+        constexpr static auto variable_bits = VariableBits;
+        constexpr static auto constant_bits = ConstantBits;
 
 
         [[nodiscard]] constexpr static bool check(auto value) {
-            return (~allowed_bits & value) == 0;
+            return (~variable_bits & value) == constant_bits;
         }
     };
 
-    template<auto AllowedBits>
-    constexpr mask_t<AllowedBits> mask{};
+    template<auto VariableBits, auto ConstantBits = 0u>
+    constexpr mask_t<VariableBits, ConstantBits> mask{};
 }

@@ -9,6 +9,10 @@
 
 #include <safe/dsl/shift_left.hpp>
 #include <safe/dsl/shift_right.hpp>
+#include <safe/dsl/bitwise_or.hpp>
+#include <safe/dsl/bitwise_and.hpp>
+#include <safe/dsl/bitwise_xor.hpp>
+#include <safe/dsl/bitwise_invert.hpp>
 
 #include <safe/dsl/min.hpp>
 #include <safe/dsl/max.hpp>
