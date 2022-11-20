@@ -527,3 +527,17 @@ TEST(safe_dsl_test, mask_shift_right) {
     EXPECT_EQ((mask<0b1000> >> ival<0, 1>), mask<0b1100>);
     EXPECT_EQ((mask<0b10000000> >> ival<4, 6>), mask<0b1110>);
 }
+
+
+TEST(safe_dsl_test, mask_ival_eq) {
+    EXPECT_TRUE((ival<0, 15> <= mask<0b1111>));
+    EXPECT_TRUE((ival<0, 15> >= mask<0b1111>));
+
+    EXPECT_TRUE((ival<0, 15> == mask<0b1111>));
+
+    EXPECT_TRUE((ival<0, 14> >= mask<0b1110>));
+    EXPECT_FALSE((ival<0, 14> <= mask<0b1110>));
+    EXPECT_TRUE((ival<0, 14> != mask<0b1110>));
+}
+
+

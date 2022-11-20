@@ -19,7 +19,6 @@ namespace safe::dsl {
     >
         : public binary_op
     {
-        // NOTE: any bit could be set from either mask
         using type = mask_t<
             lhs_var_bits | rhs_var_bits,
             lhs_const_bits ^ rhs_const_bits
