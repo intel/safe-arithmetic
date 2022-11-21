@@ -1,8 +1,9 @@
 #pragma once
 
 #include <safe/dsl/ival.hpp>
+#include <safe/dsl/mask.hpp>
 #include <safe/dsl/fwd.hpp>
-
+#include <safe/dsl/primitive.hpp>
 #include <safe/checked.hpp>
 
 namespace safe::dsl {
@@ -10,17 +11,17 @@ namespace safe::dsl {
     struct add : public binary_op {};
 
     template<
-        auto lhs_min, auto lhs_max,
-        auto rhs_min, auto rhs_max>
-    struct add<
-        ival_t<lhs_min, lhs_max>,
-        ival_t<rhs_min, rhs_max>
-    >
+        detail::Primitive LhsT,
+        detail::Primitive RhsT>
+    struct add<LhsT, RhsT>
         : public binary_op
     {
+        using lhs = detail::to_ival_t<LhsT>;
+        using rhs = detail::to_ival_t<RhsT>;
+
         using type = ival_t<
-            c_<lhs_min> + c_<rhs_min>,
-            c_<lhs_max> + c_<rhs_max>
+            c_<lhs::min> + c_<rhs::min>,
+            c_<lhs::max> + c_<rhs::max>
         >;
     };
 

@@ -327,28 +327,6 @@ TEST(safe_dsl_test, intersection_simplification) {
     );
 }
 
-TEST(safe_dsl_test, addition_union_simplification) {
-    EXPECT_EQ(
-        (ival<0, 10> + ival<20, 30>),
-        (ival<20, 40>)
-    );
-
-    EXPECT_EQ(
-        ((ival<0, 10> || ival<40, 80>) + ival<20, 30>),
-        (ival<20, 40> || ival<60, 110>)
-    );
-
-    EXPECT_EQ(
-        (ival<20, 30> + (ival<0, 10> || ival<40, 80>)),
-        (ival<20, 40> || ival<60, 110>)
-    );
-
-    EXPECT_EQ(
-        ((ival<0, 10> || ival<100, 200>) + (ival<20, 30> || ival<400, 800>)),
-        (ival<20, 40> || ival<120, 230> || ival<400, 1000>)
-    );
-}
-
 TEST(safe_dsl_test, subtraction_union_simplification) {
     EXPECT_EQ(
         (ival<0, 10> - ival<20, 30>),
