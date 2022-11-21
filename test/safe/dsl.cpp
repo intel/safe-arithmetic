@@ -529,6 +529,22 @@ TEST(safe_dsl_test, mask_shift_right) {
 }
 
 
+TEST(safe_dsl_test, detail_is_basic_mask) {
+    EXPECT_TRUE(dsl::detail::is_basic_mask(0xffffffff));
+    EXPECT_TRUE(dsl::detail::is_basic_mask(0xffffffffu));
+
+    EXPECT_TRUE(dsl::detail::is_basic_mask(0b1111111111));
+    EXPECT_TRUE(dsl::detail::is_basic_mask(0b0000111111));
+    EXPECT_TRUE(dsl::detail::is_basic_mask(0b0000000001));
+    EXPECT_TRUE(dsl::detail::is_basic_mask(0b0000000000));
+
+
+    EXPECT_FALSE(dsl::detail::is_basic_mask(0x80000000));
+    EXPECT_FALSE(dsl::detail::is_basic_mask(0b0000000010));
+    EXPECT_FALSE(dsl::detail::is_basic_mask(0b0100011111));
+    EXPECT_FALSE(dsl::detail::is_basic_mask(0b1111110111));
+}
+
 TEST(safe_dsl_test, mask_ival_eq) {
     EXPECT_TRUE((ival<0, 15> <= mask<0b1111>));
     EXPECT_TRUE((ival<0, 15> >= mask<0b1111>));
@@ -539,5 +555,4 @@ TEST(safe_dsl_test, mask_ival_eq) {
     EXPECT_FALSE((ival<0, 14> <= mask<0b1110>));
     EXPECT_TRUE((ival<0, 14> != mask<0b1110>));
 }
-
 

@@ -14,6 +14,7 @@ using namespace safe::int_types;
 using namespace safe::literals;
 
 using safe::ival;
+using safe::mask;
 
 template <typename T>
 class safe_int_assign_test : public testing::Test { };
@@ -145,5 +146,29 @@ TEST(safe_var_test, negate_op) {
 TEST(safe_var_test, abs_op) {
     auto const result = std::abs(-42_s32);
     EXPECT_EQ(result.unsafe_value(), 42);
+}
+
+TEST(safe_var_test, bitwise_or_op) {
+    safe::var<uint32_t, mask<0xff>> const a = 15_s32;
+    safe::var<uint32_t, mask<0xff>> const b = 9_s32;
+    auto const result = a & b;
+    EXPECT_EQ(result.unsafe_value(), 9);
+}
+
+
+TEST(safe_var_test, use_case_bitfield_extract_1) {
+    safe::u32 const reg = u32_<0xba5eba11>;
+    auto const field = (reg >> u32_<16>) & u32_<0xff>;
+
+    EXPECT_TRUE(field.requirement <= mask<0xff>);
+    EXPECT_EQ(field.unsafe_value(), 0x5e);
+}
+
+TEST(safe_var_test, use_case_bitfield_extract_2) {
+    auto const reg = u32_<0xba5eba11>;
+    auto const field = (reg >> u32_<16>) & u32_<0xff>;
+
+    EXPECT_TRUE(field.requirement <= mask<0xff>);
+    EXPECT_EQ(field.unsafe_value(), 0x5e);
 }
 

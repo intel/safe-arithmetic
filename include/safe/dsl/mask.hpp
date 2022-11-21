@@ -9,12 +9,12 @@ namespace safe::dsl {
     struct mask_t {
         using type = mask_t;
 
-        constexpr static auto variable_bits = VariableBits;
-        constexpr static auto constant_bits = ConstantBits;
+        constexpr static auto var_bits = VariableBits;
+        constexpr static auto const_bits = ConstantBits;
 
 
         [[nodiscard]] constexpr static bool check(auto value) {
-            return (~variable_bits & value) == constant_bits;
+            return (~var_bits & value) == const_bits;
         }
     };
 
@@ -40,10 +40,33 @@ namespace safe::dsl {
         template<typename T>
         using to_ival_t = typename to_ival<T>::type;
 
+        [[nodiscard]] constexpr bool is_basic_mask(auto value) {
+            return ((value >> 1) & value) == (value >> 1);
+        }
+        
+        
+        template<typename T>
+        struct to_mask {};
 
         template<auto var_bits, auto const_bits>
-        [[nodiscard]] constexpr bool is_basic_mask(mask_t<var_bits, const_bits>) {
-            return ((var_bits >> 1) & var_bits) == (var_bits >> 1);
-        }
+        struct to_mask<mask_t<var_bits, const_bits>> {
+            using type = mask_t<var_bits, const_bits>;
+        };
+
+        template<auto min, auto max>
+        struct to_mask<ival_t<min, max>> {
+            // FIXME: this should be changed to generate a mask based on the first set bit
+            constexpr static auto var_bits = min | max;
+            static_assert(is_basic_mask(var_bits));
+            using type = mask_t<var_bits, 0u>;
+        };
+
+        template<auto value>
+        struct to_mask<ival_t<value, value>> {
+            using type = mask_t<0u, value>;
+        };
+
+        template<typename T>
+        using to_mask_t = typename to_mask<T>::type;
     }
 }

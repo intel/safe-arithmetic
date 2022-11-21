@@ -64,7 +64,7 @@ namespace safe::dsl {
             detail::to_ival<mask_t<rhs_variable_bits, rhs_constant_bits>>;
 
         constexpr static bool value =
-            detail::is_basic_mask(mask<rhs_variable_bits, rhs_constant_bits>) &&
+            detail::is_basic_mask(rhs_variable_bits) &&
             lhs_min >= rhs_ival::min &&
             lhs_max <= rhs_ival::max;
 
