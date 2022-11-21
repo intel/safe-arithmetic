@@ -2,26 +2,25 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/mask.hpp>
+#include <safe/dsl/primitive.hpp>
 #include <safe/dsl/fwd.hpp>
-
-#include <safe/checked.hpp>
 
 namespace safe::dsl {
     template<typename T, typename U>
     struct bitwise_xor : public binary_op {};
 
     template<
-        auto lhs_var_bits, auto lhs_const_bits,
-        auto rhs_var_bits, auto rhs_const_bits>
-    struct bitwise_xor<
-        mask_t<lhs_var_bits, lhs_const_bits>,
-        mask_t<rhs_var_bits, rhs_const_bits>
-    >
+        detail::Primitive LhsT,
+        detail::Primitive RhsT>
+    struct bitwise_xor<LhsT, RhsT>
         : public binary_op
     {
+        using lhs = detail::to_mask_t<LhsT>;
+        using rhs = detail::to_mask_t<RhsT>;
+
         using type = mask_t<
-            lhs_var_bits | rhs_var_bits,
-            lhs_const_bits ^ rhs_const_bits
+            lhs::var_bits | rhs::var_bits,
+            lhs::const_bits ^ rhs::const_bits
         >;
     };
 
