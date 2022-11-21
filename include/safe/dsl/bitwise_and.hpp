@@ -16,15 +16,15 @@ namespace safe::dsl {
     struct bitwise_and<LhsT, RhsT>
         : public binary_op
     {
-        using lhs_mask = detail::to_mask_t<LhsT>;
-        using rhs_mask = detail::to_mask_t<RhsT>;
+        using lhs = detail::to_mask_t<LhsT>;
+        using rhs = detail::to_mask_t<RhsT>;
 
         using type = mask_t<
             (
-                (lhs_mask::var_bits | lhs_mask::const_bits) &
-                (rhs_mask::var_bits | rhs_mask::const_bits)
+                (lhs::var_bits | lhs::const_bits) &
+                (rhs::var_bits | rhs::const_bits)
             ),
-            lhs_mask::const_bits & rhs_mask::const_bits
+            lhs::const_bits & rhs::const_bits
         >;
     };
 
