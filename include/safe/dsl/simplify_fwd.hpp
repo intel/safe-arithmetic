@@ -1,7 +1,10 @@
 #pragma once
 
+#include <safe/dsl/ival.hpp>
+#include <safe/dsl/mask.hpp>
 #include <safe/dsl/union.hpp>
 #include <safe/dsl/intersection.hpp>
+#include <safe/dsl/primitive.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -24,4 +27,13 @@ namespace safe::dsl::detail {
     [[nodiscard]] constexpr auto simp(T) {
         return simplify_t<T>{};
     }
+
+    template<typename T>
+    struct is_union : public std::integral_constant<bool, false> {};
+
+    template<typename... Ts>
+    struct is_union<union_t<Ts...>> : public std::integral_constant<bool, true> {};
+
+    template<typename T>
+    constexpr bool is_union_v = is_union<T>{};
 }

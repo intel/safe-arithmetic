@@ -208,6 +208,33 @@ namespace safe {
         template<
             typename RhsT,
             auto RhsRequirement>
+        [[nodiscard]] constexpr auto operator|(
+            var<RhsT, RhsRequirement> const rhs
+        ) const {
+            return bin_op(rhs, [](auto a, auto b){return a | b;});
+        }
+
+        template<
+            typename RhsT,
+            auto RhsRequirement>
+        [[nodiscard]] constexpr auto operator&(
+            var<RhsT, RhsRequirement> const rhs
+        ) const {
+            return bin_op(rhs, [](auto a, auto b){return a & b;});
+        }
+
+        template<
+            typename RhsT,
+            auto RhsRequirement>
+        [[nodiscard]] constexpr auto operator^(
+            var<RhsT, RhsRequirement> const rhs
+        ) const {
+            return bin_op(rhs, [](auto a, auto b){return a ^ b;});
+        }
+
+        template<
+            typename RhsT,
+            auto RhsRequirement>
         [[nodiscard]] constexpr std::strong_ordering operator<=>(
             var<RhsT, RhsRequirement> rhs
         ) const {

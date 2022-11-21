@@ -42,4 +42,19 @@ namespace safe::dsl::detail {
     struct simplify<safe::dsl::is_subset<union_t<LhsTs...>, union_t<RhsTs...>>>
         : public all_of<safe::dsl::is_subset<LhsTs, union_t<RhsTs...>>...>
     {};
+
+    template<typename LhsT, typename RhsT>
+    struct simplify<
+        safe::dsl::is_subset<LhsT, RhsT>,
+        std::enable_if_t<
+            !is_union_v<LhsT> &&
+            !is_union_v<RhsT> &&
+            (
+                !is_primitive_v<LhsT> ||
+                !is_primitive_v<RhsT>
+            )
+        >
+    >
+        : public simplify_t<is_subset<simplify_t<LhsT>, simplify_t<RhsT>>>
+    {};
 }
