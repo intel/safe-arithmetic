@@ -405,17 +405,6 @@ TEST(safe_dsl_test, complicated_expression_simplification) {
     );
 }
 
-TEST(safe_dsl_test, mask_bitwise_or) {
-    EXPECT_EQ(mask<0b0> | mask<0b0>, mask<0b0>);
-    EXPECT_EQ(mask<0b1> | mask<0b0>, mask<0b1>);
-    EXPECT_EQ(mask<0b0> | mask<0b1>, mask<0b1>);
-    EXPECT_EQ(mask<0b1> | mask<0b1>, mask<0b1>);
-
-    EXPECT_EQ(mask<0b01> | mask<0b10>, mask<0b11>);
-
-    EXPECT_EQ(mask<0xba5e0000> | mask<0x0000ba11>, mask<0xba5eba11>);
-}
-
 TEST(safe_dsl_test, mask_bitwise_xor) {
     EXPECT_EQ(mask<0b0> ^ mask<0b0>, mask<0b0>);
     EXPECT_EQ(mask<0b1> ^ mask<0b0>, mask<0b1>);

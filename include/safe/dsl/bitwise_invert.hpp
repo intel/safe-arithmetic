@@ -2,6 +2,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/mask.hpp>
+#include <safe/dsl/primitive.hpp>
 #include <safe/dsl/fwd.hpp>
 
 #include <safe/checked.hpp>
@@ -10,11 +11,10 @@ namespace safe::dsl {
     template<typename T>
     struct bitwise_invert {};
 
-    template<auto mask_value, auto fixed_value>
-    struct bitwise_invert<
-        mask_t<mask_value, fixed_value>
-    > {
-        using type = mask_t<mask_value, ~fixed_value>;
+    template<detail::Primitive T>
+    struct bitwise_invert<T> {
+        using prim_mask = detail::to_mask_t<T>;
+        using type = mask_t<prim_mask::var_bits, ~prim_mask::const_bits>;
     };
 
     template<typename T>
