@@ -22,13 +22,35 @@ namespace safe::dsl {
     constexpr mask_t<VariableBits, ConstantBits> mask{};
 
     namespace detail {
+        /**
+         * Takes a bitmask and sets all digits to the right of the first
+         * '1' to '1'.
+         */
+        [[nodiscard]] constexpr auto fill_in_bitmask(auto value) {
+            auto prev_value = value;
+
+            do {
+                prev_value = value;
+                value |= (value >> 1);
+            } while (prev_value != value);
+
+            return value;
+        }
+
         template<typename T>
         struct to_ival {};
 
         template<auto var_bits, auto const_bits>
         struct to_ival<mask_t<var_bits, const_bits>> {
-            constexpr static auto min = const_bits & ~var_bits;
-            constexpr static auto max = min + var_bits;
+            /// lower bits that can change, including gaps between var_bits
+            constexpr static auto var_portion = fill_in_bitmask(var_bits);
+
+            /// fixed bits that will never change, excludes the var_portion
+            constexpr static auto const_portion = const_bits & ~var_portion;
+
+            constexpr static auto min = const_portion;
+            constexpr static auto max = const_portion + (var_portion & var_bits);
+
             using type = ival_t<min, max>;
         };
 
@@ -44,20 +66,6 @@ namespace safe::dsl {
             return ((value >> 1) & value) == (value >> 1);
         }
 
-        /**
-         * Takes a bitmask and sets all digits to the right of the first
-         * '1' to '1'.
-         */
-        [[nodiscard]] constexpr auto fill_in_bitmask(auto value) {
-            auto prev_value = value;
-
-            do {
-                prev_value = value;
-                value |= (value >> 1);
-            } while (prev_value != value);
-
-            return value;
-        }
         
         template<typename T>
         struct to_mask {};

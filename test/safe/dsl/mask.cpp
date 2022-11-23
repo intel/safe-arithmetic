@@ -118,6 +118,30 @@ TEST(safe_dsl_test, ival_const_42_to_mask) {
     EXPECT_EQ(ival_mask::const_bits, 42);
 }
 
+TEST(safe_dsl_test, mask_14_to_ival) {
+    using mask_ival = dsl::detail::to_ival_t<mask_t<0b1110>>;
+    EXPECT_EQ(mask_ival::min, 0);
+    EXPECT_EQ(mask_ival::max, 14);
+}
+
+TEST(safe_dsl_test, mask_8_to_ival) {
+    using mask_ival = dsl::detail::to_ival_t<mask_t<0b1000>>;
+    EXPECT_EQ(mask_ival::min, 0);
+    EXPECT_EQ(mask_ival::max, 8);
+}
+
+TEST(safe_dsl_test, mask_8_256_to_ival) {
+    using mask_ival = dsl::detail::to_ival_t<mask_t<0b1000, 256>>;
+    EXPECT_EQ(mask_ival::min, 256);
+    EXPECT_EQ(mask_ival::max, 256 + 8);
+}
+
+TEST(safe_dsl_test, mask_const_to_ival) {
+    using mask_ival = dsl::detail::to_ival_t<mask_t<0, 42>>;
+    EXPECT_EQ(mask_ival::min, 42);
+    EXPECT_EQ(mask_ival::max, 42);
+}
+
 
 TEST(safe_dsl_test, mask_ival_eq) {
     EXPECT_TRUE((ival<0, 15> <= mask<0b1111>));
