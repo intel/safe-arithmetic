@@ -16,6 +16,7 @@ add_executable(gtests
     dsl/abs.cpp
     dsl/bitwise_and.cpp
     dsl/bitwise_or.cpp
+    dsl/bitwise_xor.cpp
     dsl/bitwise_invert.cpp
     dsl/mask.cpp)
 
