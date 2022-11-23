@@ -14,7 +14,9 @@ add_executable(gtests
     checked.cpp
     dsl/add.cpp
     dsl/abs.cpp
-    dsl/bitwise_and.cpp)
+    dsl/bitwise_and.cpp
+    dsl/bitwise_invert.cpp
+    dsl/mask.cpp)
 
 target_link_libraries(gtests PRIVATE safe_arithmetic gmock gtest gmock_main)
 
