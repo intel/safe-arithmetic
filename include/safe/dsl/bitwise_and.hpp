@@ -21,8 +21,8 @@ namespace safe::dsl {
 
         using type = mask_t<
             (
-                (lhs::var_bits | lhs::const_bits) &
-                (rhs::var_bits | rhs::const_bits)
+                (lhs::var_bits & (rhs::const_bits | rhs::var_bits)) |
+                (rhs::var_bits & (lhs::const_bits | lhs::var_bits))
             ),
             lhs::const_bits & rhs::const_bits
         >;

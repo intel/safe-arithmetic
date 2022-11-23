@@ -12,7 +12,9 @@ add_executable(gtests
     array.cpp
     runtime_check.cpp
     checked.cpp
-    dsl/add.cpp)
+    dsl/add.cpp
+    dsl/abs.cpp
+    dsl/bitwise_and.cpp)
 
 target_link_libraries(gtests PRIVATE safe_arithmetic gmock gtest gmock_main)
 
