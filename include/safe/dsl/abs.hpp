@@ -1,6 +1,8 @@
 #pragma once
 
 #include <safe/dsl/ival.hpp>
+#include <safe/dsl/mask.hpp>
+#include <safe/dsl/primitive.hpp>
 #include <safe/dsl/fwd.hpp>
 
 #include <algorithm>
@@ -20,18 +22,18 @@ namespace safe::dsl {
     template<typename T>
     struct abs_t {};
 
-    template<auto min_val, auto max_val>
-    struct abs_t<
-        ival_t<min_val, max_val>
-    > {
+    template<detail::Primitive T>
+    struct abs_t<T> {
+        using val = detail::to_ival_t<T>;
+        
         constexpr static bool straddles_zero =
-            min_val < 0 && max_val > 0;
+            val::min < 0 && val::max > 0;
 
         using type = ival_t<
             straddles_zero
                 ? 0
-                : std::min(detail::abs(min_val), detail::abs(max_val)),
-            std::max(detail::abs(min_val), detail::abs(max_val))>;
+                : std::min(detail::abs(val::min), detail::abs(val::max)),
+            std::max(detail::abs(val::min), detail::abs(val::max))>;
     };
 
     template<typename T>

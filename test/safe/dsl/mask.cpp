@@ -15,7 +15,7 @@ TEST(safe_dsl_mask, create_mask) {
     [[maybe_unused]] auto v = mask<0b1001>;
 }
 
-TEST(safe_dsl_mask, mask_subset) {
+TEST(safe_dsl_mask, mask_subset_var_only) {
     EXPECT_TRUE(mask<0b1111> >= mask<0b1010>);
     EXPECT_TRUE(mask<0b1111> >= mask<0b0000>);
     EXPECT_TRUE(mask<0b1111> >= mask<0b1111>);
@@ -25,7 +25,17 @@ TEST(safe_dsl_mask, mask_subset) {
     EXPECT_FALSE(mask<0b0001> >= mask<0b0011>);
 }
 
-TEST(safe_dsl_mask, mask_superset) {
+TEST(safe_dsl_mask, mask_subset_const_only) {
+    EXPECT_TRUE((mask<0, 0b1111>) >= (mask<0, 0b1111>));
+
+    EXPECT_FALSE((mask<0, 0b1111>) >= (mask<0, 0b0000>));
+    EXPECT_FALSE((mask<0, 0b1111>) >= (mask<0, 0b1010>));
+    EXPECT_FALSE((mask<0, 0b1001>) >= (mask<0, 0b1010>));
+    EXPECT_FALSE((mask<0, 0b0001>) >= (mask<0, 0b0010>));
+    EXPECT_FALSE((mask<0, 0b0001>) >= (mask<0, 0b0011>));
+}
+
+TEST(safe_dsl_mask, mask_superset_var_only) {
     EXPECT_TRUE(mask<0b1000> <= mask<0b1100>);
     EXPECT_TRUE(mask<0b0000> <= mask<0b0000>);
     EXPECT_TRUE(mask<0b0001> <= mask<0b1011>);
@@ -35,7 +45,17 @@ TEST(safe_dsl_mask, mask_superset) {
     EXPECT_FALSE(mask<0b0100> <= mask<0b1011>);
 }
 
-TEST(safe_dsl_mask, mask_equal) {
+TEST(safe_dsl_mask, mask_superset_const_only) {
+    EXPECT_TRUE((mask<0, 0b1111>) <= (mask<0, 0b1111>));
+
+    EXPECT_FALSE((mask<0, 0b1111>) <= (mask<0, 0b0000>));
+    EXPECT_FALSE((mask<0, 0b1111>) <= (mask<0, 0b1010>));
+    EXPECT_FALSE((mask<0, 0b1001>) <= (mask<0, 0b1010>));
+    EXPECT_FALSE((mask<0, 0b0001>) <= (mask<0, 0b0010>));
+    EXPECT_FALSE((mask<0, 0b0001>) <= (mask<0, 0b0011>));
+}
+
+TEST(safe_dsl_mask, mask_equal_var_only) {
     EXPECT_TRUE(mask<0b1000> == mask<0b1000>);
     EXPECT_TRUE(mask<0b0000> == mask<0b0000>);
     EXPECT_TRUE(mask<0b0001> == mask<0b0001>);
@@ -45,7 +65,16 @@ TEST(safe_dsl_mask, mask_equal) {
     EXPECT_FALSE(mask<0b0110> == mask<0b0100>);
 }
 
-TEST(safe_dsl_mask, mask_not_equal) {
+TEST(safe_dsl_mask, mask_equal_const_only) {
+     EXPECT_TRUE((mask<0, 0b1000>) == (mask<0, 0b1000>));
+     EXPECT_TRUE((mask<0, 0b0000>) == (mask<0, 0b0000>));
+     EXPECT_TRUE((mask<0, 0b0001>) == (mask<0, 0b0001>));
+    EXPECT_FALSE((mask<0, 0b1000>) == (mask<0, 0b1001>));
+    EXPECT_FALSE((mask<0, 0b0011>) == (mask<0, 0b0010>));
+    EXPECT_FALSE((mask<0, 0b0110>) == (mask<0, 0b0100>));
+}
+
+TEST(safe_dsl_mask, mask_not_equal_var_only) {
     EXPECT_FALSE(mask<0b1000> != mask<0b1000>);
     EXPECT_FALSE(mask<0b0000> != mask<0b0000>);
     EXPECT_FALSE(mask<0b0001> != mask<0b0001>);
@@ -53,6 +82,15 @@ TEST(safe_dsl_mask, mask_not_equal) {
     EXPECT_TRUE(mask<0b1000> != mask<0b1001>);
     EXPECT_TRUE(mask<0b0011> != mask<0b0010>);
     EXPECT_TRUE(mask<0b0110> != mask<0b0100>);
+}
+
+TEST(safe_dsl_mask, mask_not_equal_const_only) {
+    EXPECT_FALSE((mask<0, 0b1000>) != (mask<0, 0b1000>));
+    EXPECT_FALSE((mask<0, 0b0000>) != (mask<0, 0b0000>));
+    EXPECT_FALSE((mask<0, 0b0001>) != (mask<0, 0b0001>));
+    EXPECT_TRUE((mask<0, 0b1000>) != (mask<0, 0b1001>));
+    EXPECT_TRUE((mask<0, 0b0011>) != (mask<0, 0b0010>));
+    EXPECT_TRUE((mask<0, 0b0110>) != (mask<0, 0b0100>));
 }
 
 
@@ -76,6 +114,9 @@ TEST(safe_dsl_test, fill_bitmask) {
     EXPECT_EQ(dsl::detail::fill_in_bitmask(0b1111), 0b1111);
     EXPECT_EQ(dsl::detail::fill_in_bitmask(0b1101), 0b1111);
     EXPECT_EQ(dsl::detail::fill_in_bitmask(0b1000), 0b1111);
+
+    EXPECT_EQ(dsl::detail::fill_in_bitmask(0x80000000), 0xffffffff);
+    EXPECT_EQ(dsl::detail::fill_in_bitmask(0x40000000), 0x7fffffff);
 }
 
 TEST(safe_dsl_test, ival_pwr2_range_to_mask) {

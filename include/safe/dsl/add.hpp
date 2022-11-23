@@ -2,8 +2,8 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/mask.hpp>
-#include <safe/dsl/fwd.hpp>
 #include <safe/dsl/primitive.hpp>
+#include <safe/dsl/fwd.hpp>
 #include <safe/checked.hpp>
 
 namespace safe::dsl {
