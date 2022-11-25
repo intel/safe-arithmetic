@@ -1,5 +1,7 @@
 #pragma once
 
+#include <safe/detail/pure.hpp>
+
 #include <type_traits>
 
 namespace safe::dsl {
@@ -12,7 +14,7 @@ namespace safe::dsl {
 
         static_assert(min <= max);
 
-        [[nodiscard]] constexpr static bool check(auto value) {
+        [[nodiscard]] SAFE_PURE constexpr static bool check(auto value) {
             return value >= min && value <= max;
         }
     };

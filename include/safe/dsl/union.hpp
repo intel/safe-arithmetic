@@ -1,12 +1,14 @@
 #pragma once
 
+#include <safe/detail/pure.hpp>
+
 namespace safe::dsl {
     template<typename... Intervals>
     struct union_t {
         using type = union_t;
 
         template<typename T>
-        [[nodiscard]] constexpr static bool check(T value) {
+        [[nodiscard]] SAFE_PURE constexpr static bool check(T value) {
             return (Intervals::check(value) || ...);
         }
     };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <safe/detail/pure.hpp>
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/triint.hpp>
 
@@ -14,7 +15,7 @@ namespace safe::dsl {
         constexpr static auto const_bits = ConstantBits;
         constexpr static auto value = triint{var_bits, const_bits};
 
-        [[nodiscard]] constexpr static bool check(auto value) {
+        [[nodiscard]] SAFE_PURE constexpr static bool check(auto value) {
             return
                 (~var_bits & value) ==
                 (~var_bits & const_bits);

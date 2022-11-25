@@ -1,6 +1,7 @@
 #pragma once
 
-
+#include <safe/detail/assume.hpp>
+#include <safe/detail/pure.hpp>
 #include <safe/dsl.hpp>
 #include <safe/dsl/simplify.hpp>
 
@@ -94,20 +95,23 @@ namespace safe {
 
         constexpr var(T value)
             : value_{value}
-        {}
+        {
+            SAFE_ASSUME(requirement.check(value_));
+        }
 
         template<
             typename RhsT,
             typename OpT>
         [[nodiscard]] constexpr auto bin_op(RhsT rhs, OpT op) const {
-            auto result = op(value_, rhs.value_);
+            auto result = op(unsafe_value(), rhs.unsafe_value());
             using result_t = decltype(result);
             auto result_req = safe::dsl::detail::simp(op(requirement, rhs.requirement));
             return var<result_t, result_req>{result};
         }
 
     public:
-        [[nodiscard]] constexpr T unsafe_value() const {
+        [[nodiscard]] SAFE_PURE constexpr inline T unsafe_value() const {
+            SAFE_ASSUME(requirement.check(value_));
             return value_;
         }
 
@@ -123,7 +127,7 @@ namespace safe {
             : value_{}
         {
             static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(RhsRequirement)>>::value);
-            value_ = rhs.value_;
+            value_ = rhs.unsafe_value();
         }
 
         template<
@@ -133,7 +137,7 @@ namespace safe {
             var<RhsT, RhsRequirement> rhs
         ) {
             static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(RhsRequirement)>>::value);
-            value_ = rhs.value_;
+            value_ = rhs.unsafe_value();
         }
 
         template<
@@ -238,7 +242,7 @@ namespace safe {
         [[nodiscard]] constexpr std::strong_ordering operator<=>(
             var<RhsT, RhsRequirement> rhs
         ) const {
-            return value_ <=> rhs.value_;
+            return unsafe_value() <=> rhs.unsafe_value();
         }
 
         template<
@@ -247,7 +251,7 @@ namespace safe {
         [[nodiscard]] constexpr bool operator==(
             var<RhsT, RhsRequirement> rhs
         ) const {
-            return value_ == rhs.value_;
+            return unsafe_value() == rhs.unsafe_value();
         }
     };
 }
@@ -265,7 +269,7 @@ namespace std {
         safe::var<RhsT, RhsRequirement> const rhs
     ) {
         using common_type = std::common_type_t<LhsT, RhsT>;
-        auto result = std::min<common_type>(lhs.value_, rhs.value_);
+        auto result = std::min<common_type>(lhs.unsafe_value(), rhs.unsafe_value());
         using result_t = decltype(result);
         auto result_req = safe::dsl::detail::simp(safe::dsl::min(lhs.requirement, rhs.requirement));
         return safe::var<result_t, result_req>{result};
@@ -282,7 +286,7 @@ namespace std {
         safe::var<RhsT, RhsRequirement> const rhs
     ) {
         using common_type = std::common_type_t<LhsT, RhsT>;
-        auto result = std::max<common_type>(lhs.value_, rhs.value_);
+        auto result = std::max<common_type>(lhs.unsafe_value(), rhs.unsafe_value());
         using result_t = decltype(result);
         auto result_req = safe::dsl::detail::simp(safe::dsl::max(lhs.requirement, rhs.requirement));
         return safe::var<result_t, result_req>{result};
@@ -365,7 +369,7 @@ namespace std {
     [[nodiscard]] constexpr auto abs(
         safe::var<U, OtherRequirement> const value
     ) {
-        auto result = std::abs(value.value_);
+        auto result = std::abs(value.unsafe_value());
         auto result_req = safe::dsl::detail::simp(safe::dsl::abs(value.requirement));
         return safe::var<U, result_req>{result};
     }
