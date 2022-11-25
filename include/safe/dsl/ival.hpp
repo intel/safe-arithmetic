@@ -19,4 +19,17 @@ namespace safe::dsl {
 
     template<auto Min, auto Max>
     constexpr ival_t<Min, Max> ival{};
+
+
+    template<typename T>
+    struct is_ival : public std::integral_constant<bool, false> {};
+
+    template<auto min, auto max>
+    struct is_ival<ival_t<min, max>> : public std::integral_constant<bool, true> {};
+
+    template<typename T>
+    constexpr bool is_ival_v = is_ival<T>{};
+
+    template<class T>
+    concept Interval = is_ival_v<T>;
 }

@@ -11,19 +11,27 @@ namespace safe::dsl {
     struct add : public binary_op {};
 
     template<
-        detail::Primitive LhsT,
-        detail::Primitive RhsT>
+        Interval LhsT,
+        Interval RhsT>
     struct add<LhsT, RhsT>
         : public binary_op
     {
-        using lhs = detail::to_ival_t<LhsT>;
-        using rhs = detail::to_ival_t<RhsT>;
-
         using type = ival_t<
-            c_<lhs::min> + c_<rhs::min>,
-            c_<lhs::max> + c_<rhs::max>
+            c_<LhsT::min> + c_<RhsT::min>,
+            c_<LhsT::max> + c_<RhsT::max>
         >;
     };
+
+    template<
+        Mask LhsT,
+        Mask RhsT>
+    struct add<LhsT, RhsT>
+        : public binary_op
+    {
+        constexpr static auto value = LhsT::value + RhsT::value;
+        using type = mask_t<value.var_bits(), value.const_bits()>;
+    };
+
 
     template<
         typename LhsT,

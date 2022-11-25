@@ -1,6 +1,7 @@
 #pragma once
 
 #include <safe/dsl/ival.hpp>
+#include <safe/dsl/triint.hpp>
 
 #include <type_traits>
 
@@ -11,10 +12,12 @@ namespace safe::dsl {
 
         constexpr static auto var_bits = VariableBits;
         constexpr static auto const_bits = ConstantBits;
-
+        constexpr static auto value = triint{var_bits, const_bits};
 
         [[nodiscard]] constexpr static bool check(auto value) {
-            return (~var_bits & value) == const_bits;
+            return
+                (~var_bits & value) ==
+                (~var_bits & const_bits);
         }
     };
 
@@ -82,8 +85,19 @@ namespace safe::dsl {
             using type = mask_t<var_bits, const_bits>;
         };
 
-
         template<typename T>
         using to_mask_t = typename to_mask<T>::type;
     }
+
+    template<typename T>
+    struct is_mask : public std::integral_constant<bool, false> {};
+
+    template<auto var_bits, auto const_bits>
+    struct is_mask<mask_t<var_bits, const_bits>> : public std::integral_constant<bool, true> {};
+
+    template<typename T>
+    constexpr bool is_mask_v = is_mask<T>{};
+
+    template<class T>
+    concept Mask = is_mask_v<T>;
 }

@@ -17,17 +17,8 @@ namespace safe::dsl {
     {
         using lhs = detail::to_mask_t<LhsT>;
         using rhs = detail::to_mask_t<RhsT>;
-
-        constexpr static auto lhs_const_bits = lhs::const_bits & ~lhs::var_bits;
-        constexpr static auto rhs_const_bits = rhs::const_bits & ~rhs::var_bits;
-
-        using type = mask_t<
-            (
-                (lhs::var_bits & ~rhs_const_bits) |
-                (rhs::var_bits & ~lhs_const_bits)
-            ),
-            lhs_const_bits | rhs_const_bits
-        >;
+        constexpr static auto value = lhs::value | rhs::value;
+        using type = mask_t<value.var_bits(), value.const_bits()>;
     };
 
     template<

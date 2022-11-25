@@ -13,8 +13,9 @@ namespace safe::dsl {
 
     template<detail::Primitive T>
     struct bitwise_invert<T> {
-        using prim_mask = detail::to_mask_t<T>;
-        using type = mask_t<prim_mask::var_bits, ~prim_mask::const_bits>;
+        using mask_arg_t = detail::to_mask_t<T>;
+        constexpr static auto value = ~mask_arg_t::value;
+        using type = mask_t<value.var_bits(), value.const_bits()>;
     };
 
     template<typename T>
