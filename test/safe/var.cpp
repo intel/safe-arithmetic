@@ -53,8 +53,8 @@ TYPED_TEST(safe_var_ops_test, add_op) {
 }
 
 TYPED_TEST(safe_var_ops_test, minus_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 32_s32;
-    safe::var<TypeParam, ival<0, 100>> const b = 8_s32;
+    safe::var<TypeParam, ival<30, 100>> const a = 32_s32;
+    safe::var<TypeParam, ival<0, 30>> const b = 8_s32;
     auto const result = a - b;
     EXPECT_EQ(result.unsafe_value(), 24);
 }
