@@ -13,44 +13,38 @@ using namespace safe::literals;
 
 
 
-TEST(safe_dsl_intersection, simplify_ival_overlap) {
+TEST(safe_dsl_is_equal, simple_ivals) {
     EXPECT_EQ(
-        (ival<0, 20> && ival<10, 30>),
+        (ival<10, 20>),
         (ival<10, 20>)
     );
-}
 
-TEST(safe_dsl_intersection, simplify_lhs_ival_contained) {
-    EXPECT_EQ(
-        (ival<15, 25> && ival<10, 30>),
-        (ival<15, 25>)
+    EXPECT_NE(
+        (ival<10, 20>),
+        (ival<10, 10>)
     );
 }
 
-TEST(safe_dsl_intersection, simplify_rhs_ival_contained) {
+TEST(safe_dsl_is_equal, union_ivals) {
     EXPECT_EQ(
-        (ival<15, 25> && ival<19, 21>),
-        (ival<19, 21>)
+        (ival<10, 20> || ival<40, 50>),
+        (ival<10, 20> || ival<40, 50>)
+    );
+
+    EXPECT_EQ(
+        (ival<10, 20> || ival<40, 50>),
+        (ival<40, 50> || ival<10, 20>)
     );
 }
 
-TEST(safe_dsl_intersection, simplify_single_int_1) {
+TEST(safe_dsl_is_equal, differing_ival_types) {
     EXPECT_EQ(
-        (ival<15, 25> && ival<25, 35>),
-        (ival<25, 25>)
+        (ival<10, 20>),
+        (ival<10u, 20u>)
     );
-}
 
-TEST(safe_dsl_intersection, simplify_single_int_2) {
     EXPECT_EQ(
-        (ival<35, 50> && ival<25, 35>),
-        (ival<35, 35>)
-    );
-}
-
-TEST(safe_dsl_intersection, simplify_three_ival_overlap) {
-    EXPECT_EQ(
-        (ival<0, 20> && ival<10, 30> && ival<-100, 15>),
-        (ival<10, 15>)
+        (ival<10ll, 20ll>),
+        (ival<10, 20>)
     );
 }

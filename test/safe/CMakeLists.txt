@@ -20,7 +20,8 @@ add_executable(gtests
     dsl/bitwise_invert.cpp
     dsl/divide.cpp
     dsl/mask.cpp
-    dsl/intersection.cpp)
+    dsl/intersection.cpp
+    dsl/is_equal.cpp)
 
 target_link_libraries(gtests PRIVATE safe_arithmetic gmock gtest gmock_main)
 
