@@ -320,12 +320,6 @@ TEST(safe_dsl_test, set_union_simplification) {
     );
 }
 
-TEST(safe_dsl_test, intersection_simplification) {
-    EXPECT_EQ(
-        (ival<0, 20> && ival<10, 30>),
-        (ival<10, 20>)
-    );
-}
 
 TEST(safe_dsl_test, subtraction_union_simplification) {
     EXPECT_EQ(
