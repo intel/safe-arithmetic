@@ -21,7 +21,8 @@ add_executable(gtests
     dsl/divide.cpp
     dsl/mask.cpp
     dsl/intersection.cpp
-    dsl/is_equal.cpp)
+    dsl/is_equal.cpp
+    dsl/is_subset.cpp)
 
 target_link_libraries(gtests PRIVATE safe_arithmetic gmock gtest gmock_main)
 
