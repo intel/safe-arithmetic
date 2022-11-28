@@ -148,11 +148,11 @@ namespace safe::dsl {
         }
 
         [[nodiscard]] constexpr interval_value get_positive(interval_value v) {
-            return {std::max(0ll, v.min), v.max};
+            return {std::max<int64_t>(0, v.min), v.max};
         }
 
         [[nodiscard]] constexpr interval_value get_negative(interval_value v) {
-            return {v.min, std::min(v.max, -1ll)};
+            return {v.min, std::min<int64_t>(v.max, -1)};
         }
 
         [[nodiscard]] constexpr interval_value mod_lhs_low(
