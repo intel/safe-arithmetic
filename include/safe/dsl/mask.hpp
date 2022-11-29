@@ -5,6 +5,7 @@
 #include <safe/dsl/triint.hpp>
 
 #include <type_traits>
+#include <bit>
 
 namespace safe::dsl {
     template<auto VariableBits, auto ConstantBits = 0u>

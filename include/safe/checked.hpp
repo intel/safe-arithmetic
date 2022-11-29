@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <bit>
 
 namespace safe {
     namespace detail {
@@ -73,36 +74,23 @@ namespace safe {
 
         template<typename U>
         [[nodiscard]] friend constexpr checked<bool> operator<=(checked<T> lhs, checked<U> rhs) {
-            if (lhs.is_overflow() | rhs.is_overflow()) {
-                return {false, true};
-            } else {
-                return {lhs.value() <= rhs.value(), false};
-            }
+            return (lhs < rhs) || (lhs == rhs);
         }
 
         template<typename U>
         [[nodiscard]] friend constexpr checked<bool> operator>(checked<T> lhs, checked<U> rhs) {
-            if (lhs.is_overflow() | rhs.is_overflow()) {
-                return {false, true};
-            } else {
-                return {lhs.value() > rhs.value(), false};
-            }
+            return !(lhs < rhs) && !(lhs == rhs);
         }
 
         template<typename U>
         [[nodiscard]] friend constexpr checked<bool> operator>=(checked<T> lhs, checked<U> rhs) {
-            if (lhs.is_overflow() | rhs.is_overflow()) {
-                return {false, true};
-            } else {
-                return {lhs.value() >= rhs.value(), false};
-            }
+            return !(lhs < rhs);
         }
 
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
         template<typename U>
         [[nodiscard]] friend constexpr auto operator+(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() + rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -116,7 +104,7 @@ namespace safe {
                 (left_value > max - right_value);
 
             bool const underflow = [&](){
-                if constexpr (std::numeric_limits<ret_t>::is_signed) {
+                if constexpr (std::is_signed_v<ret_t>) {
                     return
                         (right_value < zero) &&
                         (left_value < lowest - right_value);
@@ -136,8 +124,7 @@ namespace safe {
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
         template<typename U>
         [[nodiscard]] friend constexpr auto operator-(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() - rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -165,8 +152,7 @@ namespace safe {
         // https://stackoverflow.com/questions/1815367/catch-and-compute-overflow-during-multiplication-of-two-large-integers
         template<typename U>
         [[nodiscard]] friend constexpr auto operator*(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() * rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -180,7 +166,7 @@ namespace safe {
                 (left_value > (max / right_value));
 
             bool const underflow = [&](){
-                if constexpr (std::numeric_limits<ret_t>::is_signed) {
+                if constexpr (std::is_signed_v<ret_t>) {
                     return
                         (right_value > zero) &&
                         (left_value < (lowest / right_value));
@@ -192,7 +178,7 @@ namespace safe {
 
             bool const negation_overflow = [&](){
                 if constexpr (
-                    std::numeric_limits<ret_t>::is_signed &&
+                    std::is_signed_v<ret_t> &&
                     std::is_integral_v<ret_t>
                 ) {
                     constexpr auto neg_one = static_cast<ret_t>(-1);
@@ -216,8 +202,7 @@ namespace safe {
         // https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-overflow
         template<typename U>
         [[nodiscard]] friend constexpr auto operator/(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() / rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -230,7 +215,7 @@ namespace safe {
 
             bool const negation_overflow = [&](){
                 if constexpr (
-                    std::numeric_limits<ret_t>::is_signed &&
+                    std::is_signed_v<ret_t> &&
                     std::is_integral_v<ret_t>
                 ) {
                     constexpr auto neg_one = static_cast<ret_t>(-1);
@@ -253,8 +238,7 @@ namespace safe {
 
         template<typename U>
         [[nodiscard]] friend constexpr auto operator%(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() % rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -271,9 +255,8 @@ namespace safe {
             }
         }
 
-
         template<typename U>
-        [[nodiscard]] friend constexpr auto operator<<(checked<T> lhs, checked<U> rhs) {
+        [[nodiscard]] friend constexpr auto operator<<(checked<T> lhs, checked<U> rhs) -> checked<T> {
             using ret_t = T;
 
             int const ret_bit_width = std::numeric_limits<ret_t>::digits;
@@ -283,10 +266,10 @@ namespace safe {
             bool const overflow =
                 (lhs_bit_width + shift_amt) > ret_bit_width;
 
-            bool const negative_shift =
-                shift_amt < 0;
+            bool const shift_out_of_bounds =
+                (shift_amt < 0) || (shift_amt >= ret_bit_width);
 
-            if (overflow | negative_shift | lhs.is_overflow() | rhs.is_overflow()) {
+            if (overflow | shift_out_of_bounds | lhs.is_overflow() | rhs.is_overflow()) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
@@ -295,15 +278,16 @@ namespace safe {
         }
 
         template<typename U>
-        [[nodiscard]] friend constexpr auto operator>>(checked<T> lhs, checked<U> rhs) {
+        [[nodiscard]] friend constexpr auto operator>>(checked<T> lhs, checked<U> rhs) -> checked<T> {
             using ret_t = T;
 
+            int const ret_bit_width = std::numeric_limits<ret_t>::digits;
             int const shift_amt = rhs.value();
 
-            bool const negative_shift =
-                shift_amt < 0;
+            bool const shift_out_of_bounds =
+                (shift_amt < 0) || (shift_amt >= ret_bit_width);
 
-            if (negative_shift | lhs.is_overflow() | rhs.is_overflow()) {
+            if (shift_out_of_bounds | lhs.is_overflow() | rhs.is_overflow()) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
@@ -313,8 +297,7 @@ namespace safe {
 
         template<typename U>
         [[nodiscard]] friend constexpr auto operator&(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() & rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -329,8 +312,7 @@ namespace safe {
 
         template<typename U>
         [[nodiscard]] friend constexpr auto operator|(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() | rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -345,8 +327,7 @@ namespace safe {
 
         template<typename U>
         [[nodiscard]] friend constexpr auto operator^(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() ^ rhs.value());
+            using ret_t = std::common_type_t<T, U>;
 
             auto const left_value = static_cast<ret_t>(lhs.value());
             auto const right_value = static_cast<ret_t>(rhs.value());
@@ -362,33 +343,25 @@ namespace safe {
 
         template<typename U>
         [[nodiscard]] friend constexpr auto operator&&(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() && rhs.value());
-
-            auto const left_value = static_cast<ret_t>(lhs.value());
-            auto const right_value = static_cast<ret_t>(rhs.value());
+            using ret_t = decltype(lhs.value() && rhs.value());
 
             if (lhs.is_overflow() | rhs.is_overflow()) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{left_value && right_value, false};
+                return checked<ret_t>{lhs.value() && rhs.value(), false};
             }
         }
 
         template<typename U>
         [[nodiscard]] friend constexpr auto operator||(checked<T> lhs, checked<U> rhs) {
-            using ret_t =
-                decltype(lhs.value() || rhs.value());
-
-            auto const left_value = static_cast<ret_t>(lhs.value());
-            auto const right_value = static_cast<ret_t>(rhs.value());
+            using ret_t = decltype(lhs.value() || rhs.value());
 
             if (lhs.is_overflow() | rhs.is_overflow()) {
                 constexpr auto zero = static_cast<ret_t>(0);
                 return checked<ret_t>{zero, true};
             } else {
-                return checked<ret_t>{left_value || right_value, false};
+                return checked<ret_t>{lhs.value() || rhs.value(), false};
             }
         }
     };

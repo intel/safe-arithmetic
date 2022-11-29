@@ -8,11 +8,12 @@
 #include <limits>
 #include <type_traits>
 #include <compare>
+#include <functional>
 
 
 namespace safe {
     template<typename U>
-    [[nodiscard]] constexpr auto value(U value);
+    [[nodiscard]] inline constexpr auto value(U value);
 
     template<typename U>
     struct lhs_req {
@@ -32,6 +33,19 @@ namespace safe {
 
     template<typename T, auto Requirement>
     struct var;
+
+    template<typename T>
+    struct is_var : public std::integral_constant<bool, false> {};
+
+    template<typename T, auto Requirement>
+    struct is_var<var<T, Requirement>> : public std::integral_constant<bool, true> {};
+
+    template<typename T>
+    constexpr bool is_var_v = is_var<T>{};
+
+    template<class T>
+    concept Var = is_var_v<T>;
+
 
     namespace detail {
         template<typename T>
@@ -86,11 +100,8 @@ namespace safe {
             safe::var<RhsT, RhsRequirement> const rhs
         );
 
-        template<
-            typename U,
-            auto OtherRequirement>
         friend constexpr auto std::abs(
-            safe::var<U, OtherRequirement> const value
+            Var auto value
         );
 
         constexpr var(T value)
@@ -99,161 +110,112 @@ namespace safe {
             SAFE_ASSUME(requirement.check(value_));
         }
 
-        template<
-            typename RhsT,
-            typename OpT>
-        [[nodiscard]] constexpr auto bin_op(RhsT rhs, OpT op) const {
-            auto result = op(unsafe_value(), rhs.unsafe_value());
-            using result_t = decltype(result);
-            auto result_req = safe::dsl::detail::simp(op(requirement, rhs.requirement));
-            return var<result_t, result_req>{result};
+        [[nodiscard]] inline constexpr auto bin_op(
+            Var auto rhs,
+            auto op
+        ) const {
+            using num_t =
+                std::common_type_t<T, decltype(rhs.unsafe_value())>;
+
+            auto const result = static_cast<num_t>(op(
+                static_cast<num_t>(unsafe_value()),
+                static_cast<num_t>(rhs.unsafe_value())));
+
+            auto result_req =
+                safe::dsl::detail::simp(op(requirement, rhs.requirement));
+
+            return var<num_t, result_req>{result};
         }
 
     public:
-        [[nodiscard]] SAFE_PURE constexpr inline T unsafe_value() const {
-            SAFE_ASSUME(requirement.check(value_));
-            return value_;
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        constexpr var(
-            var<RhsT, RhsRequirement> rhs
+        inline constexpr var(
+            Var auto rhs
         )
             // NOTE: not using the initializer list to allow for narrowing
             //       conversions. vars are expected to protect from
             //       overflows.
             : value_{}
         {
-            static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(RhsRequirement)>>::value);
+            static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(rhs.requirement)>>::value);
             value_ = rhs.unsafe_value();
         }
 
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        constexpr auto operator=(
-            var<RhsT, RhsRequirement> rhs
-        ) {
-            static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(RhsRequirement)>>::value);
+        inline constexpr auto operator=(Var auto rhs) -> var & {
+            static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(rhs.requirement)>>::value);
             value_ = rhs.unsafe_value();
+            return *this;
         }
 
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator+(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a + b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator-(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a - b;});
+        [[nodiscard]] inline constexpr T unsafe_value() const {
+            SAFE_ASSUME(requirement.check(value_));
+            return value_;
         }
 
         template<typename = std::enable_if_t<true, void>>
-        [[nodiscard]] constexpr auto operator-() const {
+        [[nodiscard]] inline constexpr auto operator-() const {
             constexpr var<T, ival<0, 0>> zero{0};
             return zero - *this;
         }
 
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator*(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a * b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator/(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a / b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator%(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a % b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator<<(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a << b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator>>(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a >> b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator|(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a | b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator&(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a & b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr auto operator^(
-            var<RhsT, RhsRequirement> const rhs
-        ) const {
-            return bin_op(rhs, [](auto a, auto b){return a ^ b;});
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr std::strong_ordering operator<=>(
-            var<RhsT, RhsRequirement> rhs
-        ) const {
-            return unsafe_value() <=> rhs.unsafe_value();
-        }
-
-        template<
-            typename RhsT,
-            auto RhsRequirement>
-        [[nodiscard]] constexpr bool operator==(
-            var<RhsT, RhsRequirement> rhs
-        ) const {
-            return unsafe_value() == rhs.unsafe_value();
-        }
+        friend inline constexpr auto operator+(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator-(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator*(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator/(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator%(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator<<(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator>>(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator|(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator&(Var auto lhs, Var auto rhs);
+        friend inline constexpr auto operator^(Var auto lhs, Var auto rhs);
     };
+
+    [[nodiscard]] inline constexpr auto operator+(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::plus<>());
+    }
+
+    [[nodiscard]] inline constexpr auto operator-(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::minus<>());
+    }
+
+    [[nodiscard]] inline constexpr auto operator*(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::multiplies<>());
+    }
+
+    [[nodiscard]] inline constexpr auto operator/(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::divides<>());
+    }
+    
+    [[nodiscard]] inline constexpr auto operator%(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::modulus<>());
+    }
+    
+    [[nodiscard]] inline constexpr auto operator<<(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, [](auto a, auto b){return a << b;});
+    }
+
+    [[nodiscard]] inline constexpr auto operator>>(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, [](auto a, auto b){return a >> b;});
+    }
+
+    [[nodiscard]] inline constexpr auto operator|(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::bit_or<>());
+    }
+
+    [[nodiscard]] inline constexpr auto operator&(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::bit_and<>());
+    }
+
+    [[nodiscard]] inline constexpr auto operator^(Var auto lhs, Var auto rhs) {
+        return lhs.bin_op(rhs, std::bit_xor<>());
+    }
+
+    [[nodiscard]] inline constexpr std::strong_ordering operator<=>(Var auto lhs, Var auto rhs) {
+        return lhs.unsafe_value() <=> rhs.unsafe_value();
+    }
+
+    [[nodiscard]] inline constexpr bool operator==(Var auto lhs, Var auto rhs) {
+        return lhs.unsafe_value() == rhs.unsafe_value();
+    }
 }
 
 
@@ -264,7 +226,7 @@ namespace std {
         typename RhsT,
         auto RhsRequirement,
         typename = std::enable_if_t<!std::is_same_v<safe::var<LhsT, LhsRequirement>, safe::var<RhsT, RhsRequirement>>, void>>
-    [[nodiscard]] constexpr auto min(
+    [[nodiscard]] inline constexpr auto min(
         safe::var<LhsT, LhsRequirement> const lhs,
         safe::var<RhsT, RhsRequirement> const rhs
     ) {
@@ -281,7 +243,7 @@ namespace std {
         typename RhsT,
         auto RhsRequirement,
         typename = std::enable_if_t<!std::is_same_v<safe::var<LhsT, LhsRequirement>, safe::var<RhsT, RhsRequirement>>, void>>
-    [[nodiscard]] constexpr auto max(
+    [[nodiscard]] inline constexpr auto max(
         safe::var<LhsT, LhsRequirement> const lhs,
         safe::var<RhsT, RhsRequirement> const rhs
     ) {
@@ -320,7 +282,7 @@ namespace std {
                 void
             >
     >
-    [[nodiscard]] constexpr auto clamp(
+    [[nodiscard]] inline constexpr auto clamp(
         safe::var<ValueT, ValueRequirement> const value,
         safe::var<MinT, MinRequirement> const min_val,
         safe::var<MaxT, MaxRequirement> const max_val
@@ -355,7 +317,7 @@ namespace std {
                 void
             >
     >
-    [[nodiscard]] constexpr auto clamp(
+    [[nodiscard]] inline constexpr auto clamp(
         ValueT const unsafe_value,
         safe::var<MinT, MinRequirement> const min_val,
         safe::var<MaxT, MaxRequirement> const max_val
@@ -363,14 +325,12 @@ namespace std {
         return std::clamp(safe::value(unsafe_value), min_val, max_val);
     }
 
-    template<
-        typename U,
-        auto OtherRequirement>
-    [[nodiscard]] constexpr auto abs(
-        safe::var<U, OtherRequirement> const value
+    [[nodiscard]] inline constexpr auto abs(
+        safe::Var auto value
     ) {
-        auto result = std::abs(value.unsafe_value());
+        using num_t = decltype(value.unsafe_value());
+        auto result = static_cast<num_t>(std::abs(value.unsafe_value()));
         auto result_req = safe::dsl::detail::simp(safe::dsl::abs(value.requirement));
-        return safe::var<U, result_req>{result};
+        return safe::var<num_t, result_req>{result};
     }
 }

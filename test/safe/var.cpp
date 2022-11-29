@@ -46,8 +46,8 @@ using std_int_types = ::testing::Types<
 TYPED_TEST_SUITE(safe_var_ops_test, std_int_types);
 
 TYPED_TEST(safe_var_ops_test, add_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 13_s32;
-    safe::var<TypeParam, ival<0, 100>> const b = 29_s32;
+    safe::var<TypeParam, ival<0, 50>> const a = 13_s32;
+    safe::var<TypeParam, ival<0, 50>> const b = 29_s32;
     auto const result = a + b;
     EXPECT_EQ(result.unsafe_value(), 42);
 }
@@ -60,10 +60,10 @@ TYPED_TEST(safe_var_ops_test, minus_op) {
 }
 
 TYPED_TEST(safe_var_ops_test, multiply_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 7_s32;
-    safe::var<TypeParam, ival<0, 100>> const b = 11_s32;
+    safe::var<TypeParam, ival<0, 10>> const a = 6_s32;
+    safe::var<TypeParam, ival<0, 10>> const b = 8_s32;
     auto const result = a * b;
-    EXPECT_EQ(result.unsafe_value(), 77);
+    EXPECT_EQ(result.unsafe_value(), 48);
 }
 
 TYPED_TEST(safe_var_ops_test, divide_op) {
@@ -81,10 +81,10 @@ TYPED_TEST(safe_var_ops_test, modulo_op) {
 }
 
 TYPED_TEST(safe_var_ops_test, left_shift_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 12_s32;
-    safe::var<TypeParam, ival<0, 8>> const b = 2_s32;
+    safe::var<TypeParam, ival<0, 8>> const a = 8_s32;
+    safe::var<TypeParam, ival<0, 3>> const b = 2_s32;
     auto const result = a << b;
-    EXPECT_EQ(result.unsafe_value(), 48);
+    EXPECT_EQ(result.unsafe_value(), 32);
 }
 
 TYPED_TEST(safe_var_ops_test, right_shift_op) {

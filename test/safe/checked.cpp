@@ -18,18 +18,18 @@ using safe::checked;
 
 TEST(safe_checked_test, normal_addition) {
     EXPECT_TRUE((checked{5} + checked{10} == checked{15}).value());
-    EXPECT_TRUE((checked{1500000000} + checked{1500000000u} == checked{3000000000u}).value());
+    EXPECT_TRUE((checked{1'500'000'000} + checked{1'500'000'000u} == checked{3'000'000'000u}).value());
 
     EXPECT_TRUE((checked{-1} + checked{0} == checked{-1}).value());
     EXPECT_TRUE((checked{1} + checked{0} == checked{1}).value());
 }
 
 TEST(safe_checked_test, overflow_addition) {
-    EXPECT_TRUE((checked{1500000000} + checked{1500000000}).is_overflow());
+    EXPECT_TRUE((checked{1'500'000'000} + checked{1'500'000'000}).is_overflow());
 }
 
 TEST(safe_checked_test, underflow_addition) {
-    EXPECT_TRUE((checked{-1500000000} + checked{-1500000000}).is_overflow());
+    EXPECT_TRUE((checked{-1'500'000'000} + checked{-1'500'000'000}).is_overflow());
 }
 
 TEST(safe_checked_test, overflow_plus_overflow) {
@@ -56,18 +56,18 @@ TEST(safe_checked_test, addition_edges) {
 
 TEST(safe_checked_test, normal_subtraction) {
     EXPECT_TRUE((checked{5} - checked{10} == checked{-5}).value());
-    EXPECT_TRUE((checked{1500000000u} - checked{1500000000u} == checked{0u}).value());
+    EXPECT_TRUE((checked{1'500'000'000u} - checked{1'500'000'000u} == checked{0u}).value());
 
     EXPECT_TRUE((checked{-1} - checked{0} == checked{-1}).value());
     EXPECT_TRUE((checked{1} - checked{0} == checked{1}).value());
 }
 
 TEST(safe_checked_test, overflow_subtraction) {
-    EXPECT_TRUE((checked{1500000000} - checked{-1500000000}).is_overflow());
+    EXPECT_TRUE((checked{1'500'000'000} - checked{-1'500'000'000}).is_overflow());
 }
 
 TEST(safe_checked_test, underflow_subtraction) {
-    EXPECT_TRUE((checked{-1500000000} - checked{1500000000}).is_overflow());
+    EXPECT_TRUE((checked{-1'500'000'000} - checked{1'500'000'000}).is_overflow());
 }
 
 TEST(safe_checked_test, overflow_minus_overflow) {
@@ -90,14 +90,14 @@ TEST(safe_checked_test, normal_multiplication) {
 }
 
 TEST(safe_checked_test, overflow_multiplication) {
-    EXPECT_TRUE((checked{1500000000} * checked{1500000000}).is_overflow());
+    EXPECT_TRUE((checked{1'500'000'000} * checked{1'500'000'000}).is_overflow());
 
     EXPECT_TRUE((checked{-1} * checked{std::numeric_limits<int>::lowest()}).is_overflow());
     EXPECT_TRUE((checked{std::numeric_limits<int>::lowest()} * checked{-1}).is_overflow());
 }
 
 TEST(safe_checked_test, underflow_multiplication) {
-    EXPECT_TRUE((checked{-1500000000} * checked{1500000000}).is_overflow());
+    EXPECT_TRUE((checked{-1'500'000'000} * checked{1'500'000'000}).is_overflow());
 }
 
 TEST(safe_checked_test, overflow_times_overflow) {
@@ -141,8 +141,7 @@ TEST(safe_checked_test, overflow_divided_by_overflow) {
 }
 
 TEST(safe_checked_test, normal_shift_left) {
-    EXPECT_TRUE(((checked{1u} << checked{31}) == checked{0x80000000u}).value());
-    EXPECT_TRUE(((checked{0u} << checked{32}) == checked{0u}).value());
+    EXPECT_TRUE(((checked{1u} << checked{31}) == checked{0x8000'0000u}).value());
     EXPECT_TRUE(((checked{1u} << checked{15}) == checked{0x8000u}).value());
     EXPECT_TRUE(((checked{1} << checked{15}) == checked{0x8000}).value());
 }
@@ -150,6 +149,8 @@ TEST(safe_checked_test, normal_shift_left) {
 TEST(safe_checked_test, overflow_shift_left) {
     EXPECT_TRUE((checked{1} << checked{31}).is_overflow());
     EXPECT_TRUE((checked{1u} << checked{32}).is_overflow());
+    EXPECT_TRUE((checked{0u} << checked{32}).is_overflow());
+    EXPECT_TRUE((checked{0} << checked{32}).is_overflow());
     EXPECT_TRUE((checked{0x80u} << checked{25}).is_overflow());
     EXPECT_TRUE((checked{-256} << checked{23}).is_overflow());
 }
@@ -170,7 +171,7 @@ TEST(safe_checked_test, overflow_shift_left_overflow) {
 }
 
 TEST(safe_checked_test, normal_shift_right) {
-    EXPECT_TRUE(((checked{0x80000000u} >> checked{31}) == checked{1u}).value());
+    EXPECT_TRUE(((checked{0x8000'0000u} >> checked{31}) == checked{1u}).value());
     EXPECT_TRUE(((checked{-16} >> checked{1}) == checked{-8}).value());
     EXPECT_TRUE(((checked{-2} >> checked{1}) == checked{-1}).value());
     EXPECT_TRUE(((checked{-1} >> checked{1}) == checked{-1}).value());

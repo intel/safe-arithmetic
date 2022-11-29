@@ -18,9 +18,6 @@ namespace safe::dsl {
             , const_bits_{}
         {}
 
-        constexpr triint(triint const &) = default;
-        constexpr triint & operator=(triint const &) = default;
-
         constexpr triint(
             T var_bits,
             T const_bits
@@ -141,7 +138,7 @@ namespace safe::dsl {
 
         constexpr auto num_bits =
             std::numeric_limits<int_t>::digits +
-            (std::numeric_limits<int_t>::is_signed ? 1 : 0);
+            (std::is_signed_v<int_t> ? 1 : 0);
 
         for (int i = 0; i < num_bits; i++) {
             auto const digit = triint<int_t>{0, static_cast<int_t>(1 << i)};
