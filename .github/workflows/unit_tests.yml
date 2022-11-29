@@ -17,19 +17,19 @@ jobs:
       matrix:
         compiler:
           - name: clang-15
-            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 15
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 15
             cc: " /usr/lib/llvm-15/bin/clang"
             cxx: "/usr/lib/llvm-15/bin/clang++"
           - name: clang-14
-            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 14
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 14
             cc: " /usr/lib/llvm-14/bin/clang"
             cxx: "/usr/lib/llvm-14/bin/clang++"
           - name: clang-13
-            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 13
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 13
             cc: " /usr/lib/llvm-13/bin/clang"
             cxx: "/usr/lib/llvm-13/bin/clang++"
           - name: clang-12
-            install: apt update && apt-get install -y clang-12
+            install: sudo apt update && sudo apt-get install -y clang-12
             cc: " /usr/lib/llvm-12/bin/clang"
             cxx: "/usr/lib/llvm-12/bin/clang++"
 
@@ -38,18 +38,18 @@ jobs:
 #            cc: "/usr/bin/gcc-12"
 #            cxx: "/usr/bin/g++-12"
           - name: gcc-11
-            install: add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt update && apt-get install -y gcc-11 g++-11
+            install: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt update && sudo apt-get install -y gcc-11 g++-11
             cc: "/usr/bin/gcc-11"
             cxx: "/usr/bin/g++-11"
           - name: gcc-10
-            install: apt update && apt-get install -y gcc-10 g++-10
+            install: sudo apt update && sudo apt-get install -y gcc-10 g++-10
             cc: "/usr/bin/gcc-10"
             cxx: "/usr/bin/g++-10"
 
           
     steps:
       - name: install support tools
-        run: apt update && DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles apt-get install -y git wget software-properties-common gnupg cmake lsb-release libstdc++-10-dev ninja-build
+        run: sudo apt update && DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles sudo apt-get install -y git wget software-properties-common gnupg cmake lsb-release libstdc++-10-dev ninja-build
 
       - name: install compiler
         run: ${{ matrix.compiler.install }}
