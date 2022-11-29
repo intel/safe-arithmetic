@@ -91,14 +91,11 @@ namespace safe::dsl {
         using to_mask_t = typename to_mask<T>::type;
     }
 
-    template<typename T>
-    struct is_mask : public std::integral_constant<bool, false> {};
+    template <typename T>
+    constexpr bool is_mask_v = false;
 
     template<auto var_bits, auto const_bits>
-    struct is_mask<mask_t<var_bits, const_bits>> : public std::integral_constant<bool, true> {};
-
-    template<typename T>
-    constexpr bool is_mask_v = is_mask<T>{};
+    constexpr bool is_mask_v<mask_t<var_bits, const_bits>> = true;
 
     template<class T>
     concept Mask = is_mask_v<T>;

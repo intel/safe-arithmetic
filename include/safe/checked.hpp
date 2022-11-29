@@ -11,14 +11,9 @@ namespace safe {
          */
         template<typename T>
         [[nodiscard]] constexpr int log2(T value) {
-            int result = 0;
-
-            while (value != static_cast<T>(0)) {
-                value = value / static_cast<T>(2);
-                result++;
-            }
-
-            return result;
+            using unsigned_int_t = std::make_unsigned_t<T>;
+            auto const unsigned_value = static_cast<unsigned_int_t>(value);
+            return std::bit_width(unsigned_value);
         }
     }
 

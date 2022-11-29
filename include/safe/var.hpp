@@ -34,14 +34,11 @@ namespace safe {
     template<typename T, auto Requirement>
     struct var;
 
-    template<typename T>
-    struct is_var : public std::integral_constant<bool, false> {};
+    template <typename T>
+    constexpr bool is_var_v = false;
 
     template<typename T, auto Requirement>
-    struct is_var<var<T, Requirement>> : public std::integral_constant<bool, true> {};
-
-    template<typename T>
-    constexpr bool is_var_v = is_var<T>{};
+    constexpr bool is_var_v<var<T, Requirement>> = true;
 
     template<class T>
     concept Var = is_var_v<T>;
