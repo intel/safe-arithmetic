@@ -2,7 +2,7 @@
 
 #include <safe/detail/pure.hpp>
 #include <safe/dsl/ival.hpp>
-#include <safe/dsl/triint.hpp>
+#include <safe/dsl/detail/triint.hpp>
 
 #include <type_traits>
 #include <bit>

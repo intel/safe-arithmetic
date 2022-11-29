@@ -2,7 +2,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/simplify_fwd.hpp>
-#include <safe/checked.hpp>
+#include <safe/dsl/detail/checked.hpp>
 
 namespace safe::dsl {
     template<typename T, typename U>
@@ -18,8 +18,8 @@ namespace safe::dsl {
         : public binary_op
     {
         using type = ival_t<
-            c_<lhs_min> - c_<rhs_max>,
-            c_<lhs_max> - c_<rhs_min>
+            detail::c_<lhs_min> - detail::c_<rhs_max>,
+            detail::c_<lhs_max> - detail::c_<rhs_min>
         >;
     };
 

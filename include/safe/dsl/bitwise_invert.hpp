@@ -5,7 +5,6 @@
 #include <safe/dsl/primitive.hpp>
 #include <safe/dsl/fwd.hpp>
 
-#include <safe/checked.hpp>
 
 namespace safe::dsl {
     template<typename T>

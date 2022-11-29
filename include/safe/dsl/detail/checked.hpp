@@ -4,17 +4,15 @@
 #include <type_traits>
 #include <bit>
 
-namespace safe {
-    namespace detail {
-        /*
-         * Compute log2 of integral types.
-         */
-        template<typename T>
-        [[nodiscard]] constexpr int log2(T value) {
-            using unsigned_int_t = std::make_unsigned_t<T>;
-            auto const unsigned_value = static_cast<unsigned_int_t>(value);
-            return std::bit_width(unsigned_value);
-        }
+namespace safe::dsl::detail {
+    /*
+     * Compute log2 of integral types.
+     */
+    template<typename T>
+    [[nodiscard]] constexpr int log2(T value) {
+        using unsigned_int_t = std::make_unsigned_t<T>;
+        auto const unsigned_value = static_cast<unsigned_int_t>(value);
+        return std::bit_width(unsigned_value);
     }
 
     template<typename T>

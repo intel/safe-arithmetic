@@ -12,6 +12,7 @@ using ::testing::InSequence;
 
 using namespace safe;
 using namespace safe::literals;
+using namespace boost::mp11;
 
 template<typename T>
 struct test_interval {

@@ -4,7 +4,7 @@
 #include <safe/dsl/mask.hpp>
 #include <safe/dsl/primitive.hpp>
 #include <safe/dsl/fwd.hpp>
-#include <safe/checked.hpp>
+#include <safe/dsl/detail/checked.hpp>
 
 namespace safe::dsl {
     template<typename T, typename U>
@@ -17,8 +17,8 @@ namespace safe::dsl {
         : public binary_op
     {
         using type = ival_t<
-            c_<LhsT::min> + c_<RhsT::min>,
-            c_<LhsT::max> + c_<RhsT::max>
+            detail::c_<LhsT::min> + detail::c_<RhsT::min>,
+            detail::c_<LhsT::max> + detail::c_<RhsT::max>
         >;
     };
 

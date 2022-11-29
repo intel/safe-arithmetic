@@ -13,7 +13,7 @@ using namespace safe::interval_types;
 using namespace safe::int_types;
 using namespace safe::literals;
 
-using safe::checked;
+using safe::dsl::detail::checked;
 
 
 TEST(safe_checked_test, normal_addition) {

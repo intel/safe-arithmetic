@@ -10,8 +10,7 @@ add_executable(gtests
     invoke.cpp
     dsl.cpp
     array.cpp
-    runtime_check.cpp
-    checked.cpp
+    dsl/detail/checked.cpp
     dsl/add.cpp
     dsl/abs.cpp
     dsl/bitwise_and.cpp

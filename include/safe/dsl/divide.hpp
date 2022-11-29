@@ -2,7 +2,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/simplify_fwd.hpp>
-#include <safe/checked.hpp>
+#include <safe/dsl/detail/checked.hpp>
 
 #include <algorithm>
 
@@ -27,16 +27,16 @@ namespace safe::dsl {
 
         using type = ival_t<
             std::min({
-                c_<lhs_min> / c_<rhs_min>,
-                c_<lhs_min> / c_<rhs_max>,
-                c_<lhs_max> / c_<rhs_min>,
-                c_<lhs_max> / c_<rhs_max>
+                detail::c_<lhs_min> / detail::c_<rhs_min>,
+                detail::c_<lhs_min> / detail::c_<rhs_max>,
+                detail::c_<lhs_max> / detail::c_<rhs_min>,
+                detail::c_<lhs_max> / detail::c_<rhs_max>
             }),
             std::max({
-                c_<lhs_min> / c_<rhs_min>,
-                c_<lhs_min> / c_<rhs_max>,
-                c_<lhs_max> / c_<rhs_min>,
-                c_<lhs_max> / c_<rhs_max>
+                detail::c_<lhs_min> / detail::c_<rhs_min>,
+                detail::c_<lhs_min> / detail::c_<rhs_max>,
+                detail::c_<lhs_max> / detail::c_<rhs_min>,
+                detail::c_<lhs_max> / detail::c_<rhs_max>
             })
         >;
     };
