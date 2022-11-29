@@ -1,7 +1,5 @@
 # `safe::arithmetic`
 
-[![Unit Tests](https://github.com/intel-innersource/libraries.cpp.functional.safe-vars/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/intel-innersource/libraries.cpp.functional.safe-vars/actions/workflows/unit_tests.yml)
-
 `safe::arithmetic` is a general purpose C++17 library for writing safe and 
 bug-free code. It allows variables and functions to advertise and enforce
 vars at compile-time. The vars are guaranteed to be held true at
