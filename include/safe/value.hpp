@@ -6,10 +6,10 @@
 #include <limits>
 
 namespace safe {
-    template<typename U>
-    constexpr auto value(U value) {
-        constexpr U min = std::numeric_limits<U>::lowest();
-        constexpr U max = std::numeric_limits<U>::max();
-        return var<U, ival<min, max>>{value};
+    constexpr auto value(auto value) {
+        using value_t = decltype(value);
+        constexpr value_t min = std::numeric_limits<value_t>::lowest();
+        constexpr value_t max = std::numeric_limits<value_t>::max();
+        return var<value_t, ival<min, max>>{value};
     }
 }
