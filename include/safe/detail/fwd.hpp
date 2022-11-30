@@ -1,8 +1,6 @@
 #pragma once
 
 
-
-
 namespace safe {
     template<typename T, auto Requirement>
     struct var;

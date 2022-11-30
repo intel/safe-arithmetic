@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include <safe/detail/fwd.hpp>
 #include <safe/detail/integral_type.hpp>
 #include <safe/detail/assume.hpp>
