@@ -3,6 +3,7 @@
 #include <limits>
 #include <type_traits>
 #include <bit>
+#include <concepts>
 
 namespace safe::dsl::detail {
     /*
@@ -186,10 +187,7 @@ namespace safe::dsl::detail {
         }();
 
         bool const negation_overflow = [&](){
-            if constexpr (
-                std::is_signed_v<ret_t> &&
-                std::is_integral_v<ret_t>
-            ) {
+            if constexpr (std::signed_integral<ret_t>) {
                 constexpr auto neg_one = static_cast<ret_t>(-1);
 
                 return
@@ -222,10 +220,7 @@ namespace safe::dsl::detail {
             right_value == zero;
 
         bool const negation_overflow = [&](){
-            if constexpr (
-                std::is_signed_v<ret_t> &&
-                std::is_integral_v<ret_t>
-            ) {
+            if constexpr (std::signed_integral<ret_t>) {
                 constexpr auto neg_one = static_cast<ret_t>(-1);
 
                 return
