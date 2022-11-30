@@ -152,6 +152,14 @@ namespace safe::dsl {
         return result;
     }
 
+    template<typename LhsT, typename RhsT>
+    [[nodiscard]] constexpr auto operator-(
+        triint<LhsT> lhs,
+        triint<RhsT> rhs
+    ) -> triint<std::common_type_t<LhsT, RhsT>> {
+        return lhs + ~rhs + triint{0, 1};
+    }
+
     template<typename T, typename U>
     triint(
         T var_bits,

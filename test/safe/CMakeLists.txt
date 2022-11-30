@@ -12,6 +12,7 @@ add_executable(gtests
     array.cpp
     dsl/detail/checked.cpp
     dsl/add.cpp
+    dsl/minus.cpp
     dsl/abs.cpp
     dsl/bitwise_and.cpp
     dsl/bitwise_or.cpp
