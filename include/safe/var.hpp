@@ -79,23 +79,15 @@ namespace safe {
         constexpr var() = delete;
 
         inline constexpr var(Var auto const & rhs)
-            // NOTE: not using the initializer list to allow for narrowing
-            //       conversions. vars are expected to protect from
-            //       overflows.
-            : value_{}
+            : value_(rhs.unsafe_value()) // intentionally allowing narrowing conversions
         {
             static_assert_assign_requirements(*this, rhs);
-            value_ = rhs.unsafe_value();
         }
 
         inline constexpr var(Var auto && rhs)
-            // NOTE: not using the initializer list to allow for narrowing
-            //       conversions. vars are expected to protect from
-            //       overflows.
-            : value_{}
+            : value_(rhs.unsafe_value()) // intentionally allowing narrowing conversions
         {
             static_assert_assign_requirements(*this, rhs);
-            value_ = rhs.unsafe_value();
         }
 
         inline constexpr auto operator=(Var auto const & rhs) -> var & {
