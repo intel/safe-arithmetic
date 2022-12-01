@@ -1,7 +1,11 @@
 #pragma once
 
+
+#include <safe/detail/fwd.hpp>
+#include <safe/detail/integral_type.hpp>
 #include <safe/detail/assume.hpp>
 #include <safe/detail/pure.hpp>
+#include <safe/detail/var_assign_static_assert.hpp>
 #include <safe/dsl.hpp>
 #include <safe/dsl/simplify.hpp>
 
@@ -12,47 +16,6 @@
 
 
 namespace safe {
-    template<typename U>
-    [[nodiscard]] inline constexpr auto value(U value);
-
-    template<typename U>
-    struct lhs_req {
-        constexpr static U value{};
-    };
-
-    template<typename U>
-    struct rhs_req {
-        constexpr static U value{};
-    };
-
-    template<typename LhsT, typename RhsT>
-    struct rhs_must_be_subset_of_lhs {
-        constexpr static bool value = LhsT::value >= RhsT::value;
-    };
-
-
-    template<typename T, auto Requirement>
-    struct var;
-
-    template <typename T>
-    constexpr bool is_var_v = false;
-
-    template<typename T, auto Requirement>
-    constexpr bool is_var_v<var<T, Requirement>> = true;
-
-    template<class T>
-    concept Var = is_var_v<T>;
-
-
-    namespace detail {
-        template<typename T>
-        using integral_type =
-            var<T, ival<
-                std::numeric_limits<T>::lowest(),
-                std::numeric_limits<T>::max()>
-            >;
-    }
-
     template<typename T, auto Requirement>
     struct var {
         constexpr static auto requirement = Requirement;
@@ -67,10 +30,9 @@ namespace safe {
         friend struct var;
 
         template<typename U, U value>
-        friend constexpr auto make_constant();
+        friend inline constexpr auto detail::make_constant();
 
-        template<typename U>
-        friend constexpr auto value(U value);
+        friend constexpr auto value(auto value);
 
         template<typename Callable, typename... ArgTs>
         friend constexpr bool invoke(Callable c, ArgTs... args);
@@ -90,7 +52,7 @@ namespace safe {
         friend inline constexpr auto max(Var auto lhs, Var auto rhs);
         friend inline constexpr auto abs(Var auto value);
 
-        constexpr var(T value)
+        inline constexpr var(T value)
             : value_{value}
         {
             SAFE_ASSUME(requirement.check(value_));
@@ -114,20 +76,28 @@ namespace safe {
         }
 
     public:
-        inline constexpr var(
-            Var auto rhs
-        )
-            // NOTE: not using the initializer list to allow for narrowing
-            //       conversions. vars are expected to protect from
-            //       overflows.
-            : value_{}
+        constexpr var() = delete;
+
+        inline constexpr var(Var auto const & rhs)
+            : value_(rhs.unsafe_value()) // intentionally allowing narrowing conversions
         {
-            static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(rhs.requirement)>>::value);
-            value_ = rhs.unsafe_value();
+            static_assert_assign_requirements(*this, rhs);
         }
 
-        inline constexpr auto operator=(Var auto rhs) -> var & {
-            static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(Requirement)>, rhs_req<decltype(rhs.requirement)>>::value);
+        inline constexpr var(Var auto && rhs)
+            : value_(rhs.unsafe_value()) // intentionally allowing narrowing conversions
+        {
+            static_assert_assign_requirements(*this, rhs);
+        }
+
+        inline constexpr auto operator=(Var auto const & rhs) -> var & {
+            static_assert_assign_requirements(*this, rhs);
+            value_ = rhs.unsafe_value();
+            return *this;
+        }
+
+        inline constexpr auto operator=(Var auto && rhs) -> var & {
+            static_assert_assign_requirements(*this, rhs);
             value_ = rhs.unsafe_value();
             return *this;
         }
@@ -136,7 +106,6 @@ namespace safe {
             SAFE_ASSUME(requirement.check(value_));
             return value_;
         }
-
     };
 
     [[nodiscard]] inline constexpr auto operator+(Var auto lhs, Var auto rhs) {
@@ -184,11 +153,16 @@ namespace safe {
         return lhs.bin_op(rhs, std::bit_xor<>());
     }
 
-    [[nodiscard]] inline constexpr std::strong_ordering operator<=>(Var auto lhs, Var auto rhs) {
+    [[nodiscard]] inline constexpr auto operator<=>(
+        Var auto lhs,
+        Var auto rhs
+    )
+        -> std::compare_three_way_result_t<decltype(lhs.unsafe_value()), decltype(rhs.unsafe_value())>
+    {
         return lhs.unsafe_value() <=> rhs.unsafe_value();
     }
 
-    [[nodiscard]] inline constexpr bool operator==(Var auto lhs, Var auto rhs) {
+    [[nodiscard]] inline constexpr auto operator==(Var auto lhs, Var auto rhs) -> bool {
         return lhs.unsafe_value() == rhs.unsafe_value();
     }
 
