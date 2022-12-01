@@ -134,7 +134,7 @@ TYPED_TEST(safe_var_ops_test, min_op) {
 TYPED_TEST(safe_var_ops_test, clamp_op) {
     safe::var<TypeParam, ival<0, 100>> const min = 32_s32;
     safe::var<TypeParam, ival<0, 100>> const max = 48_s32;
-    auto const result = std::clamp(65, min, max);
+    auto const result = clamp(65, min, max);
     EXPECT_EQ(result.unsafe_value(), 48);
 }
 
@@ -144,7 +144,7 @@ TEST(safe_var_test, negate_op) {
 }
 
 TEST(safe_var_test, abs_op) {
-    auto const result = std::abs(-42_s32);
+    auto const result = abs(-42_s32);
     EXPECT_EQ(result.unsafe_value(), 42);
 }
 
