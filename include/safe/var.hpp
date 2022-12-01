@@ -153,7 +153,12 @@ namespace safe {
         return lhs.bin_op(rhs, std::bit_xor<>());
     }
 
-    [[nodiscard]] inline constexpr auto operator<=>(Var auto lhs, Var auto rhs) -> std::strong_ordering {
+    [[nodiscard]] inline constexpr auto operator<=>(
+        Var auto lhs,
+        Var auto rhs
+    )
+        -> std::compare_three_way_result_t<decltype(lhs.unsafe_value()), decltype(rhs.unsafe_value())>
+    {
         return lhs.unsafe_value() <=> rhs.unsafe_value();
     }
 
