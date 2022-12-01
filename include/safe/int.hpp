@@ -1,11 +1,15 @@
 #pragma once
 
+
+#include <safe/detail/integral_type.hpp>
+
 #include <safe/var.hpp>
 #include <safe/constant.hpp>
 #include <safe/dsl.hpp>
 
 #include <cstdint>
 #include <limits>
+
 
 namespace safe {
     namespace int_types {
