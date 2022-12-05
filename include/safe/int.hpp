@@ -89,7 +89,8 @@ namespace safe {
             typename T,
             char... Chars>
         [[nodiscard]] constexpr auto to_constant() {
-             constexpr T value = [](){
+            // FIXME: handle or fail at compile-time for invalid strings
+            constexpr T value = [](){
                 constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
                 T sum = 0;
 

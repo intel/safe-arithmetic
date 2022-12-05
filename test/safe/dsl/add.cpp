@@ -19,10 +19,31 @@ TEST(safe_dsl_add, add_two_ival_constants) {
     );
 }
 
+TEST(safe_dsl_add, add_three_ival_constants) {
+    EXPECT_EQ(
+        (ival<30, 30> + ival<12, 12> + ival<8, 8>),
+        (ival<50, 50>)
+    );
+}
+
 TEST(safe_dsl_add, add_two_intervals) {
     EXPECT_EQ(
         (ival<10, 20> + ival<40, 80>),
         (ival<50, 100>)
+    );
+}
+
+TEST(safe_dsl_add, add_three_intervals) {
+    EXPECT_EQ(
+        (ival<10, 20> + ival<40, 80> + ival<1, 5>),
+        (ival<51, 105>)
+    );
+}
+
+TEST(safe_dsl_add, add_four_intervals) {
+    EXPECT_EQ(
+        (ival<10, 20> + ival<40, 80> + ival<1, 5> + ival<3, 7>),
+        (ival<54, 112>)
     );
 }
 

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <safe/dsl.hpp>
-
 #include <safe/var.hpp>
-
-#include <safe/invoke.hpp>
-
-#include <safe/array.hpp>
+#include <safe/dsl.hpp>
 #include <safe/constant.hpp>
 #include <safe/value.hpp>
 #include <safe/int.hpp>
+
+#include <safe/function.hpp>
+#include <safe/algorithm.hpp>
+
+#include <safe/array.hpp>

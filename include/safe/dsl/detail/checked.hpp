@@ -129,7 +129,7 @@ namespace safe::dsl::detail {
         if (overflow | underflow | lhs.is_overflow() | rhs.is_overflow()) {
             return checked<ret_t>{zero, true};
         } else {
-            return checked<ret_t>{lhs.value() + rhs.value(), false};
+            return checked<ret_t>(lhs.value() + rhs.value(), false);
         }
     }
 
@@ -155,7 +155,7 @@ namespace safe::dsl::detail {
         if (overflow | underflow | lhs.is_overflow() | rhs.is_overflow()) {
             return checked<ret_t>{zero, true};
         } else {
-            return checked<ret_t>{lhs.value() - rhs.value(), false};
+            return checked<ret_t>(lhs.value() - rhs.value(), false);
         }
     }
 
