@@ -6,6 +6,7 @@
 #include <safe/detail/assume.hpp>
 #include <safe/detail/pure.hpp>
 #include <safe/detail/var_assign_static_assert.hpp>
+#include <safe/detail/concepts.hpp>
 #include <safe/dsl.hpp>
 #include <safe/dsl/simplify.hpp>
 
@@ -42,7 +43,7 @@ namespace safe {
         friend inline constexpr auto function(auto, auto...);
 
         template<size_t max_iter>
-        friend inline constexpr auto accumulate(auto, auto);
+        friend inline constexpr auto accumulate(detail::iter_like auto, auto, auto);
 
         friend inline constexpr auto operator+(Var auto, Var auto);
         friend inline constexpr auto operator-(Var auto, Var auto);
