@@ -37,8 +37,16 @@ namespace safe::detail {
     }
 
 
+    template<typename T, typename ReturnT, typename... ArgTs>
+    mp_list<ArgTs...> helper(ReturnT (T::*)(ArgTs...));
+
+    template<typename T, typename ReturnT, typename... ArgTs>
+    mp_list<ArgTs...> helper(ReturnT (T::*)(ArgTs...) const);
+
     template<typename F>
-    struct function_args;
+    struct function_args {
+        using type = decltype(helper(&F::operator()));
+    };
 
     template<typename ReturnT, typename... ArgTs>
     struct function_args<ReturnT(ArgTs...)> {

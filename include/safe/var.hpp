@@ -6,6 +6,7 @@
 #include <safe/detail/assume.hpp>
 #include <safe/detail/pure.hpp>
 #include <safe/detail/var_assign_static_assert.hpp>
+#include <safe/detail/concepts.hpp>
 #include <safe/dsl.hpp>
 #include <safe/dsl/simplify.hpp>
 
@@ -13,6 +14,7 @@
 #include <type_traits>
 #include <compare>
 #include <functional>
+#include <bit>
 
 
 namespace safe {
@@ -32,25 +34,33 @@ namespace safe {
         template<typename U, U value>
         friend inline constexpr auto detail::make_constant();
 
-        friend constexpr auto value(auto value);
+        friend constexpr auto value(auto);
 
         template<typename Callable, typename... ArgTs>
-        friend constexpr bool invoke(Callable c, ArgTs... args);
+        friend constexpr bool invoke(Callable, ArgTs...);
 
-        friend inline constexpr auto operator+(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator-(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator-(Var auto v);
-        friend inline constexpr auto operator*(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator/(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator%(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator<<(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator>>(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator|(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator&(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto operator^(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto min(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto max(Var auto lhs, Var auto rhs);
-        friend inline constexpr auto abs(Var auto value);
+        template<typename RetT>
+        friend inline constexpr auto function(auto, auto...);
+
+        template<size_t max_iter>
+        friend inline constexpr auto accumulate(detail::iter_like auto, auto, auto);
+
+        friend inline constexpr auto operator+(Var auto, Var auto);
+        friend inline constexpr auto operator-(Var auto, Var auto);
+        friend inline constexpr auto operator-(Var auto);
+        friend inline constexpr auto operator*(Var auto, Var auto);
+        friend inline constexpr auto operator/(Var auto, Var auto);
+        friend inline constexpr auto operator%(Var auto, Var auto);
+        friend inline constexpr auto operator<<(Var auto, Var auto);
+        friend inline constexpr auto operator>>(Var auto, Var auto);
+        friend inline constexpr auto operator|(Var auto, Var auto);
+        friend inline constexpr auto operator&(Var auto, Var auto);
+        friend inline constexpr auto operator^(Var auto, Var auto);
+        friend inline constexpr auto min(Var auto, Var auto);
+        friend inline constexpr auto max(Var auto, Var auto);
+        friend inline constexpr auto abs(Var auto);
+
+        friend inline constexpr auto bit_width(Var auto);
 
         inline constexpr var(T value)
             : value_{value}
@@ -166,12 +176,18 @@ namespace safe {
         return lhs.unsafe_value() == rhs.unsafe_value();
     }
 
-    [[nodiscard]] inline constexpr auto abs(
-        Var auto value
-    ) {
+    [[nodiscard]] inline constexpr auto abs(Var auto value) {
         using num_t = decltype(value.unsafe_value());
         auto result = static_cast<num_t>(std::abs(value.unsafe_value()));
         auto result_req = dsl::detail::simp(safe::dsl::abs(value.requirement));
+        return var<num_t, result_req>{result};
+    }
+
+
+    [[nodiscard]] inline constexpr auto bit_width(Var auto value) {
+        using num_t = decltype(value.unsafe_value());
+        auto result = static_cast<num_t>(std::bit_width(value.unsafe_value()));
+        auto result_req = dsl::detail::simp(safe::dsl::bit_width(value.requirement));
         return var<num_t, result_req>{result};
     }
 
