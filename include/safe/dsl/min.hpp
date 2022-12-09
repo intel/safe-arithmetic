@@ -19,8 +19,9 @@ namespace safe::dsl {
         : public binary_op
     {
         using type = ival_t<
-            std::min(lhs_min, rhs_min),
-            std::min(lhs_max, rhs_max)>;
+            std::min<std::common_type_t<decltype(lhs_min), decltype(rhs_min)>>(lhs_min, rhs_min),
+            std::min<std::common_type_t<decltype(lhs_max), decltype(rhs_max)>>(lhs_max, rhs_max)
+        >;
     };
 
     template<
