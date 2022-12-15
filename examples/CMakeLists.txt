@@ -1,0 +1,1 @@
+add_subdirectory(advent_of_code)

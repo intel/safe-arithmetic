@@ -11,6 +11,15 @@
 
 
 namespace safe {
+    namespace detail {
+        [[nodiscard]] constexpr auto unwrap_var(Var auto v) {
+            return v.unsafe_value();
+        }
+
+        [[nodiscard]] constexpr auto unwrap_var(auto v) {
+            return v;
+        }
+    }
     /**
      * @brief Create a safe, optionally piece-wise, function.
      *
@@ -54,7 +63,7 @@ namespace safe {
                     detail::check(func_arg_types{}, std::forward<decltype(args)>(args)...);
 
                 if (args_satisfy_reqs) {
-                    func(std::forward<decltype(args)>(args)...);
+                    func(detail::unwrap_var(args)...);
                     return true;
 
                 } else if constexpr (sizeof...(remaining_funcs) > 0) { // check the remaining functions' requirements

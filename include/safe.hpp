@@ -5,6 +5,7 @@
 #include <safe/constant.hpp>
 #include <safe/value.hpp>
 #include <safe/int.hpp>
+#include <safe/object.hpp>
 
 #include <safe/function.hpp>
 #include <safe/algorithm.hpp>
