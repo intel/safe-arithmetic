@@ -83,4 +83,13 @@ namespace safe::detail {
     ) {
         return (check<ContractTs, ArgTs>(args) && ...);
     }
+
+    template<typename T>
+    [[nodiscard]] constexpr decltype(auto) unwrap_var(T && v) {
+        if constexpr (Var<std::remove_cvref_t<T>>) {
+            return v.unsafe_value();
+        } else {
+            return std::forward<decltype(v)>(v);
+        }
+    }
 }

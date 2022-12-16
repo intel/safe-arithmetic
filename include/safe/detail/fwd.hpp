@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <type_traits>
+
+
 namespace safe {
     template<typename T, auto Requirement>
     struct var;

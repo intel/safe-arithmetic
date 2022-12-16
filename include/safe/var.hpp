@@ -86,7 +86,10 @@ namespace safe {
         }
 
     public:
-        constexpr var() = delete;
+        constexpr var() : value_(0) {
+            // FIXME: only allow this if the range includes zero
+        }
+
 
         inline constexpr var(Var auto const & rhs)
             : value_(rhs.unsafe_value()) // intentionally allowing narrowing conversions

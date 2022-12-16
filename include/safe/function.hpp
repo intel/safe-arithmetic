@@ -2,7 +2,7 @@
 
 
 #include <safe/var.hpp>
-#include <safe/detail/invoke.hpp>
+#include <safe/detail/function.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -11,15 +11,6 @@
 
 
 namespace safe {
-    namespace detail {
-        [[nodiscard]] constexpr auto unwrap_var(Var auto v) {
-            return v.unsafe_value();
-        }
-
-        [[nodiscard]] constexpr auto unwrap_var(auto v) {
-            return v;
-        }
-    }
     /**
      * @brief Create a safe, optionally piece-wise, function.
      *
@@ -53,8 +44,15 @@ namespace safe {
         using func_arg_types =
             detail::function_args_t<decltype(func)>;
 
-        if constexpr (std::is_same_v<void, RetT>) {
-            return [=](auto && ... args) -> bool {
+        return [=](auto && ... args) -> RetT {
+            if constexpr (sizeof...(remaining_funcs) == 0) {
+                static_assert(
+                    mp_size<func_arg_types>::value == 0,
+                    "Last function in `safe::function` returns the default value and must not take any arguments.");
+
+                return func();
+
+            } else {
                 static_assert(
                     mp_size<func_arg_types>::value == sizeof...(args),
                     "The number of arguments passed in must match the args in func.");
@@ -63,42 +61,12 @@ namespace safe {
                     detail::check(func_arg_types{}, std::forward<decltype(args)>(args)...);
 
                 if (args_satisfy_reqs) {
-                    func(detail::unwrap_var(args)...);
-                    return true;
+                    return func(detail::unwrap_var(std::forward<decltype(args)>(args))...);
 
-                } else if constexpr (sizeof...(remaining_funcs) > 0) { // check the remaining functions' requirements
+                } else { // check the remaining functions' requirements
                     return function<RetT>(remaining_funcs...)(std::forward<decltype(args)>(args)...);
-
-                } else { // no match, return failure
-                    return false;
                 }
-            };
-
-        } else {
-            return [=](auto && ... args) -> RetT {
-                if constexpr (sizeof...(remaining_funcs) == 0) {
-                    static_assert(
-                        mp_size<func_arg_types>::value == 0,
-                        "Last function in `safe::function` returns the default value and must not take any arguments.");
-
-                    return func();
-
-                } else {
-                    static_assert(
-                        mp_size<func_arg_types>::value == sizeof...(args),
-                        "The number of arguments passed in must match the args in func.");
-
-                    bool const args_satisfy_reqs =
-                        detail::check(func_arg_types{}, std::forward<decltype(args)>(args)...);
-
-                    if (args_satisfy_reqs) {
-                        return func(std::forward<decltype(args)>(args)...);
-
-                    } else { // check the remaining functions' requirements
-                        return function<RetT>(remaining_funcs...)(std::forward<decltype(args)>(args)...);
-                    }
-                }
-            };
-        }
+            }
+        };
     }
 }
