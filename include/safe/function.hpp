@@ -61,7 +61,7 @@ namespace safe {
                     detail::check(func_arg_types{}, std::forward<decltype(args)>(args)...);
 
                 if (args_satisfy_reqs) {
-                    return func(detail::unwrap_var(std::forward<decltype(args)>(args))...);
+                    return func(unsafe_cast_ferry{detail::unwrap_var(std::forward<decltype(args)>(args))}...);
 
                 } else { // check the remaining functions' requirements
                     return function<RetT>(remaining_funcs...)(std::forward<decltype(args)>(args)...);

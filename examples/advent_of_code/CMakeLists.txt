@@ -1,7 +1,7 @@
 CPMAddPackage("gh:ericniebler/range-v3#74e44001bb6fac8d7b548a4b717b9b834c834ad9")
 CPMAddPackage("gh:eliaskosunen/scnlib#72a4bab9e32f2b44593137fba40c54710e20a623")
 CPMAddPackage("gh:fmtlib/fmt#f61dcccc6ed5b255c14079d501e890d15aa926c9")
-CPMAddPackage("gh:mpusz/units#02d6e104f09f47a22eb5994974e5c7957becada2")
+#CPMAddPackage("gh:mpusz/units#02d6e104f09f47a22eb5994974e5c7957becada2")
 
 add_subdirectory(asm_tests)
 
@@ -16,4 +16,4 @@ add_subdirectory(day_8)
 add_subdirectory(day_9)
 add_subdirectory(day_10)
 add_subdirectory(day_11)
-add_subdirectory(day_12)
+#add_subdirectory(day_12)

@@ -89,7 +89,8 @@ int main() {
 
                     dst.insert(dst.end(), src.end() - count.unsafe_value(), src.end());
                     src.resize(src.size() - count.unsafe_value());
-                }
+                },
+                [](){}
             )(unsafe_count, unsafe_src_index, unsafe_dst_index);
         }
     }

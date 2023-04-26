@@ -10,6 +10,6 @@ namespace safe {
         using value_t = decltype(value);
         constexpr value_t min = std::numeric_limits<value_t>::lowest();
         constexpr value_t max = std::numeric_limits<value_t>::max();
-        return var<value_t, ival<min, max>>{value};
+        return unsafe_cast<var<value_t, ival<min, max>>>(value);
     }
 }

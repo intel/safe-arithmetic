@@ -75,7 +75,7 @@ namespace safe {
             iter_count++;
         }
 
-        return safe::var<ret_num_t, sum_req>{sum};
+        return unsafe_cast<var<ret_num_t, sum_req>>(sum);
     }
 
     template<size_t max_iter>

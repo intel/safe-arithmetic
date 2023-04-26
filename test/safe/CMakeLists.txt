@@ -10,6 +10,7 @@ add_executable(gtests
     invoke.cpp
     dsl.cpp
     array.cpp
+    big_integer.cpp
     dsl/detail/checked.cpp
     dsl/add.cpp
     dsl/minus.cpp

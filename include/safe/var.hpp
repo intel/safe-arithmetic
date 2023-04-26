@@ -20,153 +20,127 @@
 namespace safe {
     template<typename T, auto Requirement>
     struct var {
+    public:
         constexpr static auto requirement = Requirement;
 
-    private:
-        using PrimitiveContract = detail::integral_type<T>;
-        static_assert(rhs_must_be_subset_of_lhs<lhs_req<decltype(PrimitiveContract::requirement)>, rhs_req<decltype(Requirement)>>::value);
+        constexpr var() requires(requirement >= ival<0, 0>)
+            : value_(0)
+        {}
 
-        T value_;
-
-        template<typename U, auto OtherRequirement>
-        friend struct var;
-
-        template<typename U, U value>
-        friend inline constexpr auto detail::make_constant();
-
-        friend constexpr auto value(auto);
-
-        template<typename Callable, typename... ArgTs>
-        friend constexpr bool invoke(Callable, ArgTs...);
-
-        template<typename RetT>
-        friend inline constexpr auto function(auto, auto...);
-
-        template<size_t max_iter>
-        friend inline constexpr auto accumulate(detail::iter_like auto, auto, auto);
-
-        friend inline constexpr auto operator+(Var auto, Var auto);
-        friend inline constexpr auto operator-(Var auto, Var auto);
-        friend inline constexpr auto operator-(Var auto);
-        friend inline constexpr auto operator*(Var auto, Var auto);
-        friend inline constexpr auto operator/(Var auto, Var auto);
-        friend inline constexpr auto operator%(Var auto, Var auto);
-        friend inline constexpr auto operator<<(Var auto, Var auto);
-        friend inline constexpr auto operator>>(Var auto, Var auto);
-        friend inline constexpr auto operator|(Var auto, Var auto);
-        friend inline constexpr auto operator&(Var auto, Var auto);
-        friend inline constexpr auto operator^(Var auto, Var auto);
-        friend inline constexpr auto min(Var auto, Var auto);
-        friend inline constexpr auto max(Var auto, Var auto);
-        friend inline constexpr auto abs(Var auto);
-
-        friend inline constexpr auto bit_width(Var auto);
-
-        inline constexpr var(T value)
-            : value_{value}
+        template<typename U>
+        requires (std::is_convertible_v<U, T>)
+        SAFE_INLINE constexpr var(unsafe_cast_ferry<U> ferry)
+            : value_{static_cast<T>(ferry.value())}
         {
             SAFE_ASSUME(requirement.check(value_));
         }
 
-        [[nodiscard]] inline constexpr auto bin_op(
-            Var auto rhs,
-            auto op
-        ) const {
-            using num_t =
-                std::common_type_t<T, decltype(rhs.unsafe_value())>;
-
-            auto const result = static_cast<num_t>(op(
-                static_cast<num_t>(unsafe_value()),
-                static_cast<num_t>(rhs.unsafe_value())));
-
-            auto result_req =
-                safe::dsl::detail::simp(op(requirement, rhs.requirement));
-
-            return var<num_t, result_req>{result};
-        }
-
-    public:
-        constexpr var() : value_(0) {
-            // FIXME: only allow this if the range includes zero
-        }
-
-
-        inline constexpr var(Var auto const & rhs)
+        SAFE_INLINE constexpr var(Var auto const & rhs)
             : value_(rhs.unsafe_value()) // intentionally allowing narrowing conversions
         {
             static_assert_assign_requirements(*this, rhs);
         }
 
-        inline constexpr var(Var auto && rhs)
+        SAFE_INLINE constexpr var(Var auto && rhs)
             : value_(rhs.unsafe_value()) // intentionally allowing narrowing conversions
         {
             static_assert_assign_requirements(*this, rhs);
         }
 
-        inline constexpr auto operator=(Var auto const & rhs) -> var & {
+        SAFE_INLINE constexpr auto operator=(Var auto const & rhs) -> var & {
             static_assert_assign_requirements(*this, rhs);
             value_ = rhs.unsafe_value();
             return *this;
         }
 
-        inline constexpr auto operator=(Var auto && rhs) -> var & {
+        SAFE_INLINE constexpr auto operator=(Var auto && rhs) -> var & {
             static_assert_assign_requirements(*this, rhs);
             value_ = rhs.unsafe_value();
             return *this;
         }
 
-        [[nodiscard]] inline constexpr T unsafe_value() const {
+        [[nodiscard]] SAFE_INLINE constexpr T unsafe_value() const {
             SAFE_ASSUME(requirement.check(value_));
             return value_;
         }
+
+    private:
+        using primitive_contract = detail::integral_type<T>;
+
+        static_assert(rhs_must_be_subset_of_lhs<
+            lhs_req<decltype(primitive_contract::requirement)>,
+            rhs_req<decltype(Requirement)>
+        >::value);
+
+        T value_;
     };
 
-    [[nodiscard]] inline constexpr auto operator+(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::plus<>());
+    namespace detail {
+        [[nodiscard]] SAFE_INLINE constexpr auto bin_op(
+            auto op,
+            Var auto lhs,
+            Var auto rhs
+        ) {
+            auto result_req =
+                dsl::detail::simp(op(lhs.requirement, rhs.requirement));
+
+            // FIXME: replace with embiggening strategy; the result type is
+            //        always large enough to contain its value
+
+            auto result = op(
+                lhs.unsafe_value(),
+                rhs.unsafe_value());
+
+            return unsafe_cast<var<decltype(result), result_req>>(result);
+        }
     }
 
-    [[nodiscard]] inline constexpr auto operator-(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::minus<>());
+    [[nodiscard]] SAFE_INLINE constexpr auto operator+(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::plus<>(), lhs, rhs);
     }
 
-    [[nodiscard]] inline constexpr auto operator-(Var auto v) {
-        constexpr var<decltype(v.unsafe_value()), ival<0, 0>> zero{0};
+    [[nodiscard]] SAFE_INLINE constexpr auto operator-(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::minus<>(), lhs, rhs);
+    }
+
+    [[nodiscard]] SAFE_INLINE constexpr auto operator-(Var auto v) {
+        constexpr auto zero = var<decltype(v.unsafe_value()), ival<0, 0>>{};
         return zero - v;
     }
 
-    [[nodiscard]] inline constexpr auto operator*(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::multiplies<>());
+    [[nodiscard]] SAFE_INLINE constexpr auto operator*(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::multiplies<>(), lhs, rhs);
     }
 
-    [[nodiscard]] inline constexpr auto operator/(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::divides<>());
+    [[nodiscard]] SAFE_INLINE constexpr auto operator/(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::divides<>(), lhs, rhs);
     }
     
-    [[nodiscard]] inline constexpr auto operator%(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::modulus<>());
+    [[nodiscard]] SAFE_INLINE constexpr auto operator%(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::modulus<>(), lhs, rhs);
     }
     
-    [[nodiscard]] inline constexpr auto operator<<(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, [](auto a, auto b){return a << b;});
+    [[nodiscard]] SAFE_INLINE constexpr auto operator<<(Var auto lhs, Var auto rhs) {
+        return detail::bin_op([](auto a, auto b){return a << b;}, lhs, rhs);
     }
 
-    [[nodiscard]] inline constexpr auto operator>>(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, [](auto a, auto b){return a >> b;});
+    [[nodiscard]] SAFE_INLINE constexpr auto operator>>(Var auto lhs, Var auto rhs) {
+        return detail::bin_op([](auto a, auto b){return a >> b;}, lhs, rhs);
     }
 
-    [[nodiscard]] inline constexpr auto operator|(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::bit_or<>());
+    [[nodiscard]] SAFE_INLINE constexpr auto operator|(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::bit_or<>(), lhs, rhs);
     }
 
-    [[nodiscard]] inline constexpr auto operator&(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::bit_and<>());
+    [[nodiscard]] SAFE_INLINE constexpr auto operator&(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::bit_and<>(), lhs, rhs);
     }
 
-    [[nodiscard]] inline constexpr auto operator^(Var auto lhs, Var auto rhs) {
-        return lhs.bin_op(rhs, std::bit_xor<>());
+    [[nodiscard]] SAFE_INLINE constexpr auto operator^(Var auto lhs, Var auto rhs) {
+        return detail::bin_op(std::bit_xor<>(), lhs, rhs);
     }
 
-    [[nodiscard]] inline constexpr auto operator<=>(
+    [[nodiscard]] SAFE_INLINE constexpr auto operator<=>(
         Var auto lhs,
         Var auto rhs
     )
@@ -175,48 +149,48 @@ namespace safe {
         return lhs.unsafe_value() <=> rhs.unsafe_value();
     }
 
-    [[nodiscard]] inline constexpr auto operator==(Var auto lhs, Var auto rhs) -> bool {
+    [[nodiscard]] SAFE_INLINE constexpr auto operator==(Var auto lhs, Var auto rhs) -> bool {
         return lhs.unsafe_value() == rhs.unsafe_value();
     }
 
-    [[nodiscard]] inline constexpr auto abs(Var auto value) {
+    [[nodiscard]] SAFE_INLINE constexpr auto abs(Var auto value) {
         using num_t = decltype(value.unsafe_value());
         auto result = static_cast<num_t>(std::abs(value.unsafe_value()));
         auto result_req = dsl::detail::simp(safe::dsl::abs(value.requirement));
-        return var<num_t, result_req>{result};
+        return unsafe_cast<var<num_t, result_req>>(result);
     }
 
 
-    [[nodiscard]] inline constexpr auto bit_width(Var auto value) {
+    [[nodiscard]] SAFE_INLINE constexpr auto bit_width(Var auto value) {
         using num_t = decltype(value.unsafe_value());
         auto result = static_cast<num_t>(std::bit_width(value.unsafe_value()));
         auto result_req = dsl::detail::simp(safe::dsl::bit_width(value.requirement));
-        return var<num_t, result_req>{result};
+        return unsafe_cast<var<num_t, result_req>>(result);
     }
 
-    [[nodiscard]] inline constexpr auto min(
+    [[nodiscard]] SAFE_INLINE constexpr auto min(
         Var auto lhs,
         Var auto rhs
     ) {
         using common_type = std::common_type_t<decltype(lhs.unsafe_value()), decltype(rhs.unsafe_value())>;
         auto result = std::min<common_type>(lhs.unsafe_value(), rhs.unsafe_value());
         using result_t = decltype(result);
-        auto result_req = safe::dsl::detail::simp(safe::dsl::min(lhs.requirement, rhs.requirement));
-        return safe::var<result_t, result_req>{result};
+        auto result_req = dsl::detail::simp(dsl::min(lhs.requirement, rhs.requirement));
+        return unsafe_cast<var<result_t, result_req>>(result);
     }
 
-    [[nodiscard]] inline constexpr auto max(
+    [[nodiscard]] SAFE_INLINE constexpr auto max(
         Var auto lhs,
         Var auto rhs
     ) {
         using common_type = std::common_type_t<decltype(lhs.unsafe_value()), decltype(rhs.unsafe_value())>;
         auto result = std::max<common_type>(lhs.unsafe_value(), rhs.unsafe_value());
         using result_t = decltype(result);
-        auto result_req = safe::dsl::detail::simp(safe::dsl::max(lhs.requirement, rhs.requirement));
-        return safe::var<result_t, result_req>{result};
+        auto result_req = dsl::detail::simp(dsl::max(lhs.requirement, rhs.requirement));
+        return unsafe_cast<var<result_t, result_req>>(result);
     }
 
-    [[nodiscard]] inline constexpr auto clamp(
+    [[nodiscard]] SAFE_INLINE constexpr auto clamp(
         Var auto value,
         Var auto min_val,
         Var auto max_val
@@ -224,7 +198,7 @@ namespace safe {
         return min(max(value, min_val), max_val);
     }
 
-    [[nodiscard]] inline constexpr auto clamp(
+    [[nodiscard]] SAFE_INLINE constexpr auto clamp(
         auto unsafe_value,
         Var auto min_val,
         Var auto max_val

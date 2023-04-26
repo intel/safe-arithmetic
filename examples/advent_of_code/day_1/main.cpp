@@ -20,9 +20,12 @@ constexpr auto to_safe = [](auto calorie_pack) {
     std::vector<item_int_t> data{};
 
     for (auto const line : calorie_pack) {
-        safe::function<void>([&](item_int_t calories){
-            data.push_back(calories);
-        })(std::stoi(line));
+        safe::function<void>(
+            [&](item_int_t calories){
+                data.push_back(calories);
+            },
+            [](){}
+        )(std::stoi(line));
     }
 
     return data;

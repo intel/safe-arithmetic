@@ -5,7 +5,7 @@ function(test_static_assert_fail TEST_NAME)
     add_test(NAME ${TEST_NAME}
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ${TEST_NAME}_t
     )
-    set_tests_properties(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION "static_assert")
+    set_tests_properties(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION "(static_assert)|(static assertion failed)")
 endfunction()
 
 ## Test that code that must compile
