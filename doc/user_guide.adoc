@@ -275,9 +275,22 @@ arithmetic environment when the valid values are a subset of the underlying
 integer type's range.
 
 ```c++
+// Pseudo C++20 to illustrate safe::match API
 namespace safe {
-    template<typename Return>
-    auto match<Return>(auto... matchable_funcs, auto default_func);
+    template <typename F, typename Return, std::size_t NumArgs>
+    concept Callable = requires(F f, auto... args) {
+        Return retval = f(args...);
+        requires sizeof...(args) == NumArgs;
+    };
+
+    template<
+        typename Return,
+        std::size_t NumArgs>
+    auto match<Return>(
+        Callable<Return, NumArgs> auto... matchable_funcs,
+        Callable<Return, 0> auto default_func
+    )
+        -> Return(auto... unsafe_args);
 }
 ```
 
