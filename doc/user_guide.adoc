@@ -5,6 +5,7 @@ Luke Valenty <luke.valenty@intel.com>
 :source-highlighter: rouge
 :rouge-style: base16.solarized
 :source-language: c++
+:stem:
 
 == Motivation
 
@@ -117,7 +118,11 @@ at.
   is handled. It has been around longer than Safe Arithmetic. It only supports
   intervals to specify value requirements, while Safe Arithmetic implements a
   DSL to allow more tightly-constrained requirements.
-* https://github.com/dcleblanc/SafeInt[SafeInt]. Provides both a C++11 and C
+* https://github.com/davidstone/bounded-integer[bounded::integer]. A library
+  by David Stone. Defines a `bounded::integer<Min, Max>` template type that
+  tracks the set of potential values of operations using interval math.
+  Implemented in {cpp}20 as modules.
+* https://github.com/dcleblanc/SafeInt[SafeInt]. Provides both a {cpp}11 and C
   library implementation. Appears to only support runtime checking.
 * https://github.com/PeterSommerlad/PSsimplesafeint[PSsimplesafeint].
   "A {cpp}20 implementation of safe (wrap around) integers following MISRA
@@ -272,18 +277,21 @@ match the callable object's input arguments against.
 
 This is the recommended way of marshalling external integer values into a safe
 arithmetic environment when the valid values are a subset of the underlying
-integer type's range.
+integer type's range. For example, an external value arrives in a full 16-bit
+unsigned integer, but the valid values are only 0 through 50,000. The full
+16 bits are needed to represent the value, but only a subset of the 16-bit
+integer range is valid.
 
 ```c++
 // Pseudo C++20 to illustrate safe::match API
-namespace safe {
-    template <typename F, typename Return, std::size_t NumArgs>
-    concept Callable = requires(F f, auto... args) {
-        Return retval = f(args...);
-        requires sizeof...(args) == NumArgs;
-    };
+template <typename F, typename Return, std::size_t NumArgs>
+concept Callable = requires(F f, auto... args) {
+    Return retval = f(args...);
+    requires sizeof...(args) == NumArgs;
+};
 
-    template<typename Return, std::size_t NumArg>
+namespace safe {
+    template<typename Return, std::size_t NumArgs>
     Callable<Return, NumArgs> auto match<Return>(
         Callable<Return, NumArgs> auto... matchable_funcs,
         Callable<Return, 0> auto default_func
@@ -398,4 +406,217 @@ auto another_innocent = safe_cast<std::int8_t>(my_safe_value);
 ```
 
 
-=== Safe Arithmetic Requirements
+=== Safe Arithmetic Requirements DSL
+
+The Requirements Domain-Specific Language is used to define the set of valid
+values for a `safe::var<T, Requirements>` templated type. `safe_numerics` and
+`bounded::integer` both use interval arithmetic at compile time to track the
+set of valid values. The Safe Arithmetic library works with intervals, sets,
+tristate bitmasks, and set operators like union, intersection, and difference
+to define arbitrary requirements on values. Just like `safe_numerics` and
+`bounded::integer`, it will calculate the new set of possible values for any
+arithmetic, bitwise, or shift operation.
+
+Since interval requirements are commonly used, there are convenience types for
+creating them:
+
+```c++
+safe::ival_s32<-100, 100> small_number{};
+```
+
+Which is equivalent to the following:
+
+```c++
+safe::var<std::int32_t, safe::ival<-100, 100>> small_number = 0_i;
+```
+
+If we want to exclude '0' from the range, the DSL allows us to do that:
+
+```c++
+using safe::ival;
+safe::var<std::int32_t, ival<-100, -1> || ival<1, 100>> small_nonzero_number = 1_i;
+```
+
+This enables the library to protect against divide-by-zero at compile-time. The
+division operator function arguments require the divisor to be non-zero.
+
+```c++
+// COMPILE ERROR: small_number _might_ be zero
+auto result_1 = 10_i / small_number;
+
+// SAFE: small_nonzero_number is guaranteed to be non-zero.
+auto result_2 = 10_i / small_nonzero_number;
+```
+
+The DSL can be used by itself, outside of `safe::var`. This can be helpful to
+illustrate the rules and capabilities of the DSL itself.
+
+The assignment operator and constructors for `safe::var<T, Req>` that accept
+another `safe::var<RhsT, RhsReq>` use set inequality operators to determine
+whether it is safe or not. The right-hand-side argument's requirements must
+be a subset of the left-hand-side target.
+
+```c++
+using safe::ival;
+
+constexpr auto non_zero_req = ival<-100, -1> || ival<1, 100>;
+constexpr auto small_num_req = ival<-100, 100>;
+
+// The `<=` operator is used for 'is subset of'
+static_assert(non_zero_req <= small_num_req);
+
+safe::var<std:int32_t, non_zero_req> non_zero = 1_i;
+
+// The `<=` operator ensures this assignment is safe at compile-time
+safe::var<std::int32_t, small_num_req> small_num = non_zero;
+```
+
+When any operation is performed on a `safe::var` instance, the mirror operation
+is performed on the requirements.
+
+```c++
+using safe::ival;
+
+constexpr auto one_to_ten_req = ival<1, 10>;
+constexpr auto non_zero_req = ival<-100, -1> || ival<1, 100>;
+
+safe::var<std:int32_t, non_zero_req> a = 42_i;
+safe::var<std:int32_t, one_to_ten_req> b = 3_i;
+
+auto c = a * b;
+
+// runtime value is updated as expected
+assert(c == 126_i);
+
+// static requirements are also updated as expected
+static_assert(c.requirement == ival<-1000, -1> || ival<1, 1000>);
+```
+
+==== Requirement DSL Primitives
+
+|===
+|Name |Symbol |{cpp} | Description
+
+|Interval
+|stem:[[a, b]]
+| ```safe::ival<a, b>```
+| A set of values from a to b, inclusive.
+
+|Set
+|stem:[{a, b, c, ...}]
+| ```safe::set<a, b, c, ...>```
+| A set of explicitly defined values.
+
+|Mask
+|stem:["¯\_(ツ)_/¯"]
+| ```safe::mask<a, b>```
+| Tristate logic mask. Need help to describe. Useful for bitwise calculations on sets.
+
+|===
+
+
+==== Requirement DSL Operators
+
+|===
+|Name |Symbol |{cpp} Operator | Description
+
+|Subset
+|stem:[A subseteq B]
+| ```A {lt}= B```
+| Test if A is a subset of B.
+
+|Superset
+|stem:[A supe B]
+| ```A >= B```
+| Test if A is a superset of B.
+
+|Set Equality
+|stem:[A = B]
+| ```A == B```
+| Test if A and B contain identical elements.
+
+|Set Inequality
+|stem:[A != B]
+| ```A != B```
+| Test if A and B do not contain identical elements.
+
+|Set Union
+|stem:[A uu B]
+| ```A \|\| B```
+| Set of all elements in A and B.
+
+|Set Intersection
+|stem:[A nn B]
+| ```A && B```
+| Set of common elements in A and B.
+
+|Addition
+|stem:[{a + b \| a in A, b in B}]
+|```A + B```
+| Set of product pairs of A and B added.
+
+|Subtraction
+|stem:[{a - b \| a in A, b in B}]
+|```A - B```
+| Set of product pairs of A and B subtracted.
+
+|Multiplication
+|stem:[{a * b \| a in A, b in B}]
+|```A * B```
+| Set of product pairs of A and B multiplied.
+
+|Division
+|stem:[{a / b \| a in A, b in B}]
+|```A / B```
+| Set of product pairs of A and B divided.
+
+|Modulo
+|stem:[{a % b \| a in A, b in B}]
+|```A % B```
+| Set of product pairs of A and B modulo.
+
+|Absolute Value
+|stem:[{\|a\| \| a in A}]
+|```abs(A)```
+| Set of the absolute value of all elements in A.
+
+|Minimum Value
+|stem:[{min(a, b) \| a in A, b in B}]
+|```min(A, B)```
+| Set of the minimum of each product pair of A and B.
+
+|Maximum Value
+|stem:[{max(a, b) \| a in A, b in B}]
+|```max(A, B)```
+| Set of the maximum of each product pair of A and B.
+
+|Bitwise AND
+|stem:[{a\ &\ b \| a in A, b in B}]
+|```A & B```
+| Set of product pairs of A and B bitwise ANDed.
+
+|Bitwise OR
+|stem:[{a \| b \ \|\ a in A, b in B}]
+|```A \| B```
+| Set of product pairs of A and B bitwise ORed.
+
+|Bitwise XOR
+|stem:[{a\ o+\ b \| a in A, b in B}]
+|```A ^ B```
+| Set of product pairs of A and B bitwise XORed.
+
+|Bitwise NOT
+|stem:[{~a \| a in A}]
+|```~A```
+| Bitwise NOT of all elements in A.
+
+|Bitwise Shift Left
+|stem:[{a " << " b \| a in A, b in B}]
+|```A << B```
+| Set of product pairs of A and B bitwise shifted left.
+
+|Bitwise Shift Right
+|stem:[{a " >> " b \| a in A, b in B}]
+|```A >> B```
+| Set of product pairs of A and B bitwise shifted right.
+|===
