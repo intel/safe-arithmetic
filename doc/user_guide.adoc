@@ -283,14 +283,11 @@ namespace safe {
         requires sizeof...(args) == NumArgs;
     };
 
-    template<
-        typename Return,
-        std::size_t NumArgs>
-    auto match<Return>(
+    template<typename Return, std::size_t NumArg>
+    Callable<Return, NumArgs> auto match<Return>(
         Callable<Return, NumArgs> auto... matchable_funcs,
         Callable<Return, 0> auto default_func
-    )
-        -> Return(auto... unsafe_args);
+    );
 }
 ```
 
