@@ -89,6 +89,15 @@ namespace safe {
             return *this;
         }
 
+        template<std::size_t RhsNumBits, big_integer<RhsNumBits> rhs>
+        SAFE_INLINE constexpr big_integer(
+            std::integral_constant<big_integer<RhsNumBits>, rhs>
+        )
+                : storage{}
+        {
+            copy_from_rhs(rhs);
+        }
+
     private:
         template<std::size_t RhsNumBits>
         SAFE_INLINE constexpr void copy_from_rhs(
@@ -229,9 +238,7 @@ namespace safe {
     template<ConvertableToBigInteger Value>
     [[nodiscard]] SAFE_INLINE constexpr auto operator~(
         Value const & raw_value
-    )
-        -> std::strong_ordering
-    {
+    ) {
         using value_t = as_big_integer_t<Value>;
         value_t const & value = get_big_integer(raw_value);
 
@@ -314,9 +321,7 @@ namespace safe {
     template<ConvertableToBigInteger Value>
     [[nodiscard]] SAFE_INLINE constexpr auto operator-(
         Value const & raw_value
-    )
-        -> std::strong_ordering
-    {
+    ) {
         using value_t = as_big_integer_t<Value>;
         value_t const & value = get_big_integer(raw_value);
 
@@ -407,21 +412,6 @@ namespace safe {
         });
 
         return unsafe_cast<result_t>(result + carry);
-    }
-
-    template<
-        ConvertableToBigInteger Dividend,
-        ConvertableToBigInteger Divisor>
-    constexpr SAFE_INLINE auto divmod(
-        Dividend const & raw_dividend,
-        Divisor const & raw_divisor
-    ) {
-        using dividend_t = as_big_integer_t<Dividend>;
-        dividend_t const & dividend = get_big_integer(raw_dividend);
-        using divisor_t = as_big_integer_t<Divisor>;
-        divisor_t const & divisor = get_big_integer(raw_divisor);
-
-
     }
 
     template<
@@ -689,7 +679,90 @@ namespace safe {
                 }
             }();
 
-            return std::integral_constant<std::remove_const_t<decltype(result)>, result>{};
+            constexpr auto min_result =
+                detail::minimize_big_integer<result>;
+
+            return std::integral_constant<std::remove_const_t<decltype(min_result)>, min_result>{};
         }
+    }
+
+    namespace detail {
+        template<
+            std::size_t LhsNumBits,
+            std::size_t RhsNumBits>
+        constexpr SAFE_INLINE auto largest_doubling(
+            big_integer<LhsNumBits> a,
+            big_integer<RhsNumBits> b
+        ) {
+            using namespace safe::literals;
+            using ret_t = big_integer<LhsNumBits>;
+
+            ret_t ret{b};
+
+            while (ret <= (a - ret)) {
+                ret = unsafe_cast<ret_t>(ret << 1_i);
+            }
+
+            return ret;
+        }
+    }
+
+    template<
+        ConvertableToBigInteger Dividend,
+        ConvertableToBigInteger Divisor>
+    [[nodiscard]] constexpr SAFE_INLINE auto unsigned_divmod(
+        Dividend const & raw_dividend,
+        Divisor const & raw_divisor
+    ) {
+        using dividend_t = as_big_integer_t<Dividend>;
+        dividend_t a = get_big_integer(raw_dividend);
+        using divisor_t = as_big_integer_t<Divisor>;
+        divisor_t const & b = get_big_integer(raw_divisor);
+
+        using quotient_t = dividend_t;
+        using remainder_t = dividend_t;
+
+        using ret_t = std::pair<quotient_t, remainder_t>;
+
+        if (a < b) {
+            return ret_t{0u, a};
+
+        } else {
+            using namespace safe::literals;
+
+            remainder_t c = safe::detail::largest_doubling(a, b);
+            a = a - c;
+            quotient_t n = 1_i;
+            while (c != b) {
+                n = unsafe_cast<quotient_t>(n << 1_i);
+                c = c >> 1_i;
+                if (c <= a) {
+                    a = a - c;
+                    n = unsafe_cast<quotient_t>(n + 1_i);
+                }
+            }
+
+            return ret_t{n, a};
+        }
+    }
+
+    template<
+        ConvertableToBigInteger Dividend,
+        ConvertableToBigInteger Divisor>
+    [[nodiscard]] constexpr SAFE_INLINE auto operator/(
+        Dividend const & lhs,
+        Divisor const & rhs
+    ) {
+        return unsigned_divmod(lhs, rhs).first;
+    }
+
+    template<
+        ConvertableToBigInteger Dividend,
+        ConvertableToBigInteger Divisor>
+    [[nodiscard]] constexpr SAFE_INLINE auto operator%(
+        Dividend const & lhs,
+        Divisor const & rhs
+    ) {
+        return unsigned_divmod(lhs, rhs).second;
     }
 }

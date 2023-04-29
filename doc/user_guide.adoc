@@ -3,9 +3,13 @@ Luke Valenty <luke.valenty@intel.com>
 :revnumber: 0.0
 :revdate: April 21, 2023
 :source-highlighter: rouge
-:rouge-style: base16.solarized
+:rouge-style: base16.dark
 :source-language: c++
 :stem:
+:toc: left
+:toclevels: 4
+:sectnums:
+:sectnumlevels: 4
 
 == Motivation
 
@@ -495,7 +499,7 @@ static_assert(c.requirement == ival<-1000, -1> || ival<1, 1000>);
 ==== Requirement DSL Primitives
 
 |===
-|Name |Symbol |{cpp} | Description
+|Name |Definition |{cpp} | Description
 
 |Interval
 |stem:[[a, b]]
@@ -526,7 +530,7 @@ unconstrained in the elements of the produced set.
 ==== Requirement DSL Operators
 
 |===
-|Name |Symbol |{cpp} Operator | Description
+|Name |Definition |{cpp} Operator | Description
 
 |Subset
 |stem:[A subseteq B]
@@ -628,3 +632,582 @@ unconstrained in the elements of the produced set.
 |```A >> B```
 | Set of product pairs of A and B bitwise shifted right.
 |===
+
+
+== API Reference
+
+=== safe::var
+
+```c++
+namespace safe {
+    template<typename T, auto Requirement>
+    struct var;
+}
+```
+
+`safe::var` wraps a runtime value with an associated `safe::dsl` requirement
+describing the set of values it must be contained in. The requirement is used
+to check the value at runtime or prove at compile-time it is satisfied.
+
+==== Member constants
+
+===== `requirement`
+
+The `safe::dsl` requirement describing allowed values.
+
+==== Member functions
+
+===== Constructor
+
+```c++
+constexpr var() requires(requirement >= set<0>);
+```
+
+Default constructor, only valid if the requirement allows a value of '0'.
+
+```c++
+template<typename U>
+requires(std::is_convertable_v<U, T>)
+constexpr var(unsafe_cast_ferry<U> ferry);
+```
+
+Unsafe constructor. Used to construct a `safe::var` bypassing all compile-time
+and runtime checking mechanisms. Leads to undefined behavior if used
+incorrectly.
+
+```c++
+constexpr var(Var auto const & rhs);
+```
+
+Construct a `safe::var` from another instance with potentially different,
+but compatible requirements. Assignment safety is checked at compile time.
+
+===== operator=
+
+```c++
+constexpr auto operator=(Var auto & rhs) -> var &;
+```
+
+Assign value from another instance with potentially different, but compatible
+requirements. Assignment safety is checked at compile time.
+
+==== Non-member functions
+
+===== operator{lt}={gt}
+
+```c++
+[[nodiscard]] constexpr auto operator<=>(Var auto lhs, Var auto rhs);
+```
+
+Apply `operator{lt}={gt}` to `lhs` and `rhs` and return the result.
+
+===== operator==
+
+```c++
+[[nodiscard]] constexpr auto operator==(Var auto lhs, Var auto rhs) -> bool;
+```
+
+Apply `operator==` to `lhs` and `rhs` and return the result.
+
+===== operator+
+
+```c++
+[[nodiscard]] constexpr auto operator+(Var auto lhs, Var auto rhs);
+```
+
+Add the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+===== operator-
+
+```c++
+[[nodiscard]] constexpr auto operator-(Var auto lhs, Var auto rhs);
+```
+
+Subtract the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+```c++
+[[nodiscard]] constexpr auto operator-(Var auto v);
+```
+
+Returns `0_i - v`.
+
+===== operator*
+
+```c++
+[[nodiscard]] constexpr auto operator*(Var auto lhs, Var auto rhs);
+```
+
+Multiply the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+===== operator/
+
+```c++
+[[nodiscard]] constexpr auto operator/(Var auto lhs, Var auto rhs);
+```
+
+Divide the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+====
+
+===== operator%
+
+```c++
+[[nodiscard]] constexpr auto operator%(Var auto lhs, Var auto rhs);
+```
+
+Modulo the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+====
+
+===== operator<<
+
+```c++
+[[nodiscard]] constexpr auto operator<<(Var auto lhs, Var auto rhs);
+```
+
+Shift `lhs` left by `rhs` bit positions and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude
+all negative numbers or numbers larger than the bit width of `lhs`.
+====
+
+===== operator>>
+
+```c++
+[[nodiscard]] constexpr auto operator>>(Var auto lhs, Var auto rhs);
+```
+
+Shift `lhs` right by `rhs` bit positions and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude
+all negative numbers or numbers larger than the bit width of `lhs`.
+====
+
+===== operator|
+
+```c++
+[[nodiscard]] constexpr auto operator|(Var auto lhs, Var auto rhs);
+```
+
+Bitwise OR the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== operator&
+
+```c++
+[[nodiscard]] constexpr auto operator&(Var auto lhs, Var auto rhs);
+```
+
+Bitwise AND the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the narrower type of `lhs` and `rhs`.
+
+===== operator^
+
+```c++
+[[nodiscard]] constexpr auto operator^(Var auto lhs, Var auto rhs);
+```
+
+Bitwise XOR the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== abs
+
+```c++
+[[nodiscard]] constexpr auto abs(Var auto v);
+```
+
+Calculate the absolute value of `v` and return the result.
+
+===== bit_width
+
+```c++
+[[nodiscard]] constexpr auto bit_width(Var auto v);
+```
+
+Calculate the bit width of `v` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+===== min
+
+```c++
+[[nodiscard]] constexpr auto min(Var auto lhs, Var auto rhs);
+```
+
+Calculate the minimum of `lhs` and `rhs` and return the result.
+
+The resulting value type is the narrower type of `lhs` and `rhs`.
+
+===== max
+
+```c++
+[[nodiscard]] constexpr auto max(Var auto lhs, Var auto rhs);
+```
+
+Calculate the maximum of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== clamp
+
+```c++
+[[nodiscard]] constexpr auto clamp(
+    Var auto value,
+    Var auto min_val,
+    Var auto max_val
+);
+```
+
+Clamps `value` from `min_val` to `max_val` and return the result.
+
+The resulting value type is the underlying type of `max_val`.
+
+```c++
+[[nodiscard]] constexpr auto clamp(
+    auto unsafe_value,
+    Var auto min_val,
+    Var auto max_val
+);
+```
+
+Clamps `value` from `min_val` to `max_val` and return the result.
+
+The resulting value type is the underlying type of `max_val`.
+
+
+=== `safe::dsl`
+
+===== operator==
+
+```c++
+[[nodiscard]] constexpr auto operator==(auto A, auto B) -> bool;
+```
+
+stem:[A = B]
+
+Return true if the set of numbers represented by the requirements `A` and
+`B` contain exactly the same numbers.
+
+===== operator!=
+
+```c++
+[[nodiscard]] constexpr auto operator!=(auto A, auto B) -> bool;
+```
+
+stem:[A != B]
+
+Return true if the set of numbers represented by the requirements `A` and
+`B` contain at least one different number.
+
+===== operator{lt}=
+
+```c++
+[[nodiscard]] constexpr auto operator<=(auto A, auto B) -> bool;
+```
+
+stem:[A subseteq B]
+
+Return true if the set of numbers represented by the requirement `rhs` contains
+all the numbers `lhs` does.
+
+===== operator{gt}=
+
+```c++
+[[nodiscard]] constexpr auto operator>=(auto A, auto B) -> bool;
+```
+
+stem:[A supe B]
+
+Return true if the set of numbers represented by the requirement `lhs` contains
+all the numbers `rhs` does.
+
+===== operator||
+
+```c++
+[[nodiscard]] constexpr auto operator||(auto A, auto B) -> bool;
+```
+
+stem:[A uu B]
+
+===== operator&&
+
+```c++
+[[nodiscard]] constexpr auto operator&&(auto A, auto B) -> bool;
+```
+
+stem:[A nn B]
+
+===== operator+
+
+```c++
+[[nodiscard]] constexpr auto operator+(auto A, auto B);
+```
+
+stem:[{a + b \| a in A, b in B}]
+
+===== operator-
+
+```c++
+[[nodiscard]] constexpr auto operator-(auto A, auto B);
+```
+
+stem:[{a - b \| a in A, b in B}]
+
+===== operator*
+
+```c++
+[[nodiscard]] constexpr auto operator*(auto A, auto B);
+```
+
+stem:[{a * b \| a in A, b in B}]
+
+===== operator/
+
+```c++
+[[nodiscard]] constexpr auto operator/(auto A, auto B);
+```
+
+stem:[{a / b \| a in A, b in B}]
+
+===== operator%
+
+```c++
+[[nodiscard]] constexpr auto operator/(auto A, auto B);
+```
+
+stem:[{a % b \| a in A, b in B}]
+
+===== abs
+
+```c++
+[[nodiscard]] constexpr auto abs(auto A);
+```
+
+stem:[{\|a\| \| a in A}]
+
+===== min
+
+```c++
+[[nodiscard]] constexpr auto min(auto A, auto B);
+```
+
+stem:[{min(a, b) \| a in A, b in B}]
+
+===== max
+
+```c++
+[[nodiscard]] constexpr auto max(auto A, auto B);
+```
+
+stem:[{max(a, b) \| a in A, b in B}]
+
+===== operator&
+
+```c++
+[[nodiscard]] constexpr auto operator&(auto A, auto B);
+```
+
+stem:[{a\ &\ b \| a in A, b in B}]
+
+===== operator|
+
+```c++
+[[nodiscard]] constexpr auto operator|(auto A, auto B);
+```
+
+stem:[{a \| b \ \|\ a in A, b in B}]
+
+===== operator^
+
+```c++
+[[nodiscard]] constexpr auto operator^(auto A, auto B);
+```
+
+stem:[{a\ o+\ b \| a in A, b in B}]
+
+===== operator~
+
+```c++
+[[nodiscard]] constexpr auto operator~(auto A);
+```
+
+stem:[{~a \| a in A}]
+
+===== operator<<
+
+```c++
+[[nodiscard]] constexpr auto operator<<(auto A, auto B);
+```
+
+stem:[{a " << " b \| a in A, b in B}]
+
+===== operator>>
+
+```c++
+[[nodiscard]] constexpr auto operator>>(auto A, auto B);
+```
+
+stem:[{a " >> " b \| a in A, b in B}]
+
+
+=== `safe::array`
+
+=== `safe::integer`
+
+=== Algorithms
+
+
+
+== Requirements DSL Theory of Operation
+
+=== Subset is Left Distributive Over Union of Disjoint Intervals
+
+For intervals A, B, and C, where B and C are disjoint, the following holds
+true:
+
+stem:[A subseteq (B uu C) -= (A subseteq B) vee (A subseteq C)]
+
+[cols="1,4,4"]
+|===
+| 1
+| Given stem:[A subseteq (B uu C)]
+|
+
+| 2
+| stem:[x in A -> x in (B uu C)]
+| link:https://proofwiki.org/wiki/Definition:Subset[Definition of subset]
+
+| 3
+| stem:[x in A -> (x in B vee x in C)]
+| link:https://proofwiki.org/wiki/Definition:Set_Union[Definition of union]
+
+| 4
+| stem:[(x in A -> x in B) vee (x in A -> x in C)]
+| link:https://proofwiki.org/wiki/Implication_is_Left_Distributive_over_Disjunction[Implication is left distributive over disjunction]
+
+| 5
+| stem:[(A subseteq B) vee (A subseteq C)]
+| link:https://proofwiki.org/wiki/Definition:Subset[Definition of subset]
+
+| 6
+| stem:[therefore A subseteq (B uu C) -= (A subseteq B) vee (A subseteq C)]
+|
+|===
+
+
+=== Subset is Right Anti-Distributive over Union of Disjoint Intervals
+
+For intervals A, B, and C, where B and C are disjoint, the following holds
+true:
+
+stem:[(A uu B) subseteq C -= (A subseteq C) wedge (B subseteq C)]
+
+[cols="1,4,4"]
+|===
+| 1
+| Given stem:[(A uu B) subseteq C]
+|
+
+| 2
+| stem:[x in (A uu B) -> x in C]
+| link:https://proofwiki.org/wiki/Definition:Subset[Definition of subset]
+
+| 3
+| stem:[(x in A vee x in B) -> x in C]
+| link:https://proofwiki.org/wiki/Definition:Set_Union[Definition of union]
+
+| 4
+| stem:[(x in A -> x in C) wedge (x in B -> x in C)]
+| link:https://en.wikipedia.org/wiki/Distributive_property#Notions_of_antidistributivity[Implication is right anti-distributive over disjunction]
+
+| 5
+| stem:[(A subseteq C) wedge (B subseteq C)]
+| link:https://proofwiki.org/wiki/Definition:Subset[Definition of subset]
+
+| 6
+| stem:[therefore (A uu B) subseteq C -= (A subseteq C) wedge (B subseteq C)]
+|
+|===
+
+
+=== Subsets of Unions of Disjoint Intervals
+
+For disjoint intervals A and B, and disjoint intervals C and D, the following
+holds true:
+
+stem:[(A uu B) subseteq (C uu D) -= {(A subseteq C) vee (A subseteq D)} wedge {(B subseteq C) vee (B subseteq D)}]
+
+[cols="1,4,4"]
+|===
+| 1
+| Given stem:[(A uu B) subseteq (C uu D)]
+|
+
+| 2
+| stem:[{A subseteq (C uu D)} wedge {B subseteq (C uu D)}]
+| Subset is Right Anti-Distributive over Union of Disjoint Intervals
+
+| 3
+| stem:[{(A subseteq C) vee (A subseteq D)} wedge {(B subseteq C) vee (B subseteq D)}]
+| Subset is Left Distributive Over Union of Disjoint Intervals
+
+| 4
+| stem:[therefore (A uu B) subseteq (C uu D) -= {(A subseteq C) vee (A subseteq D)} wedge {(B subseteq C) vee (B subseteq D)}]
+|
+|===
+
+
+=== Cartesian Product of Unions
+
+stem:[(A uu B) xx (C uu D) -= (A xx C) uu (B xx D) uu (A xx D) uu (B xx C)]
+
+https://proofwiki.org/wiki/Cartesian_Product_of_Unions
+
+=== Cartesian Product is Distributive Over Union
+
+stem:[A xx (B uu C) -= (A xx B) uu (A xx C)]
+
+stem:[(B uu C) xx A -= (B xx A) uu (C xx A)]
+
+https://proofwiki.org/wiki/Cartesian_Product_Distributes_over_Union

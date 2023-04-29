@@ -213,3 +213,76 @@ TEST(big_integer, right_shift) {
     ASSERT_EQ(1_i, 0x2'0000'0000_i >> 33_i);
     ASSERT_EQ(0x1234_i, 0x12'3400'0000_i >> 24_i);
 }
+
+
+
+TEST(big_integer, div_32_bit) {
+    using namespace safe::literals;
+
+    ASSERT_EQ(1_i / 1_i, 1_i);
+    ASSERT_EQ(2_i / 2_i, 1_i);
+    ASSERT_EQ(10_i / 10_i, 1_i);
+
+    ASSERT_EQ(2_i / 1_i, 2_i);
+    ASSERT_EQ(3_i / 1_i, 3_i);
+    ASSERT_EQ(30_i / 10_i, 3_i);
+
+    ASSERT_EQ(10_i / 2_i, 5_i);
+    ASSERT_EQ(27_i / 5_i, 5_i);
+    ASSERT_EQ(42_i / 1_i, 42_i);
+    ASSERT_EQ(17_i / 17_i, 1_i);
+    ASSERT_EQ(23_i / 47_i, 0_i);
+    ASSERT_EQ(4'294'967'295_i / 2_i, 2'147'483'647_i);
+    ASSERT_EQ(4'294'967'295_i / 1_i, 4'294'967'295_i);
+}
+
+TEST(big_integer, mod_32_bit) {
+    using namespace safe::literals;
+
+    ASSERT_EQ(1_i % 1_i, 0_i);
+    ASSERT_EQ(2_i % 2_i, 0_i);
+    ASSERT_EQ(10_i % 10_i, 0_i);
+
+    ASSERT_EQ(2_i % 1_i, 0_i);
+    ASSERT_EQ(3_i % 1_i, 0_i);
+    ASSERT_EQ(30_i % 10_i, 0_i);
+
+    ASSERT_EQ(10_i % 2_i, 0_i);
+    ASSERT_EQ(27_i % 5_i, 2_i);
+    ASSERT_EQ(42_i % 1_i, 0_i);
+    ASSERT_EQ(17_i % 17_i, 0_i);
+    ASSERT_EQ(23_i % 47_i, 23_i);
+    ASSERT_EQ(4'294'967'295_i % 2_i, 1_i);
+    ASSERT_EQ(4'294'967'295_i % 1_i, 0_i);
+}
+
+
+TEST(big_integer, div_64_bit) {
+    using namespace safe::literals;
+
+    ASSERT_EQ(18'446'744'073'709'551'615_i / 2_i, 9'223'372'036'854'775'807_i);
+    ASSERT_EQ(18'446'744'073'709'551'615_i / 1_i, 18'446'744'073'709'551'615_i);
+    ASSERT_EQ(18'446'744'073'709'551'614_i / 42_i, 439'208'192'231'179'800_i);
+    ASSERT_EQ(18'446'744'073'709'551'614_i / 32'767_i, 562'967'133'814'800_i);
+}
+
+
+TEST(big_integer, mod_64_bit) {
+    using namespace safe::literals;
+
+    ASSERT_EQ(18'446'744'073'709'551'615_i % 2_i, 1_i);
+    ASSERT_EQ(18'446'744'073'709'551'615_i % 1_i, 0_i);
+    ASSERT_EQ(18'446'744'073'709'551'614_i % 42_i, 14_i);
+    ASSERT_EQ(18'446'744'073'709'551'614_i % 32'767_i, 14_i);
+}
+
+TEST(big_integer, divmod_keyboardcat) {
+    using namespace safe::literals;
+
+    auto const result = unsigned_divmod(
+        89523478923458679234578963243425435789234587902345689745308943567897897655435234567567089_i,
+        45353414312430989879875678678967584568765_i);
+
+    ASSERT_EQ(result.first, 1973908255434719182486486204131416129221088053654_i);
+    ASSERT_EQ(result.second, 16400436199443006705417866284335795049779_i);
+}
