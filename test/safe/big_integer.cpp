@@ -4,6 +4,9 @@
 #include <safe/big_integer.hpp>
 
 
+using namespace safe::literals;
+
+
 TEST(big_integer, default_construction) {
     safe::big_integer<32> v{};
 }
@@ -65,20 +68,16 @@ TEST(big_integer, multiply_32_bit) {
 }
 
 TEST(big_integer, udl_init) {
-    using namespace safe::literals;
     ASSERT_EQ(1_i, safe::big_integer{1u});
     ASSERT_EQ(12_i, safe::big_integer{12u});
     ASSERT_EQ(31415926_i, safe::big_integer{31415926u});
 }
 
 TEST(big_integer, udl_seperation_char) {
-    using namespace safe::literals;
     ASSERT_EQ(1'000_i, 1000_i);
 }
 
 TEST(big_integer, big_mult) {
-    using namespace safe::literals;
-
     auto v = 10'000'000'000_i;
     auto r = 100'000'000'000'000'000'000_i;
 
@@ -90,7 +89,6 @@ TEST(big_integer, big_mult) {
 }
 
 TEST(big_integer, udl_init_hex) {
-    using namespace safe::literals;
     ASSERT_EQ(0x0_i, safe::big_integer{0x0u});
     ASSERT_EQ(0x1_i, safe::big_integer{0x1u});
     ASSERT_EQ(0x9_i, safe::big_integer{0x9u});
@@ -105,21 +103,17 @@ TEST(big_integer, udl_init_hex) {
 }
 
 TEST(big_integer, udl_init_bin) {
-    using namespace safe::literals;
     ASSERT_EQ(0b0_i, safe::big_integer{0b0u});
     ASSERT_EQ(0b1_i, safe::big_integer{0b1u});
     ASSERT_EQ(0b11110000'11110000'11110000'11110000_i, safe::big_integer{0b11110000'11110000'11110000'11110000u});
 }
 
 TEST(big_integer, udl_init_oct) {
-    using namespace safe::literals;
     ASSERT_EQ(010_i, safe::big_integer{010u});
     ASSERT_EQ(01234567_i, safe::big_integer{01234567u});
 }
 
 TEST(big_integer, bitwise_or) {
-    using namespace safe::literals;
-
     ASSERT_EQ(0_i, 0_i | 0_i);
     ASSERT_EQ(1_i, 0_i | 1_i);
     ASSERT_EQ(1_i, 1_i | 0_i);
@@ -141,8 +135,6 @@ TEST(big_integer, bitwise_or) {
 }
 
 TEST(big_integer, bitwise_and) {
-    using namespace safe::literals;
-
     ASSERT_EQ(0_i, 0_i & 0_i);
     ASSERT_EQ(0_i, 0_i & 1_i);
     ASSERT_EQ(0_i, 1_i & 0_i);
@@ -161,8 +153,6 @@ TEST(big_integer, bitwise_and) {
 }
 
 TEST(big_integer, bitwise_xor) {
-    using namespace safe::literals;
-
     ASSERT_EQ(0_i, 0_i ^ 0_i);
     ASSERT_EQ(1_i, 0_i ^ 1_i);
     ASSERT_EQ(1_i, 1_i ^ 0_i);
@@ -188,8 +178,6 @@ template<std::size_t N>
 constexpr auto size_ = std::integral_constant<std::size_t, N>{};
 
 TEST(big_integer, left_shift) {
-    using namespace safe::literals;
-
     ASSERT_EQ(1_i, 1_i << 0_i);
     ASSERT_EQ(0x1'0000'0000_i, 1_i << 32_i);
     ASSERT_EQ(0x1'0000'0000'0000'0000_i, 1_i << 64_i);
@@ -202,8 +190,6 @@ TEST(big_integer, left_shift) {
 }
 
 TEST(big_integer, right_shift) {
-    using namespace safe::literals;
-
     ASSERT_EQ(1_i, 1_i >> 0_i);
     ASSERT_EQ(1_i, 0x1'0000'0000_i >> 32_i);
     ASSERT_EQ(1_i, 0x1'0000'0000'0000'0000_i >> 64_i);
@@ -217,8 +203,6 @@ TEST(big_integer, right_shift) {
 
 
 TEST(big_integer, div_32_bit) {
-    using namespace safe::literals;
-
     ASSERT_EQ(1_i / 1_i, 1_i);
     ASSERT_EQ(2_i / 2_i, 1_i);
     ASSERT_EQ(10_i / 10_i, 1_i);
@@ -237,8 +221,6 @@ TEST(big_integer, div_32_bit) {
 }
 
 TEST(big_integer, mod_32_bit) {
-    using namespace safe::literals;
-
     ASSERT_EQ(1_i % 1_i, 0_i);
     ASSERT_EQ(2_i % 2_i, 0_i);
     ASSERT_EQ(10_i % 10_i, 0_i);
@@ -258,8 +240,6 @@ TEST(big_integer, mod_32_bit) {
 
 
 TEST(big_integer, div_64_bit) {
-    using namespace safe::literals;
-
     ASSERT_EQ(18'446'744'073'709'551'615_i / 2_i, 9'223'372'036'854'775'807_i);
     ASSERT_EQ(18'446'744'073'709'551'615_i / 1_i, 18'446'744'073'709'551'615_i);
     ASSERT_EQ(18'446'744'073'709'551'614_i / 42_i, 439'208'192'231'179'800_i);
@@ -268,8 +248,6 @@ TEST(big_integer, div_64_bit) {
 
 
 TEST(big_integer, mod_64_bit) {
-    using namespace safe::literals;
-
     ASSERT_EQ(18'446'744'073'709'551'615_i % 2_i, 1_i);
     ASSERT_EQ(18'446'744'073'709'551'615_i % 1_i, 0_i);
     ASSERT_EQ(18'446'744'073'709'551'614_i % 42_i, 14_i);
@@ -277,12 +255,49 @@ TEST(big_integer, mod_64_bit) {
 }
 
 TEST(big_integer, divmod_keyboardcat) {
-    using namespace safe::literals;
-
-    auto const result = unsigned_divmod(
+    auto const result = safe::detail::unsigned_divmod(
         89523478923458679234578963243425435789234587902345689745308943567897897655435234567567089_i,
         45353414312430989879875678678967584568765_i);
 
-    ASSERT_EQ(result.first, 1973908255434719182486486204131416129221088053654_i);
-    ASSERT_EQ(result.second, 16400436199443006705417866284335795049779_i);
+    ASSERT_EQ(result.quotient, 1973908255434719182486486204131416129221088053654_i);
+    ASSERT_EQ(result.remainder, 16400436199443006705417866284335795049779_i);
+}
+
+
+TEST(big_integer, signed_compare) {
+    ASSERT_TRUE(1_i > -1_i);
+    ASSERT_TRUE(-1_i < 1_i);
+
+    ASSERT_TRUE(1_i > 0_i);
+    ASSERT_TRUE(0_i < 1_i);
+
+    ASSERT_TRUE(-1_i < 0_i);
+    ASSERT_TRUE(0_i > -1_i);
+
+    ASSERT_TRUE(10_i > 5_i);
+    ASSERT_TRUE(5_i < 10_i);
+
+    ASSERT_TRUE(-10_i < -5_i);
+    ASSERT_TRUE(-5_i > -10_i);
+}
+
+TEST(big_integer, signed_mul) {
+    ASSERT_EQ(1_i * 1_i, 1_i);
+    ASSERT_EQ(-1_i * 1_i, -1_i);
+    ASSERT_EQ(1_i * -1_i, -1_i);
+    ASSERT_EQ(-1_i * -1_i, 1_i);
+}
+
+TEST(big_integer, signed_div) {
+    ASSERT_EQ(1_i / 1_i, 1_i);
+    ASSERT_EQ(-1_i / 1_i, -1_i);
+    ASSERT_EQ(1_i / -1_i, -1_i);
+    ASSERT_EQ(-1_i / -1_i, 1_i);
+}
+
+TEST(big_integer, signed_mod) {
+    ASSERT_EQ(1_i % 1_i, 0_i);
+    ASSERT_EQ(-1_i % 1_i, 0_i);
+    ASSERT_EQ(1_i % -1_i, 0_i);
+    ASSERT_EQ(-1_i % -1_i, 0_i);
 }

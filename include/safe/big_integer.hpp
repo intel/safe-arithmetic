@@ -9,14 +9,6 @@
 #include <type_traits>
 #include <bit>
 
-//template<std::size_t NumBits, safe::big_integer<NumBits> Value>
-//struct std::integral_constant<safe::big_integer<NumBits>, Value> {
-//    static constexpr safe::big_integer<NumBits> value = Value;
-//    constexpr operator safe::big_integer<NumBits>() const noexcept { return value; }
-//    constexpr safe::big_integer<NumBits> operator()() const noexcept { return value; }
-//    using value_type = safe::big_integer<NumBits>;
-//    using type = std::integral_constant<safe::big_integer<NumBits>, Value>;
-//};
 
 namespace safe {
     using big_integer_elem_t = std::uint32_t;
@@ -40,7 +32,7 @@ namespace safe {
         SAFE_INLINE constexpr big_integer() = default;
         SAFE_INLINE constexpr big_integer(big_integer const &) = default;
 
-        SAFE_INLINE constexpr big_integer(std::unsigned_integral auto value)
+        SAFE_INLINE constexpr big_integer(std::integral auto value)
             : storage{}
         {
             constexpr auto value_num_elems =
@@ -54,7 +46,7 @@ namespace safe {
         }
 
         template<std::size_t RhsNumBits>
-        requires(num_elements >= big_integer<RhsNumBits>::num_elements)
+        requires(NumBits >= RhsNumBits)
         SAFE_INLINE constexpr big_integer(
             big_integer<RhsNumBits> const & rhs
         )
@@ -64,7 +56,7 @@ namespace safe {
         }
 
         template<std::size_t RhsNumBits>
-        requires(num_elements >= big_integer<RhsNumBits>::num_elements)
+        requires(NumBits >= RhsNumBits)
         SAFE_INLINE constexpr big_integer & operator=(
             big_integer<RhsNumBits> const & rhs
         ) {
@@ -117,8 +109,8 @@ namespace safe {
         }
     };
 
-    template<std::unsigned_integral T>
-    big_integer(T) -> big_integer<sizeof(T) * 8>;
+    template<std::integral T>
+    big_integer(T) -> big_integer<(sizeof(T) * 8) + (std::is_unsigned_v<T> ? 1 : 0)>;
 
 
 
@@ -192,6 +184,48 @@ namespace safe {
         return true;
     }
 
+    namespace detail {
+        template<
+            ConvertableToBigInteger Lhs,
+            ConvertableToBigInteger Rhs>
+        [[nodiscard]] SAFE_INLINE constexpr auto unsigned_compare(
+            Lhs const & raw_lhs,
+            Rhs const & raw_rhs
+        )
+            -> std::strong_ordering
+        {
+            using lhs_t = as_big_integer_t<Lhs>;
+            lhs_t const & lhs = get_big_integer(raw_lhs);
+            using rhs_t = as_big_integer_t<Rhs>;
+            rhs_t const & rhs = get_big_integer(raw_rhs);
+
+            constexpr auto min_num_elements =
+                std::min(lhs_t::num_elements, rhs_t::num_elements);
+
+            if constexpr (lhs_t::num_elements > rhs_t::num_elements) {
+                for (auto i = lhs_t::num_elements - 1; i >= min_num_elements; i--) {
+                    if (lhs.storage[i] != 0u) {
+                        return lhs.storage[i] <=> 0u;
+                    }
+                }
+            } else if constexpr (lhs_t::num_elements < rhs_t::num_elements) {
+                for (auto i = rhs_t::num_elements - 1; i >= min_num_elements; i--) {
+                    if (0u != rhs.storage[i]) {
+                        return 0u <=> rhs.storage[i];
+                    }
+                }
+            }
+
+            for (auto i_plus_one = min_num_elements; i_plus_one != 0; i_plus_one--) {
+                auto i = i_plus_one - 1;
+                if (lhs.storage[i] != rhs.storage[i]) {
+                    return lhs.storage[i] <=> rhs.storage[i];
+                }
+            }
+
+            return std::strong_ordering::equal;
+        }
+    }
 
     template<
         ConvertableToBigInteger Lhs,
@@ -207,31 +241,21 @@ namespace safe {
         using rhs_t = as_big_integer_t<Rhs>;
         rhs_t const & rhs = get_big_integer(raw_rhs);
 
-        constexpr auto min_num_elements =
-            std::min(lhs_t::num_elements, rhs_t::num_elements);
+        bool const lhs_negative = lhs.storage.back() >> (big_integer_elem_num_bits - 1);
+        bool const rhs_negative = rhs.storage.back() >> (big_integer_elem_num_bits - 1);
 
-        if constexpr (lhs_t::num_elements > rhs_t::num_elements) {
-            for (auto i = lhs_t::num_elements - 1; i >= min_num_elements; i--) {
-                if (lhs.storage[i] != 0u) {
-                    return lhs.storage[i] <=> 0u;
-                }
-            }
-        } else if constexpr (lhs_t::num_elements < rhs_t::num_elements) {
-            for (auto i = rhs_t::num_elements - 1; i >= min_num_elements; i--) {
-                if (0u != rhs.storage[i]) {
-                    return 0u <=> rhs.storage[i];
-                }
-            }
+        if (lhs_negative && !rhs_negative) {
+            return std::strong_ordering::less;
+
+        } else if (!lhs_negative && rhs_negative) {
+            return std::strong_ordering::greater;
+
+        } else if (!lhs_negative && !rhs_negative) {
+            return safe::detail::unsigned_compare(lhs, rhs);
+
+        } else {
+            return safe::detail::unsigned_compare(-rhs, -lhs);
         }
-
-        for (auto i_plus_one = min_num_elements; i_plus_one != 0; i_plus_one--) {
-            auto i = i_plus_one - 1;
-            if (lhs.storage[i] != rhs.storage[i]) {
-                return lhs.storage[i] <=> rhs.storage[i];
-            }
-        }
-
-        return std::strong_ordering::equal;
     }
 
 
@@ -356,6 +380,61 @@ namespace safe {
                 return (op.template operator()<i>(a[i]) + ... + init);
             }(std::make_index_sequence<Size>{});
         }
+
+        template<
+            ConvertableToBigInteger Lhs,
+            ConvertableToBigInteger Rhs>
+        [[nodiscard]] SAFE_INLINE constexpr auto unsigned_multiply(
+            Lhs const & raw_lhs,
+            Rhs const & raw_rhs
+        ) {
+            using lhs_t = as_big_integer_t<Lhs>;
+            lhs_t const & lhs = get_big_integer(raw_lhs);
+            using rhs_t = as_big_integer_t<Rhs>;
+            rhs_t const & rhs = get_big_integer(raw_rhs);
+
+            using result_t = big_integer<lhs_t::num_bits + rhs_t::num_bits>;
+            auto carry = result_t{};
+            auto result = result_t{};
+
+            // NOTE: `enumerate` was chosen instead of `accumulate` due to compilation time
+            detail::enumerate(lhs.storage, [&]<std::size_t i>(auto lhs_value){
+                detail::enumerate(rhs.storage, [&]<std::size_t j>(auto rhs_value){
+                    auto const partial_product =
+                        static_cast<big_integer_double_elem_t>(lhs_value) *
+                        static_cast<big_integer_double_elem_t>(rhs_value);
+
+                    big_integer_double_elem_t const upper = partial_product >> 32;
+                    big_integer_double_elem_t const lower = partial_product & 0xffff'ffffu;
+
+                    constexpr auto elem_shift_amt = i + j;
+
+                    big_integer_elem_t lower_carry{};
+                    result.storage[elem_shift_amt] =
+                        detail::add_with_carry(
+                            result.storage[elem_shift_amt],
+                            lower,
+                            lower_carry);
+
+                    if constexpr (elem_shift_amt + 1 < result_t::num_elements) {
+                        carry.storage[elem_shift_amt + 1] += lower_carry;
+
+                        big_integer_elem_t upper_carry{};
+                        result.storage[elem_shift_amt + 1] =
+                            detail::add_with_carry(
+                                result.storage[elem_shift_amt + 1],
+                                upper,
+                                upper_carry);
+
+                        if constexpr (elem_shift_amt + 2 < result_t::num_elements) {
+                            carry.storage[elem_shift_amt + 2] += upper_carry;
+                        }
+                    }
+                });
+            });
+
+            return unsafe_cast<result_t>(result + carry);
+        }
     }
 
 
@@ -371,47 +450,24 @@ namespace safe {
         using rhs_t = as_big_integer_t<Rhs>;
         rhs_t const & rhs = get_big_integer(raw_rhs);
 
-        using result_t = big_integer<lhs_t::num_bits + rhs_t::num_bits>;
-        auto carry = result_t{};
-        auto result = result_t{};
+        using result_t = big_integer<lhs_t::num_bits + rhs_t::num_bits + 2>;
 
-        // NOTE: `enumerate` was chosen instead of `accumulate` due to compilation time
-        detail::enumerate(lhs.storage, [&]<std::size_t i>(auto lhs_value){
-            detail::enumerate(rhs.storage, [&]<std::size_t j>(auto rhs_value){
-                auto const partial_product =
-                    static_cast<big_integer_double_elem_t>(lhs_value) *
-                    static_cast<big_integer_double_elem_t>(rhs_value);
+        constexpr auto zero = big_integer{0};
 
-                big_integer_double_elem_t const upper = partial_product >> 32;
-                big_integer_double_elem_t const lower = partial_product & 0xffff'ffffu;
+        if (lhs < zero) {
+            if (rhs < zero) {
+                return safe::detail::unsigned_multiply(-lhs, -rhs);
+            } else {
+                return -safe::detail::unsigned_multiply(-lhs, rhs);
+            }
+        } else {
+            if (rhs < zero) {
+                return -safe::detail::unsigned_multiply(lhs, -rhs);
 
-                constexpr auto elem_shift_amt = i + j;
-
-                big_integer_elem_t lower_carry{};
-                result.storage[elem_shift_amt] =
-                    detail::add_with_carry(
-                        result.storage[elem_shift_amt],
-                        lower,
-                        lower_carry);
-
-                if constexpr (elem_shift_amt + 1 < result_t::num_elements) {
-                    carry.storage[elem_shift_amt + 1] += lower_carry;
-
-                    big_integer_elem_t upper_carry{};
-                    result.storage[elem_shift_amt + 1] =
-                        detail::add_with_carry(
-                            result.storage[elem_shift_amt + 1],
-                            upper,
-                            upper_carry);
-
-                    if constexpr (elem_shift_amt + 2 < result_t::num_elements) {
-                        carry.storage[elem_shift_amt + 2] += upper_carry;
-                    }
-                }
-            });
-        });
-
-        return unsafe_cast<result_t>(result + carry);
+            } else {
+                return result_t{safe::detail::unsigned_multiply(lhs, rhs)};
+            }
+        }
     }
 
     template<
@@ -588,13 +644,28 @@ namespace safe {
 
     namespace literals {
         namespace detail {
-            template<std::unsigned_integral auto value>
-            constexpr auto minimal_big_integer = [](){
-                constexpr auto width =
-                    std::max<std::size_t>(1u, std::bit_width(value));
+            template<std::integral auto value>
+            [[nodiscard]] consteval auto minimal_big_integer_impl() {
+                constexpr auto type_digits =
+                    std::numeric_limits<decltype(value)>::digits;
 
-                return big_integer<width>{value};
-            }();
+                constexpr auto leading_sign_digits = []() {
+                    if constexpr (std::signed_integral<decltype(value)> && value < 0) {
+                        return std::countl_one(value);
+
+                    } else {
+                        return std::countl_zero(value);
+                    }
+                }();
+
+                constexpr auto sign_digit = 1;
+                constexpr auto precision = type_digits - leading_sign_digits;
+
+                return big_integer<sign_digit + precision>{value};
+            }
+
+            template<auto value>
+            constexpr auto minimal_big_integer = minimal_big_integer_impl<value>();
 
             template<big_integer value>
             constexpr auto minimize_big_integer = [](){
@@ -697,7 +768,7 @@ namespace safe {
             using namespace safe::literals;
             using ret_t = big_integer<LhsNumBits>;
 
-            ret_t ret{b};
+            ret_t ret = unsafe_cast<ret_t>(b);
 
             while (ret <= (a - ret)) {
                 ret = unsafe_cast<ret_t>(ret << 1_i);
@@ -705,15 +776,69 @@ namespace safe {
 
             return ret;
         }
+
+        template<typename Q, typename R>
+        struct divmod_result {
+            using quotient_t = Q;
+            using remainder_t = R;
+            Q quotient;
+            R remainder;
+        };
+
+        template<
+            ConvertableToBigInteger Dividend,
+            ConvertableToBigInteger Divisor>
+        [[nodiscard]] constexpr SAFE_INLINE auto unsigned_divmod(
+            Dividend const & raw_dividend,
+            Divisor const & raw_divisor
+        ) {
+            using dividend_t = as_big_integer_t<Dividend>;
+            dividend_t a = get_big_integer(raw_dividend);
+            using divisor_t = as_big_integer_t<Divisor>;
+            divisor_t const & b = get_big_integer(raw_divisor);
+
+            using quotient_t = dividend_t;
+            using remainder_t = dividend_t;
+
+            using ret_t = detail::divmod_result<quotient_t, remainder_t>;
+
+            // NOTE: Algorithm is based on "Elements of Programming"
+            // section 5.7 Quotient
+
+            if (a < b) {
+                return ret_t{0u, a};
+
+            } else {
+                using namespace safe::literals;
+
+                remainder_t c = safe::detail::largest_doubling(a, b);
+                a = unsafe_cast<dividend_t>(a - c);
+                quotient_t n = 1_i;
+                while (c != b) {
+                    n = unsafe_cast<quotient_t>(n << 1_i);
+                    c = c >> 1_i;
+                    if (c <= a) {
+                        a = unsafe_cast<dividend_t>(a - c);
+                        n = unsafe_cast<quotient_t>(n + 1_i);
+                    }
+                }
+
+                return ret_t{n, a};
+            }
+        }
     }
+
+
 
     template<
         ConvertableToBigInteger Dividend,
         ConvertableToBigInteger Divisor>
-    [[nodiscard]] constexpr SAFE_INLINE auto unsigned_divmod(
+    [[nodiscard]] constexpr SAFE_INLINE auto divmod(
         Dividend const & raw_dividend,
         Divisor const & raw_divisor
     ) {
+        using namespace safe::literals;
+
         using dividend_t = as_big_integer_t<Dividend>;
         dividend_t a = get_big_integer(raw_dividend);
         using divisor_t = as_big_integer_t<Divisor>;
@@ -722,27 +847,46 @@ namespace safe {
         using quotient_t = dividend_t;
         using remainder_t = dividend_t;
 
-        using ret_t = std::pair<quotient_t, remainder_t>;
+        using ret_t = safe::detail::divmod_result<quotient_t, remainder_t>;
 
-        if (a < b) {
-            return ret_t{0u, a};
+        constexpr auto unsafe_cast_ret = [](auto q_r) {
+            return ret_t{
+                unsafe_cast<typename ret_t::quotient_t>(q_r.quotient),
+                unsafe_cast<typename ret_t::remainder_t>(q_r.remainder)
+            };
+        };
 
-        } else {
-            using namespace safe::literals;
+        // NOTE: Algorithm is based on "Elements of Programming"
+        // section 5.8 Quotient and Remainder for Negative Quantities
 
-            remainder_t c = safe::detail::largest_doubling(a, b);
-            a = a - c;
-            quotient_t n = 1_i;
-            while (c != b) {
-                n = unsafe_cast<quotient_t>(n << 1_i);
-                c = c >> 1_i;
-                if (c <= a) {
-                    a = a - c;
-                    n = unsafe_cast<quotient_t>(n + 1_i);
+
+        if (a < 0_i) {
+            if (b < 0_i) {
+                auto q_r = safe::detail::unsigned_divmod(-a, -b);
+                q_r.remainder = unsafe_cast<remainder_t>(-q_r.remainder);
+                return unsafe_cast_ret(q_r);
+            } else {
+                auto q_r = safe::detail::unsigned_divmod(-a, b);
+                if (q_r.remainder != 0_i) {
+                    q_r.remainder = unsafe_cast<remainder_t>(b - q_r.remainder);
+                    q_r.quotient = unsafe_cast<quotient_t>(q_r.quotient + 1_i);
                 }
+                q_r.quotient = unsafe_cast<quotient_t>(-q_r.quotient);
+                return unsafe_cast_ret(q_r);
             }
-
-            return ret_t{n, a};
+        } else {
+            if (b < 0_i) {
+                auto q_r = safe::detail::unsigned_divmod(a, -b);
+                if (q_r.remainder != 0_i) {
+                    q_r.remainder = unsafe_cast<remainder_t>(b + q_r.remainder);
+                    q_r.quotient = unsafe_cast<quotient_t>(q_r.quotient + 1_i);
+                }
+                q_r.quotient = unsafe_cast<quotient_t>(-q_r.quotient);
+                return unsafe_cast_ret(q_r);
+            } else {
+                auto q_r = safe::detail::unsigned_divmod(a, b);
+                return unsafe_cast_ret(q_r);
+            }
         }
     }
 
@@ -753,7 +897,7 @@ namespace safe {
         Dividend const & lhs,
         Divisor const & rhs
     ) {
-        return unsigned_divmod(lhs, rhs).first;
+        return divmod(lhs, rhs).quotient;
     }
 
     template<
@@ -763,6 +907,6 @@ namespace safe {
         Dividend const & lhs,
         Divisor const & rhs
     ) {
-        return unsigned_divmod(lhs, rhs).second;
+        return divmod(lhs, rhs).remainder;
     }
 }
