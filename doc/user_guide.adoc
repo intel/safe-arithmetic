@@ -513,10 +513,7 @@ static_assert(c.requirement == ival<-1000, -1> || ival<1, 1000>);
 
 |Mask
 |
-Let V be an integer and V~i~ be its i^th^ binary digit
-Let C be an integer and C~i~ be its i^th^ binary digit
-Let x~i~ be the i^th^ binary digit of x
-stem:[{x in NN \| 0 <= x < 2^n ^^ AAi (V_i vv (C_i = x_i))}]
+stem:[{x in NN \| 0 <= x < 2^n ^^ (x\ \&\ ~V) = C))}]
 
 | ```safe::mask<V, C>```
 | V is the variable bits mask. C is the constant bits mask. `safe::mask`
