@@ -13,6 +13,9 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v3
 
+      - name: Install asciidoc
+        run: sudo apt update && DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles sudo apt-get install -y git wget asciidoctor
+
       - name: Build Documentation
         run: |
           mkdir -p ./generated-html
