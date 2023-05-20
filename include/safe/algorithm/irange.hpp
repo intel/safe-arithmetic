@@ -3,7 +3,7 @@
 
 #include <safe/int.hpp>
 
-
+// FIXME: make this work with big integer
 namespace safe {
     template<typename BeginT, typename EndT>
     struct irange {
@@ -34,6 +34,7 @@ namespace safe {
             constexpr auto operator++() {
                 auto const new_unsafe_value = value_++;
 
+                // FIXME: consolidate range checks between == and ++
                 if (new_unsafe_value < parent_->end_.unsafe_value()) {
                     value_ = new_unsafe_value;
 

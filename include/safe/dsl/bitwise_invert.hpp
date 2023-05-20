@@ -11,13 +11,13 @@ namespace safe::dsl {
     struct bitwise_invert {};
 
     template<detail::Primitive T>
-    struct bitwise_invert<T> {
+    struct bitwise_invert<T> : public detail::unary_op {
         using mask_arg_t = detail::to_mask_t<T>;
         constexpr static auto value = ~mask_arg_t::value;
         using type = mask_t<value.var_bits(), value.const_bits()>;
     };
 
-    template<typename T>
+    template<Operand T>
     [[nodiscard]] constexpr auto operator~(T)
         -> bitwise_invert<T>
     {

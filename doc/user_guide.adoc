@@ -43,12 +43,22 @@ There are countless other functional bugs and security vulnerabilities all due
 to unsafe arithmetic operations.
 
 The Safe Arithmetic library is intended and designed to protect against unsafe
-arithmetic operations. This includes overflow, underflow, and divide-by-zero.
-It follows the "Valley of success" strategy; The natural state of a software
-project utilizing the Safe Arithmetic library contains clear boundaries between
-safe and unsafe arithmetic. Within the safe arithmetic environment the easiest
-and simplest thing to do is also the safest thing to do. In this context,
-arithmetic includes assignment and construction.
+arithmetic operations. It follows the "Valley of success" strategy; The natural
+state of a software project utilizing the Safe Arithmetic library contains
+clear boundaries between safe and unsafe arithmetic. Within the safe arithmetic
+environment the easiest and simplest thing to do is also the safest thing to do.
+In this context, arithmetic includes assignment and construction.
+
+Specifically, the library protects against the following in the safe
+environment at compile-time:
+
+1. Use of uninitialized integral values
+2. Integer overflow and underflow
+3. Integer divide by zero
+4. Out of bounds array access through subscript operator
+5. Incompatible operation passed to safe algorithm. For example, attempting
+   to use `reduce` over integers with a non-commutative operation like division
+   or subtraction.
 
 === Numeric Type Support
 

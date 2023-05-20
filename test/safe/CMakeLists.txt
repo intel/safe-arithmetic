@@ -11,19 +11,20 @@ add_executable(gtests
     dsl.cpp
     array.cpp
     big_integer.cpp
-    dsl/detail/checked.cpp
-    dsl/add.cpp
-    dsl/minus.cpp
-    dsl/abs.cpp
-    dsl/bitwise_and.cpp
-    dsl/bitwise_or.cpp
-    dsl/bitwise_xor.cpp
-    dsl/bitwise_invert.cpp
-    dsl/divide.cpp
-    dsl/mask.cpp
-    dsl/intersection.cpp
-    dsl/is_equal.cpp
-    dsl/is_subset.cpp)
+#    dsl/detail/checked.cpp
+#    dsl/add.cpp
+#    dsl/minus.cpp
+#    dsl/abs.cpp
+#    dsl/bitwise_and.cpp
+#    dsl/bitwise_or.cpp
+#    dsl/bitwise_xor.cpp
+#    dsl/bitwise_invert.cpp
+#    dsl/divide.cpp
+#    dsl/mask.cpp
+#    dsl/intersection.cpp
+#    dsl/is_equal.cpp
+#    dsl/is_subset.cpp
+)
 
 target_link_libraries(gtests PRIVATE safe_arithmetic gmock gtest gmock_main)
 

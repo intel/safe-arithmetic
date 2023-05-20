@@ -9,8 +9,13 @@
 #include <type_traits>
 #include <bit>
 
+// FIXME: make this completely interop with regular integral types and integral_constants of all types
+// FIXME: move to safe::detail::integer
+// Question: does this even need to be "safe"? It should never be used on its own for runtime code, it
+//     should always be wrapped in a safe::var
 
 namespace safe {
+    // TODO: select elem_t size based on natural machine width up to 32-bits
     using big_integer_elem_t = std::uint32_t;
     using big_integer_double_elem_t = std::uint64_t;
     constexpr std::size_t big_integer_elem_num_bits = sizeof(big_integer_elem_t) * 8;
@@ -126,6 +131,12 @@ namespace safe {
         std::integral_constant<big_integer<NumBits>, Value>
     ) {
         return Value;
+    }
+
+    [[nodiscard]] constexpr auto get_big_integer(
+        std::integral auto value
+    ) {
+        return big_integer{value};
     }
 
     template<std::size_t NumBits>
@@ -495,7 +506,13 @@ namespace safe {
         } else {
             constexpr std::size_t right_shift_amt = big_integer_elem_num_bits - left_shift_amt;
             for (auto i = std::size_t{}; i < lhs_t::num_elements; i++) {
-                result.storage[i + elem_shift_amt + 1]  = lhs.storage[i] >> right_shift_amt;
+                auto const upper_elem_index =
+                    i + elem_shift_amt + 1;
+
+                if (upper_elem_index < result.storage.size()) {
+                    result.storage[upper_elem_index] = lhs.storage[i] >> right_shift_amt;
+                }
+
                 result.storage[i + elem_shift_amt    ] |= lhs.storage[i] << left_shift_amt;
             }
         }
@@ -521,7 +538,7 @@ namespace safe {
             return big_integer<1>{0u};
         }
 
-        using result_t = big_integer<lhs_t::num_bits - shift_amt>;
+        using result_t = big_integer<std::max<std::size_t>(lhs_t::num_bits - shift_amt, 1u)>;
         auto result = result_t{};
 
         constexpr std::size_t right_shift_amt = shift_amt % big_integer_elem_num_bits;
@@ -641,37 +658,47 @@ namespace safe {
         return result;
     }
 
+    namespace detail {
+       template<std::integral auto value>
+        [[nodiscard]] consteval auto minimal_big_integer_impl() {
+            constexpr auto type_digits =
+                sizeof(value) * 8;
+
+           using unsigned_int = std::make_unsigned_t<decltype(value)>;
+           constexpr auto unsigned_value = static_cast<unsigned_int>(value);
+
+            constexpr auto leading_sign_digits = []() {
+                if constexpr (std::signed_integral<decltype(value)> && value < 0) {
+                    return std::countl_one(unsigned_value);
+
+                } else {
+                    return std::countl_zero(unsigned_value);
+                }
+            }();
+
+            constexpr auto sign_digit = 1;
+            constexpr auto precision = type_digits - leading_sign_digits;
+
+            return big_integer<sign_digit + precision>{value};
+        }
+
+        template<BigInteger auto value>
+        [[nodiscard]] consteval auto minimal_big_integer_impl() {
+            // TODO: actually need to calculate minimal big integer
+            return value;
+        }
+
+        template<auto value>
+        constexpr auto minimal_big_integer = minimal_big_integer_impl<value>();
+
+        template<big_integer value>
+        constexpr auto minimize_big_integer = [](){
+            return value;
+        }();
+    }
 
     namespace literals {
         namespace detail {
-            template<std::integral auto value>
-            [[nodiscard]] consteval auto minimal_big_integer_impl() {
-                constexpr auto type_digits =
-                    std::numeric_limits<decltype(value)>::digits;
-
-                constexpr auto leading_sign_digits = []() {
-                    if constexpr (std::signed_integral<decltype(value)> && value < 0) {
-                        return std::countl_one(value);
-
-                    } else {
-                        return std::countl_zero(value);
-                    }
-                }();
-
-                constexpr auto sign_digit = 1;
-                constexpr auto precision = type_digits - leading_sign_digits;
-
-                return big_integer<sign_digit + precision>{value};
-            }
-
-            template<auto value>
-            constexpr auto minimal_big_integer = minimal_big_integer_impl<value>();
-
-            template<big_integer value>
-            constexpr auto minimize_big_integer = [](){
-                return value;
-            }();
-
             template<char c>
             constexpr auto digit_value = [](){
                 constexpr bool is_dec_digit = c >= '0' && c <= '9';
@@ -681,20 +708,20 @@ namespace safe {
                 static_assert(is_dec_digit || is_upper_hex_digit || is_lower_hex_digit);
 
                 if constexpr (is_dec_digit) {
-                    return minimal_big_integer<static_cast<std::uint32_t>(c - '0')>;
+                    return safe::detail::minimal_big_integer<static_cast<std::uint32_t>(c - '0')>;
 
                 } else if constexpr (is_upper_hex_digit) {
-                    return minimal_big_integer<static_cast<std::uint32_t>(c - 'A' + 10)>;
+                    return safe::detail::minimal_big_integer<static_cast<std::uint32_t>(c - 'A' + 10)>;
 
                 } else if constexpr (is_lower_hex_digit) {
-                    return minimal_big_integer<static_cast<std::uint32_t>(c - 'a' + 10)>;
+                    return safe::detail::minimal_big_integer<static_cast<std::uint32_t>(c - 'a' + 10)>;
                 }
             }();
 
             template<std::size_t base, big_integer upper, char lower, char... rest>
             [[nodiscard]] constexpr auto calc_literal_value() {
                 constexpr auto base_bi =
-                    detail::minimal_big_integer<base>;
+                    safe::detail::minimal_big_integer<base>;
 
                 if constexpr (sizeof...(rest) == 0) {
                     return (upper * base_bi) + digit_value<lower>;
@@ -716,7 +743,7 @@ namespace safe {
         template <char... chars>
         constexpr auto operator""_i() {
             constexpr auto zero =
-                detail::minimal_big_integer<0u>;
+                safe::detail::minimal_big_integer<0u>;
 
             constexpr auto base =
                 []() -> std::size_t {
@@ -751,7 +778,7 @@ namespace safe {
             }();
 
             constexpr auto min_result =
-                detail::minimize_big_integer<result>;
+                safe::detail::minimize_big_integer<result>;
 
             return std::integral_constant<std::remove_const_t<decltype(min_result)>, min_result>{};
         }
@@ -766,7 +793,7 @@ namespace safe {
             big_integer<RhsNumBits> b
         ) {
             using namespace safe::literals;
-            using ret_t = big_integer<LhsNumBits>;
+            using ret_t = big_integer<std::max(LhsNumBits, RhsNumBits) + 1>;
 
             ret_t ret = unsafe_cast<ret_t>(b);
 
@@ -811,7 +838,7 @@ namespace safe {
             } else {
                 using namespace safe::literals;
 
-                remainder_t c = safe::detail::largest_doubling(a, b);
+                remainder_t c = unsafe_cast<remainder_t>(safe::detail::largest_doubling(a, b));
                 a = unsafe_cast<dividend_t>(a - c);
                 quotient_t n = 1_i;
                 while (c != b) {
@@ -909,4 +936,48 @@ namespace safe {
     ) {
         return divmod(lhs, rhs).remainder;
     }
+
+
+    template<
+        ConvertableToBigInteger Lhs,
+        ConvertableToBigInteger Rhs>
+    [[nodiscard]] SAFE_INLINE constexpr auto min(
+        Lhs const & raw_lhs,
+        Rhs const & raw_rhs
+    ) {
+        using lhs_t = as_big_integer_t<Lhs>;
+        lhs_t const & lhs = get_big_integer(raw_lhs);
+        using rhs_t = as_big_integer_t<Rhs>;
+        rhs_t const & rhs = get_big_integer(raw_rhs);
+
+        using result_t = big_integer<std::max(lhs_t::num_bits, rhs_t::num_bits)>;
+
+        if (lhs <= rhs) {
+            return result_t{lhs};
+        } else {
+            return result_t{rhs};
+        }
+    }
+
+    template<
+        ConvertableToBigInteger Lhs,
+        ConvertableToBigInteger Rhs>
+    [[nodiscard]] SAFE_INLINE constexpr auto max(
+        Lhs const & raw_lhs,
+        Rhs const & raw_rhs
+    ) {
+        using lhs_t = as_big_integer_t<Lhs>;
+        lhs_t const & lhs = get_big_integer(raw_lhs);
+        using rhs_t = as_big_integer_t<Rhs>;
+        rhs_t const & rhs = get_big_integer(raw_rhs);
+
+        using result_t = big_integer<std::max(lhs_t::num_bits, rhs_t::num_bits)>;
+
+        if (lhs > rhs) {
+            return result_t{lhs};
+        } else {
+            return result_t{rhs};
+        }
+    }
+
 }
