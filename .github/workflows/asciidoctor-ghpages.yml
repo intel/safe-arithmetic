@@ -14,7 +14,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install asciidoc
-        run: sudo apt update && DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles sudo apt-get install -y git wget asciidoctor
+        run: |
+          sudo apt update
+          DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles sudo apt-get install -y git wget asciidoctor
+          sudo gem install asciidoctor-diagram
 
       - name: Build Documentation
         run: |
