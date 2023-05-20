@@ -95,8 +95,8 @@ namespace safe::dsl {
     };
 
     template<
-        typename LhsT,
-        typename RhsT>
+        Operand LhsT,
+        Operand RhsT>
     [[nodiscard]] constexpr bool operator<=(LhsT, RhsT) {
         return detail::simplify_v<is_subset<LhsT, RhsT>>;
     }

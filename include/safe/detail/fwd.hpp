@@ -45,7 +45,10 @@ namespace safe {
     concept BigIntegralConstant = is_big_integral_constant_v<T>;
 
     template<typename T>
-    concept ConvertableToBigInteger = is_big_integer_v<T> || is_big_integral_constant_v<T>;
+    concept ConvertableToBigInteger =
+        is_big_integer_v<T> ||
+        is_big_integral_constant_v<T> ||
+        std::is_integral_v<T>;
 
     template<typename T>
     struct as_big_integer;
@@ -58,6 +61,11 @@ namespace safe {
     template<std::size_t NumBits, big_integer<NumBits> Value>
     struct as_big_integer<std::integral_constant<big_integer<NumBits>, Value>> {
         using type = big_integer<NumBits>;
+    };
+
+    template<std::integral T>
+    struct as_big_integer<T> {
+        using type = decltype(big_integer{T{}});
     };
 
     template<typename T>

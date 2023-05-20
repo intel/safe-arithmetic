@@ -3,11 +3,10 @@
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/simplify_fwd.hpp>
 #include <safe/dsl/bitwise_or.hpp>
-#include <safe/dsl/detail/checked.hpp>
 
 namespace safe::dsl {
     template<typename T, typename U>
-    struct shift_left : public binary_op {};
+    struct shift_left : public detail::binary_op {};
 
     template<
         auto lhs_min, auto lhs_max,
@@ -16,20 +15,20 @@ namespace safe::dsl {
         ival_t<lhs_min, lhs_max>,
         ival_t<rhs_min, rhs_max>
     >
-        : public binary_op
+        : public detail::binary_op
     {
         using type = ival_t<
             std::min({
-                detail::c_<lhs_min> << detail::c_<rhs_min>,
-                detail::c_<lhs_min> << detail::c_<rhs_max>,
-                detail::c_<lhs_max> << detail::c_<rhs_min>,
-                detail::c_<lhs_max> << detail::c_<rhs_max>
+                lhs_min << rhs_min,
+                lhs_min << rhs_max,
+                lhs_max << rhs_min,
+                lhs_max << rhs_max
             }),
             std::max({
-                detail::c_<lhs_min> << detail::c_<rhs_min>,
-                detail::c_<lhs_min> << detail::c_<rhs_max>,
-                detail::c_<lhs_max> << detail::c_<rhs_min>,
-                detail::c_<lhs_max> << detail::c_<rhs_max>
+                lhs_min << rhs_min,
+                lhs_min << rhs_max,
+                lhs_max << rhs_min,
+                lhs_max << rhs_max
             })
         >;
     };
@@ -41,11 +40,11 @@ namespace safe::dsl {
         mask_t<lhs_var_bits, lhs_const_bits>,
         ival_t<rhs_val, rhs_val>
     >
-        : public binary_op
+        : public detail::binary_op
     {
         using type = mask_t<
-            detail::c_<lhs_var_bits> << detail::c_<rhs_val>,
-            detail::c_<lhs_const_bits> << detail::c_<rhs_val>
+            lhs_var_bits << rhs_val,
+            lhs_const_bits << rhs_val
         >;
     };
 
@@ -56,7 +55,7 @@ namespace safe::dsl {
         mask_t<lhs_var_bits, lhs_const_bits>,
         ival_t<rhs_min, rhs_max>
     >
-        : public binary_op
+        : public detail::binary_op
     {
         using lhs_mask =
             mask_t<lhs_var_bits, lhs_const_bits>;
@@ -69,8 +68,8 @@ namespace safe::dsl {
     };
 
     template<
-        typename LhsT,
-        typename RhsT>
+        Operand LhsT,
+        Operand RhsT>
     [[nodiscard]] constexpr auto operator<<(LhsT, RhsT)
         -> shift_left<LhsT, RhsT>
     {

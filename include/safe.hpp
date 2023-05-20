@@ -1,5 +1,6 @@
 #pragma once
 
+#include <safe/big_integer.hpp>
 #include <safe/var.hpp>
 #include <safe/dsl.hpp>
 #include <safe/constant.hpp>

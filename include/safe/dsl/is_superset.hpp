@@ -9,8 +9,8 @@ namespace safe::dsl {
     using is_superset = is_subset<U, T>;
 
     template<
-        typename LhsT,
-        typename RhsT>
+        Operand LhsT,
+        Operand RhsT>
     [[nodiscard]] constexpr bool operator>=(LhsT, RhsT) {
         return detail::simplify_v<is_superset<LhsT, RhsT>>;
     }

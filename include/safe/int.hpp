@@ -109,42 +109,42 @@ namespace safe {
     namespace literals {
         template<char... Chars>
         constexpr auto operator ""_s8() {
-            return detail::to_constant<int8_t, Chars...>();
+            return safe::detail::to_constant<int8_t, Chars...>();
         }
 
         template<char... Chars>
         constexpr auto operator ""_u8() {
-            return detail::to_constant<uint8_t, Chars...>();
+            return safe::detail::to_constant<uint8_t, Chars...>();
         }
         
         template<char... Chars>
         constexpr auto operator ""_s16() {
-            return detail::to_constant<int16_t, Chars...>();
+            return safe::detail::to_constant<int16_t, Chars...>();
         }
 
         template<char... Chars>
         constexpr auto operator ""_u16() {
-            return detail::to_constant<uint16_t, Chars...>();
+            return safe::detail::to_constant<uint16_t, Chars...>();
         }
         
         template<char... Chars>
         constexpr auto operator ""_s32() {
-            return detail::to_constant<int32_t, Chars...>();
+            return safe::detail::to_constant<int32_t, Chars...>();
         }
             
         template<char... Chars>
         constexpr auto operator ""_u32() {
-            return detail::to_constant<uint32_t, Chars...>();
+            return safe::detail::to_constant<uint32_t, Chars...>();
         }
         
         template<char... Chars>
         constexpr auto operator ""_s64() {
-            return detail::to_constant<int64_t, Chars...>();
+            return safe::detail::to_constant<int64_t, Chars...>();
         }
             
         template<char... Chars>
         constexpr auto operator ""_u64() {
-            return detail::to_constant<uint64_t, Chars...>();
+            return safe::detail::to_constant<uint64_t, Chars...>();
         }
     }
 }
