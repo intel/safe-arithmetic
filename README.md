@@ -5,6 +5,11 @@ bug-free code. It allows variables and functions to advertise and enforce
 requirements at compile-time. The requirements are guaranteed to be held 
 true at runtime.
 
+## Pre-release Disclaimer
+
+This library is a work in progress and should not yet be used in production.
+The API may change, there may be bugs, and it is not yet complete. However,
+please feel free to try it out and file issues or discuss the library.
 
 ## Motivation
 
@@ -127,14 +132,14 @@ constexpr void dont_give_me_zero(
 This makes it impossible to pass a value of `0` to this function. `safe::var`
 can't be created or initialized with naked integral values, so how do we pass 
 in parameters? We either need to use a `safe::var` that is already proven
-to satisfy the callees requirements, or we can use `safe::invoke`:
+to satisfy the callees requirements, or we can use `safe::function`:
 
 ```c++
-bool fail = safe::invoke(dont_give_me_zero, 0); // DOES NOT CALL FUNCTION
-bool pass = safe::invoke(dont_give_me_zero, 42); // CALLS FUNCTION
+bool fail = safe::function<void>(dont_give_me_zero)(0); // DOES NOT CALL FUNCTION
+bool pass = safe::function<void>(dont_give_me_zero)(42); // CALLS FUNCTION
 ```
 
-`safe::invoke` will check the values at runtime if necessary to prove they
+`safe::function` will check the values at runtime if necessary to prove they
 satisfy the requirements of the function arguments. If any of them fail,
 then the function is not called.
 
