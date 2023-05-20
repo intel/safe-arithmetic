@@ -1,0 +1,50 @@
+name: GitHub Pages Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Build Documentation
+        run: |
+          mkdir -p ./generated-html
+          asciidoctor -r asciidoctor-diagram doc/index.adoc -D ./generated-html
+          if [ -e doc/static ]; then cp -rf doc/static ./generated-html; fi
+          touch ./generated-html/.nojekyll
+          ls -la ./generated-html
+          cat ./generated-html/index.html
+
+      - name: Setup GH-Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload Artifacts to GH-Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./generated-html
+
+  deploy:
+    needs: build
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: $${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
