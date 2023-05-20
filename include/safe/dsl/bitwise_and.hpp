@@ -8,13 +8,13 @@
 
 namespace safe::dsl {
     template<typename T, typename U>
-    struct bitwise_and : public binary_op {};
+    struct bitwise_and : public detail::binary_op {};
 
     template<
         detail::Primitive LhsT,
         detail::Primitive RhsT>
     struct bitwise_and<LhsT, RhsT>
-        : public binary_op
+        : public detail::binary_op
     {
         using lhs = detail::to_mask_t<LhsT>;
         using rhs = detail::to_mask_t<RhsT>;
@@ -23,8 +23,8 @@ namespace safe::dsl {
     };
 
     template<
-        typename LhsT,
-        typename RhsT>
+        Operand LhsT,
+        Operand RhsT>
     [[nodiscard]] constexpr auto operator&(LhsT, RhsT)
         -> bitwise_and<LhsT, RhsT>
     {

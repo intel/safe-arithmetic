@@ -13,7 +13,7 @@ namespace safe::dsl {
     struct bit_width_t {};
 
     template<detail::Primitive T>
-    struct bit_width_t<T> {
+    struct bit_width_t<T> : public detail::unary_op {
         using val = detail::to_mask_t<T>;
 
         using type = ival_t<
@@ -22,7 +22,7 @@ namespace safe::dsl {
         >;
     };
 
-    template<typename T>
+    template<Operand T>
     [[nodiscard]] constexpr auto bit_width(T)
         -> bit_width_t<T>
     {

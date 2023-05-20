@@ -9,12 +9,11 @@
 
 namespace safe::dsl {
     namespace detail {
-        template<typename T>
-        [[nodiscard]] constexpr T abs(T value) {
-            if (value < 0) {
+        [[nodiscard]] constexpr auto abs(auto value) {
+            if (value < 0_i) {
                 return -value;
             } else {
-                return value;
+                return decltype(-value){value};
             }
         }
     }
@@ -23,7 +22,7 @@ namespace safe::dsl {
     struct abs_t {};
 
     template<detail::Primitive T>
-    struct abs_t<T> {
+    struct abs_t<T> : public detail::unary_op {
         using val = detail::to_ival_t<T>;
         
         constexpr static bool straddles_zero =
@@ -36,7 +35,7 @@ namespace safe::dsl {
             std::max(detail::abs(val::min), detail::abs(val::max))>;
     };
 
-    template<typename T>
+    template<Operand T>
     [[nodiscard]] constexpr auto abs(T)
         -> abs_t<T>
     {

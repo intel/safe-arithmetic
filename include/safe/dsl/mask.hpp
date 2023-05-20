@@ -3,13 +3,17 @@
 #include <safe/detail/pure.hpp>
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/detail/triint.hpp>
+#include <safe/big_integer.hpp>
+#include <safe/dsl/fwd.hpp>
 
 #include <type_traits>
 #include <bit>
 
 namespace safe::dsl {
-    template<auto VariableBits, auto ConstantBits = 0u>
-    struct mask_t {
+    using namespace safe::literals;
+
+    template<auto VariableBits, auto ConstantBits = 0_i>
+    struct mask_t : public detail::primitive {
         using type = mask_t;
 
         constexpr static auto var_bits = VariableBits;
@@ -23,8 +27,12 @@ namespace safe::dsl {
         }
     };
 
-    template<auto VariableBits, auto ConstantBits = 0u>
-    constexpr mask_t<VariableBits, ConstantBits> mask{};
+    template<auto VariableBits, auto ConstantBits = 0>
+    constexpr mask_t<
+        safe::detail::minimal_big_integer<VariableBits>,
+        safe::detail::minimal_big_integer<ConstantBits>
+    > mask{};
+
 
     namespace detail {
         /**
@@ -36,7 +44,7 @@ namespace safe::dsl {
 
             do {
                 prev_value = value;
-                value |= (value >> 1);
+                value = value | (value >> 1_i);
             } while (prev_value != value);
 
             return value;
@@ -68,7 +76,7 @@ namespace safe::dsl {
         using to_ival_t = typename to_ival<T>::type;
 
         [[nodiscard]] constexpr bool is_basic_mask(auto value) {
-            return ((value >> 1) & value) == (value >> 1);
+            return ((value >> 1_i) & value) == (value >> 1_i);
         }
 
         

@@ -2,6 +2,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/simplify_fwd.hpp>
+#include <safe/big_integer.hpp>
 
 #include <cstdint>
 
@@ -40,22 +41,23 @@
 
 namespace safe::dsl {
     template<typename T, typename U>
-    struct modulo : public binary_op {};
+    struct modulo : public detail::binary_op {};
 
     namespace detail {
+        template<typename Min, typename Max>
         struct interval_value {
-            int64_t min;
-            int64_t max;
+            Min min;
+            Max max;
 
             // empty interval
             constexpr interval_value()
-                : min{1}
-                , max{-1}
+                : min{1_i}
+                , max{-1_i}
             {}
 
             constexpr interval_value(
-                int64_t min_arg,
-                int64_t max_arg
+                Min min_arg,
+                Max max_arg
             )
                 : min{min_arg}
                 , max{max_arg}
@@ -66,56 +68,88 @@ namespace safe::dsl {
             }
         };
 
-        [[nodiscard]] constexpr interval_value operator-(interval_value v) {
+        template<typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto operator-(interval_value<RhsMin, RhsMax> v) {
             return interval_value{-v.max, -v.min};
         }
 
-        [[nodiscard]] constexpr int64_t abs(int64_t v) {
-            if (v < 0) {
+        template<std::size_t NumBits>
+        [[nodiscard]] constexpr auto abs(big_integer<NumBits> v) {
+            if (v < 0_i) {
                 return -v;
             } else {
-                return v;
+                return decltype(-v){v};
             }
         }
 
-        [[nodiscard]] constexpr interval_value abs(interval_value v) {
+        template<typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr interval_value<RhsMin, RhsMax> abs(interval_value<RhsMin, RhsMax> v) {
             if (v.empty()) {
-                return {};
+                return interval_value<RhsMin, RhsMax>{};
 
-            } else if (v.min >= 0 && v.max >= 0) {
+            } else if (v.min >= 0_i && v.max >= 0_i) {
                 return v;
 
-            } else if (v.min <= 0 && v.max <= 0) {
-                return -v;
+            } else if (v.min <= 0_i && v.max <= 0_i) {
+                return interval_value<RhsMin, RhsMax>{
+                    unsafe_cast<RhsMin>(-v.max),
+                    unsafe_cast<RhsMax>(-v.min)
+                };
 
             } else {
-                return {0, std::max(std::abs(v.min), std::abs(v.max))};
+                return interval_value<RhsMin, RhsMax>{
+                    0_i,
+                    unsafe_cast<RhsMax>(safe::max(abs(v.min), abs(v.max)))
+                };
             }
         }
 
-        [[nodiscard]] constexpr interval_value operator|(interval_value lhs, interval_value rhs) {
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto operator|(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
+        ) {
+            auto value = interval_value{
+                safe::min(lhs.min, rhs.min),
+                safe::max(lhs.max, rhs.max)
+            };
+
+            using value_t = decltype(value);
+
             if (lhs.empty()) {
-                return rhs;
+                return value_t{rhs.min, rhs.max};
 
             } else if (rhs.empty()) {
-                return lhs;
+                return value_t{lhs.min, lhs.max};
 
             } else {
                 return interval_value{
-                    std::min(lhs.min, rhs.min),
-                    std::max(lhs.max, rhs.max)
+                    safe::min(lhs.min, rhs.min),
+                    safe::max(lhs.max, rhs.max)
                 };
             }
         }
 
-        [[nodiscard]] constexpr interval_value operator&(interval_value lhs, interval_value rhs) {
-            if (lhs.empty() || rhs.empty()) {
-                return {};
-            } else {
-                return interval_value{
-                    std::max(lhs.min, rhs.min),
-                    std::min(lhs.max, rhs.max)
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto operator&(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
+        ) {
+            auto retval =
+                interval_value{
+                    safe::max(lhs.min, rhs.min),
+                    safe::min(lhs.max, rhs.max)
                 };
+
+            if (lhs.empty() || rhs.empty()) {
+                return decltype(retval){};
+
+            } else {
+                return retval;
             }
         }
 
@@ -126,11 +160,14 @@ namespace safe::dsl {
          * @param rhs
          * @return
          */
-        [[nodiscard]] constexpr interval_value get_lower(
-            interval_value lhs,
-            interval_value rhs
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto get_lower(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
         ) {
-            return {lhs.min, std::min(lhs.max, rhs.min - 1)};
+            return interval_value{lhs.min, safe::min(lhs.max, rhs.min - 1_i)};
         }
 
         /**
@@ -140,83 +177,107 @@ namespace safe::dsl {
          * @param rhs
          * @return
          */
-        [[nodiscard]] constexpr interval_value get_upper(
-            interval_value lhs,
-            interval_value rhs
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto get_upper(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
         ) {
-            return {std::max(lhs.min, rhs.max + 1), lhs.max};
+            return interval_value{safe::max(lhs.min, rhs.max + 1_i), lhs.max};
         }
 
-        [[nodiscard]] constexpr interval_value get_positive(interval_value v) {
-            return {std::max<int64_t>(0, v.min), v.max};
+        template<typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto get_positive(interval_value<RhsMin, RhsMax> v) {
+            return interval_value{safe::max(0_i, v.min), v.max};
         }
 
-        [[nodiscard]] constexpr interval_value get_negative(interval_value v) {
-            return {v.min, std::min<int64_t>(v.max, -1)};
+        template<typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto get_negative(interval_value<RhsMin, RhsMax> v) {
+            return interval_value{v.min, safe::min(v.max, -1_i)};
         }
 
-        [[nodiscard]] constexpr interval_value mod_lhs_low(
-            interval_value lhs,
-            interval_value rhs
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto mod_lhs_low(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
         ) {
             if (lhs.empty() || rhs.empty()) {
-                return {};
+                return interval_value<LhsMin, LhsMax>{};
             } else {
                 return lhs;
             }
         }
 
-        [[nodiscard]] constexpr interval_value mod_lhs_high(
-            interval_value lhs,
-            interval_value rhs
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto mod_lhs_high(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
         ) {
             // TODO: this could be smaller
+            auto retval = interval_value{0_i, rhs.max - 1_i};
+
             if (lhs.empty() || rhs.empty()) {
-                return {};
+                return decltype(retval){};
             } else {
-                return {0, rhs.max - 1};
+                return retval;
             }
         }
 
-        [[nodiscard]] constexpr interval_value mod_mid(
-            interval_value mid
+        template<typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto mod_mid(
+            interval_value<RhsMin, RhsMax> mid
         ) {
+            auto retval = interval_value{0_i, 0_i} | interval_value{mid.min, mid.max - 1_i};
+
             if (mid.empty()) {
-                return {};
+                return decltype(retval){};
             } else {
-                return interval_value{0, 0} | interval_value{mid.min, mid.max - 1};
+                return retval;
             }
         }
 
-        [[nodiscard]] constexpr interval_value pos_mod(
-            interval_value lhs,
-            interval_value rhs
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto pos_mod(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
         ) {
+            auto const lhs_low = get_lower(lhs, rhs);
+            auto const lhs_high = get_upper(lhs, rhs);
+
+            auto const mid = lhs & rhs;
+
+            auto const rhs_low = get_lower(rhs, lhs);
+            auto const rhs_high = get_upper(rhs, lhs);
+
+            auto retval =
+                mod_lhs_low(lhs_low, mid) |
+                mod_lhs_low(lhs_low, rhs_high) |
+                mod_lhs_high(mid, rhs_low) |
+                mod_mid(mid) |
+                mod_lhs_low(mid, rhs_high) |
+                mod_lhs_high(lhs_high, rhs_low) |
+                mod_lhs_high(lhs_high, mid);
+
             if (lhs.empty() || rhs.empty()) {
-                return {};
+                return decltype(retval){};
             } else {
-                auto const lhs_low = get_lower(lhs, rhs);
-                auto const lhs_high = get_upper(lhs, rhs);
-
-                auto const mid = lhs & rhs;
-
-                auto const rhs_low = get_lower(rhs, lhs);
-                auto const rhs_high = get_upper(rhs, lhs);
-
-                return
-                    mod_lhs_low(lhs_low, mid) |
-                    mod_lhs_low(lhs_low, rhs_high) |
-                    mod_lhs_high(mid, rhs_low) |
-                    mod_mid(mid) |
-                    mod_lhs_low(mid, rhs_high) |
-                    mod_lhs_high(lhs_high, rhs_low) |
-                    mod_lhs_high(lhs_high, mid);
+                return retval;
             }
         }
 
-        [[nodiscard]] constexpr interval_value mod(
-            interval_value lhs,
-            interval_value rhs
+        template<
+            typename LhsMin, typename LhsMax,
+            typename RhsMin, typename RhsMax>
+        [[nodiscard]] constexpr auto mod(
+            interval_value<LhsMin, LhsMax> lhs,
+            interval_value<RhsMin, RhsMax> rhs
         ) {
             auto const pos_lhs = get_positive(lhs);
             auto const neg_lhs = get_negative(lhs);
@@ -236,7 +297,7 @@ namespace safe::dsl {
         ival_t<lhs_min, lhs_max>,
         ival_t<rhs_min, rhs_max>
     >
-        : public binary_op
+        : public detail::binary_op
     {
         static_assert(
             (rhs_min < 0 && rhs_max < 0) ||
@@ -245,14 +306,16 @@ namespace safe::dsl {
         );
 
         constexpr static detail::interval_value value =
-            detail::mod({lhs_min, lhs_max}, {rhs_min, rhs_max});
+            detail::mod(
+                detail::interval_value{lhs_min, lhs_max},
+                detail::interval_value{rhs_min, rhs_max});
 
         using type = ival_t<value.min, value.max>;
     };
 
     template<
-        typename LhsT,
-        typename RhsT>
+        Operand LhsT,
+        Operand RhsT>
     [[nodiscard]] constexpr auto operator%(LhsT, RhsT)
         -> modulo<LhsT, RhsT>
     {

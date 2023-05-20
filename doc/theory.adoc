@@ -5,6 +5,7 @@ Luke Valenty <luke.valenty@intel.com>
 :source-highlighter: rouge
 :rouge-style: base16.solarized
 :source-language: c++
+:stem:
 
 == Introduction
 

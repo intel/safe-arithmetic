@@ -1,12 +1,14 @@
 #pragma once
 
+#include <safe/dsl/fwd.hpp>
 #include <safe/detail/pure.hpp>
+#include <safe/big_integer.hpp>
 
 #include <type_traits>
 
 namespace safe::dsl {
     template<auto Min, auto Max>
-    struct ival_t {
+    struct ival_t : public detail::primitive {
         using type = ival_t;
 
         constexpr static auto min = Min;
@@ -20,7 +22,7 @@ namespace safe::dsl {
     };
 
     template<auto Min, auto Max>
-    constexpr ival_t<Min, Max> ival{};
+    constexpr ival_t<safe::detail::minimal_big_integer<Min>, safe::detail::minimal_big_integer<Max>> ival{};
 
     template <typename T>
     constexpr bool is_ival_v = false;

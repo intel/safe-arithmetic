@@ -4,7 +4,7 @@
 
 namespace safe::dsl {
     template<typename... Intervals>
-    struct union_t {
+    struct union_t : public detail::set_op {
         using type = union_t;
 
         template<typename T>
@@ -14,8 +14,8 @@ namespace safe::dsl {
     };
 
     template<
-        typename LhsT,
-        typename RhsT>
+        Operand LhsT,
+        Operand RhsT>
     [[nodiscard]] constexpr auto operator||(LhsT, RhsT)
         -> union_t<LhsT, RhsT>
     {

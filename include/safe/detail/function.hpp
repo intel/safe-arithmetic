@@ -7,25 +7,38 @@
 namespace safe::detail {
     using namespace boost::mp11;
 
+
     template<
-        typename VarT,
-        typename ValueT>
+        typename ArgT,
+        typename InputT>
     struct runtime {
-        [[nodiscard]] constexpr static bool check(ValueT value) {
-            return VarT::requirement.check(value);
+        [[nodiscard]] constexpr static bool check(InputT) {
+            return true;
         }
     };
 
     template<
-        typename VarT,
-        typename ValueValueT,
-        auto ValueRequirement>
+        Var VarT,
+        typename InputT>
+    struct runtime<VarT, InputT> {
+        [[nodiscard]] constexpr static bool check(InputT const & input) {
+            return VarT::requirement.check(input);
+        }
+    };
+
+    template<
+        Var VarT,
+        Var InputVarT>
     struct runtime<
         VarT,
-        var<ValueValueT, ValueRequirement>
+        InputVarT
     > {
-        [[nodiscard]] constexpr static bool check(var<ValueValueT, ValueRequirement>) {
-            return VarT::requirement >= ValueRequirement;
+        [[nodiscard]] constexpr static bool check(InputVarT const & input) {
+            if constexpr (VarT::requirement >= InputVarT::requirement) {
+                return true;
+            } else {
+                return VarT::requirement.check(input.unsafe_value());
+            };
         }
     };
 
@@ -69,5 +82,14 @@ namespace safe::detail {
         ArgTs... args
     ) {
         return (check<ContractTs, ArgTs>(args) && ...);
+    }
+
+    template<typename T>
+    [[nodiscard]] constexpr decltype(auto) unwrap_var(T && v) {
+        if constexpr (Var<std::remove_cvref_t<T>>) {
+            return v.unsafe_value();
+        } else {
+            return std::forward<decltype(v)>(v);
+        }
     }
 }

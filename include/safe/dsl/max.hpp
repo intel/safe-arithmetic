@@ -7,7 +7,7 @@
 
 namespace safe::dsl {
     template<typename T, typename U>
-    struct max_t : public binary_op {};
+    struct max_t : public detail::binary_op {};
 
     template<
         auto lhs_min, auto lhs_max,
@@ -16,16 +16,17 @@ namespace safe::dsl {
         ival_t<lhs_min, lhs_max>,
         ival_t<rhs_min, rhs_max>
     >
-        : public binary_op
+        : public detail::binary_op
     {
         using type = ival_t<
-            std::max(lhs_min, rhs_min),
-            std::max(lhs_max, rhs_max)>;
+            std::max<std::common_type_t<decltype(lhs_min), decltype(rhs_min)>>(lhs_min, rhs_min),
+            std::max<std::common_type_t<decltype(lhs_max), decltype(rhs_max)>>(lhs_max, rhs_max)
+        >;
     };
 
     template<
-        typename LhsT,
-        typename RhsT>
+        Operand LhsT,
+        Operand RhsT>
     [[nodiscard]] constexpr auto max(LhsT, RhsT)
         -> max_t<LhsT, RhsT>
     {
