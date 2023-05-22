@@ -48,6 +48,12 @@ namespace safe {
             for (auto i = std::size_t{}; i < value_num_elems; i++) {
                 storage[i] = static_cast<elem_t>(value >> (i * elem_num_bits));
             }
+
+            if (value < 0) {
+                for (auto i = value_num_elems; i < num_elements; i++) {
+                    storage[i] = -1;
+                }
+            }
         }
 
         template<std::size_t RhsNumBits>
@@ -109,7 +115,17 @@ namespace safe {
                 std::copy_n(rhs.storage.begin(), num_common_elems, storage.begin());
 
             if constexpr (rhs_t::num_elements < num_elements) {
-                std::fill(remaining, storage.end(), 0u);
+                auto const fill_value = [&](){
+                    using limits_t = std::numeric_limits<elem_t>;
+
+                    if (rhs < 0) { // FIXME: need a cheaper method for testing if a number is negative
+                        return limits_t::max();
+                    } else {
+                        return elem_t{};
+                    }
+                }();
+
+                std::fill(remaining, storage.end(), fill_value);
             }
         }
     };
@@ -178,15 +194,23 @@ namespace safe {
             }
         }
 
+        auto const sign_bit = [&]() -> big_integer_elem_t {
+            if (lhs < 0 && rhs < 0) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }();
+
         if constexpr (lhs_t::num_elements > rhs_t::num_elements) {
             for (auto i = rhs.num_elements; i < lhs.num_elements; i++) {
-                if (lhs.storage[i] != 0u) {
+                if (lhs.storage[i] != -sign_bit) {
                     return false;
                 }
             }
         } else if constexpr (lhs_t::num_elements < rhs_t::num_elements) {
             for (auto i = lhs.num_elements; i < rhs.num_elements; i++) {
-                if (rhs.storage[i] != 0u) {
+                if (rhs.storage[i] != -sign_bit) {
                     return false;
                 }
             }
@@ -282,7 +306,7 @@ namespace safe {
         for (auto i = std::size_t{}; i < result_t::num_elements; i++) {
             result.storage[i] = ~value.storage[i];
         }
-        return result;
+        return sign_ext(result);
     }
 
     namespace detail {
@@ -306,6 +330,26 @@ namespace safe {
             };
     }
 
+    template<std::size_t NumBits>
+    [[nodiscard]] SAFE_INLINE constexpr auto sign_ext(
+        big_integer<NumBits> v
+    ) -> big_integer<NumBits> {
+        using limits_t = std::numeric_limits<big_integer_elem_t>;
+        constexpr auto msb = NumBits - std::size_t{1u};
+
+        constexpr auto sign_bit_elem_index = msb / limits_t::digits;
+        auto const sign_bit_elem = v.storage[sign_bit_elem_index];
+
+        constexpr auto sign_bit_bit_index = msb % limits_t::digits;
+        auto const sign_bit = big_integer_elem_t{(sign_bit_elem >> sign_bit_bit_index) & 1u};
+
+        if (sign_bit) {
+            constexpr auto sign_bits = limits_t::max() << sign_bit_bit_index;
+            v.storage[sign_bit_elem_index] = sign_bits | sign_bit_elem;
+        }
+
+        return v;
+    }
 
     template<
         ConvertableToBigInteger Lhs,
@@ -319,7 +363,8 @@ namespace safe {
         using rhs_t = as_big_integer_t<Rhs>;
         rhs_t const & rhs = get_big_integer(raw_rhs);
 
-        using result_t = big_integer<std::max(lhs_t::num_bits, rhs_t::num_bits) + 1>;
+        using result_t =
+            big_integer<std::max(lhs_t::num_bits, rhs_t::num_bits) + 1>;
 
         constexpr auto min_num_elements =
             std::min(lhs_t::num_elements, rhs_t::num_elements);
@@ -349,7 +394,7 @@ namespace safe {
             result.storage[result_t::num_elements - 1] = carry;
         }
 
-        return result;
+        return sign_ext(result);
     }
 
 
@@ -360,9 +405,8 @@ namespace safe {
         using value_t = as_big_integer_t<Value>;
         value_t const & value = get_big_integer(raw_value);
 
-        return ~value + big_integer<1>{1u};
+        return unsafe_cast<value_t>((~value) + big_integer<2>{1u});
     }
-
 
     template<
         ConvertableToBigInteger Lhs,
@@ -371,10 +415,15 @@ namespace safe {
         Lhs const & raw_lhs,
         Rhs const & raw_rhs
     ) {
-        auto const & lhs = get_big_integer(raw_lhs);
-        auto const & rhs = get_big_integer(raw_rhs);
+        using lhs_t = as_big_integer_t<Lhs>;
+        lhs_t const & lhs = get_big_integer(raw_lhs);
+        using rhs_t = as_big_integer_t<Rhs>;
+        rhs_t const & rhs = get_big_integer(raw_rhs);
 
-        return lhs + -rhs;
+        using result_t =
+            big_integer<std::max(lhs_t::num_bits, rhs_t::num_bits) + 1>;
+
+        return unsafe_cast<result_t>(result_t{lhs} + result_t{-rhs});
     }
 
     namespace detail {
@@ -461,19 +510,19 @@ namespace safe {
         using rhs_t = as_big_integer_t<Rhs>;
         rhs_t const & rhs = get_big_integer(raw_rhs);
 
-        using result_t = big_integer<lhs_t::num_bits + rhs_t::num_bits + 2>;
+        using result_t = big_integer<lhs_t::num_bits + rhs_t::num_bits>;
 
         constexpr auto zero = big_integer{0};
 
         if (lhs < zero) {
             if (rhs < zero) {
-                return safe::detail::unsigned_multiply(-lhs, -rhs);
+                return result_t{safe::detail::unsigned_multiply(-lhs, -rhs)};
             } else {
-                return -safe::detail::unsigned_multiply(-lhs, rhs);
+                return result_t{-safe::detail::unsigned_multiply(-lhs, rhs)};
             }
         } else {
             if (rhs < zero) {
-                return -safe::detail::unsigned_multiply(lhs, -rhs);
+                return result_t{-safe::detail::unsigned_multiply(lhs, -rhs)};
 
             } else {
                 return result_t{safe::detail::unsigned_multiply(lhs, rhs)};
@@ -520,6 +569,46 @@ namespace safe {
         return result;
     }
 
+    // FIXME: consolidate left-shift?
+    template<
+        ConvertableToBigInteger Lhs,
+        typename T>
+    [[nodiscard]] SAFE_INLINE constexpr auto operator<<(
+        Lhs const & raw_lhs,
+        unsafe_shift_amt<T> const & shift_amt
+    ) {
+        using lhs_t = as_big_integer_t<Lhs>;
+        lhs_t const & lhs = get_big_integer(raw_lhs);
+
+        using result_t = Lhs;
+        auto result = result_t{};
+
+        std::size_t left_shift_amt = shift_amt.value % big_integer_elem_num_bits;
+        std::size_t elem_shift_amt = shift_amt.value / big_integer_elem_num_bits;
+
+        if (left_shift_amt == 0) {
+            auto first = begin(lhs.storage);
+            auto const last = first + (result.num_elements - elem_shift_amt);
+            std::copy(first, last, begin(result.storage) + elem_shift_amt);
+
+        } else {
+            std::size_t right_shift_amt = big_integer_elem_num_bits - left_shift_amt;
+            for (auto i = std::size_t{}; i < lhs_t::num_elements; i++) {
+                auto const upper_elem_index =
+                    i + elem_shift_amt + 1;
+
+                if (upper_elem_index < result.storage.size()) {
+                    result.storage[upper_elem_index] = lhs.storage[i] >> right_shift_amt;
+                }
+
+                if (i + elem_shift_amt < result.storage.size()) {
+                    result.storage[i + elem_shift_amt] |= lhs.storage[i] << left_shift_amt;
+                }
+            }
+        }
+
+        return result;
+    }
 
     template<
         ConvertableToBigInteger Lhs,
@@ -534,12 +623,12 @@ namespace safe {
 
         constexpr std::size_t shift_amt = as_size(ShiftAmt);
 
-        if constexpr (shift_amt >= lhs_t::num_bits) {
-            return big_integer<1>{0u};
-        }
-
         using result_t = big_integer<std::max<std::size_t>(lhs_t::num_bits - shift_amt, 1u)>;
         auto result = result_t{};
+
+        if constexpr (shift_amt >= lhs_t::num_bits) {
+            return result;
+        }
 
         constexpr std::size_t right_shift_amt = shift_amt % big_integer_elem_num_bits;
         constexpr std::size_t elem_shift_amt = shift_amt / big_integer_elem_num_bits;
@@ -778,7 +867,7 @@ namespace safe {
             }();
 
             constexpr auto min_result =
-                safe::detail::minimize_big_integer<result>;
+                sign_ext(safe::detail::minimize_big_integer<result>);
 
             return std::integral_constant<std::remove_const_t<decltype(min_result)>, min_result>{};
         }
@@ -979,5 +1068,71 @@ namespace safe {
             return result_t{rhs};
         }
     }
-
 }
+
+template<std::size_t NumBits>
+struct std::numeric_limits<safe::big_integer<NumBits>> {
+    using T = safe::big_integer<NumBits>;
+
+    static constexpr bool is_specialized = true;
+    static constexpr bool is_signed = true;
+    static constexpr bool is_integer = true;
+    static constexpr bool is_exact = true;
+    static constexpr bool has_infinity = false;
+    static constexpr bool has_quiet_NaN = false;
+    static constexpr bool has_signaling_NaN = false;
+    static constexpr std::float_denorm_style has_denorm = std::denorm_absent;
+    static constexpr bool has_denorm_loss = false;
+    static constexpr std::float_round_style round_style = std::round_toward_zero;
+    static constexpr bool is_iec559 = false;
+    static constexpr bool is_bounded = true;
+    static constexpr bool is_modulo = false;
+    static constexpr std::size_t digits = NumBits; // FIXME: the standard says this should be 'int'
+    static constexpr int digits10 = std::numeric_limits<T>::digits * std::log10(2);
+    static constexpr int max_digits10 = 0;
+    static constexpr int radix = 2;
+    static constexpr int min_exponent = 0;
+    static constexpr int min_exponent10 = 0;
+    static constexpr int max_exponent = 0;
+    static constexpr int max_exponent10 = 0;
+    static constexpr bool traps = true; // NOTE: it _might_ trap for divide by '0'
+    static constexpr bool tinyness_before = false;
+
+    static constexpr auto min() noexcept -> T {
+        return T{std::numeric_limits<safe::big_integer_elem_t>::max()} << unsafe_shift_amt{NumBits - 1};
+    }
+
+    static constexpr auto lowest() noexcept -> T {
+        return min();
+    }
+
+    static constexpr auto max() noexcept -> T {
+        return ~min();
+    }
+
+    static constexpr auto epsilon() noexcept -> T {
+        return T{0};
+    }
+
+    static constexpr auto round_error() noexcept -> T {
+        return T{0};
+    }
+
+    static constexpr auto infinity() noexcept -> T {
+        return T{0};
+    }
+
+    static constexpr auto quiet_NaN() noexcept -> T {
+        return T{0};
+    }
+
+    static constexpr auto signaling_NaN() noexcept -> T {
+        return T{0};
+    }
+
+    static constexpr auto denorm_min() noexcept -> T {
+        return T{0};
+    }
+
+
+};

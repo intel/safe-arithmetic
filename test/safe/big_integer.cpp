@@ -2,6 +2,7 @@
 #include "gmock/gmock.h"
 
 #include <safe/big_integer.hpp>
+#include <safe/big_integer_testing.hpp>
 
 
 using namespace safe::literals;
@@ -25,6 +26,30 @@ TEST(big_integer, construct_from_int) {
     safe::big_integer<32> zero{};
     ASSERT_NE(lhs, zero);
 }
+
+TEST(big_integer, wide_add_sub) {
+    using T = safe::big_integer<96>;
+
+    ASSERT_EQ(T{-1} + T{-1}, T{-2});
+
+    ASSERT_EQ(T{0} - T{1}, T{-1});
+    ASSERT_EQ(T{1} - T{1}, T{0});
+    ASSERT_EQ(T{1} - T{0}, T{1});
+    ASSERT_EQ(T{0} - T{0}, T{0});
+}
+
+
+TEST(big_integer, negate) {
+    using T = safe::big_integer<96>;
+    ASSERT_EQ(-T{0}, T{0});
+}
+
+TEST(big_integer, invert) {
+    using T = safe::big_integer<96>;
+    ASSERT_EQ(~T{0}, 0xffff'ffff'ffff'ffff'ffff'ffff_i);
+}
+
+
 
 TEST(big_integer, add_two) {
     safe::big_integer<32> lhs{13u};
@@ -281,6 +306,19 @@ TEST(big_integer, signed_compare) {
     ASSERT_TRUE(-5_i > -10_i);
 }
 
+
+TEST(big_integer, big_signed_compare) {
+    constexpr auto big_big = 1'000'000'000'000'000'000'000'000'000'000'000'000'000'000_i;
+    ASSERT_TRUE(big_big > -big_big);
+    ASSERT_TRUE(-big_big < big_big);
+
+    ASSERT_TRUE(big_big > 0_i);
+    ASSERT_TRUE(0_i < big_big);
+
+    ASSERT_TRUE(-big_big < 0_i);
+    ASSERT_TRUE(0_i > -big_big);
+}
+
 TEST(big_integer, signed_mul) {
     ASSERT_EQ(1_i * 1_i, 1_i);
     ASSERT_EQ(-1_i * 1_i, -1_i);
@@ -300,4 +338,21 @@ TEST(big_integer, signed_mod) {
     ASSERT_EQ(-1_i % 1_i, 0_i);
     ASSERT_EQ(1_i % -1_i, 0_i);
     ASSERT_EQ(-1_i % -1_i, 0_i);
+}
+
+TEST(big_integer, std_min) {
+    using T = safe::big_integer<96>;
+
+    ASSERT_EQ(std::min<T>(90, -100), -100);
+    ASSERT_EQ(std::min<T>(-90, 100), -90);
+    ASSERT_EQ(std::min<T>(-90, -100), -100);
+    ASSERT_EQ(std::min<T>(90, 100), 90);
+}
+
+TEST(big_integer, std_numeric_limits) {
+    using T = std::numeric_limits<safe::big_integer<96>>;
+
+    ASSERT_EQ(T::min(), 0x8000'0000'0000'0000'0000'0000_i);
+    ASSERT_EQ(T::lowest(), 0x8000'0000'0000'0000'0000'0000_i);
+    ASSERT_EQ(T::max(), 0x7fff'ffff'ffff'ffff'ffff'ffff_i);
 }

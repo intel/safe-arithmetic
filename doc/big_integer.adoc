@@ -1,0 +1,88 @@
+
+== Arbitrary Precision Integers
+
+=== Introduction to safe::big_integer
+
+There are a couple uses for an arbitrary precision `big_integer`:
+
+1. They are convenient to use when calculating bounds at compile-time.
+2. They can be helpful to use at runtime for values exceeding standard C++20
+   integer widths.
+
+While they are useful, both the API and design must be carefully considered in
+order to minimize compile-time and runtime performance impacts and arithmetic
+correctness with respect to overflow and underflow conditions.
+
+In order to meet these basic requirements, the following design guide posts
+are selected:
+
+1. No dynamic memory allocation. Integer types will be represented by a type
+   templated by its bit width.
+2. Specialized integer promotion rules. The return type of an operation
+   _should_ be wide enough to represent any result without overflow or
+   underflow. This is not always possible, but exceptions should be clear
+   when writing and reading code.
+3. No C++ exceptions. Exceptional conditions will not be handled by
+   `big_integer`. For user code, `big_integer` should always be wrapped in a
+   `safe::var` to provide protection from unsafe operations.
+4. `big_integer` shall be signed and there will be no unsigned version.
+5. Seamless interop with standard integral types, including
+   `std::integral_constant`.
+
+
+=== Examples
+
+
+
+=== API Design and Reference
+
+The best way to explain the integer promotion rules and some limitations
+is to show a summary of the API.
+
+==== operator+
+
+```c++
+template<
+    ConvertableToBigInteger Lhs,
+    ConvertableToBigInteger Rhs>
+requires
+    AtMostOneIntegralConstant<Lhs, Rhs> and
+    AtMostOnePrimitive<Lhs, Rhs>
+[[nodiscard]] constexpr auto operator+(
+    Lhs lhs,
+    Rhs rhs
+) -> big_integer_with_extra_bit_t<Lhs, Rhs>;
+
+template<
+    typename Lhs, Lhs lhs,
+    typename Rhs, Rhs rhs>
+[[nodiscard]] constexpr auto operator+(
+    std::integral_constant<Lhs, lhs>,
+    std::integral_constant<Rhs, rhs>
+) -> std::integral_constant<decltype(lhs + rhs), lhs + rhs>;
+```
+
+
+==== operator-
+
+
+```c++
+template<
+    ConvertableToBigInteger Lhs,
+    ConvertableToBigInteger Rhs>
+requires
+    AtMostOneIntegralConstant<Lhs, Rhs> and
+    AtMostOnePrimitive<Lhs, Rhs>
+[[nodiscard]] constexpr auto operator-(
+    Lhs lhs,
+    Rhs rhs
+) -> big_integer_with_extra_bit_t<Lhs, Rhs>;
+
+template<
+    typename Lhs, Lhs lhs,
+    typename Rhs, Rhs rhs>
+[[nodiscard]] constexpr auto operator-(
+    std::integral_constant<Lhs, lhs>,
+    std::integral_constant<Rhs, rhs>
+) -> std::integral_constant<decltype(lhs - rhs), lhs - rhs>;
+```

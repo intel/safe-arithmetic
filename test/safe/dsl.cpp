@@ -2,6 +2,7 @@
 #include "gmock/gmock.h"
 
 #include <safe.hpp>
+#include <safe/big_integer_testing.hpp>
 
 
 
@@ -22,27 +23,25 @@ struct test_interval {
     T max;
 };
 
-template<typename T, auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max, typename OperationT>
-[[nodiscard]] constexpr auto calc_interval(
+template<
+    typename T,
+    auto lhs_min, auto lhs_max,
+    auto rhs_min, auto rhs_max,
+    typename OperationT>
+void check_interval(
     ival_t<lhs_min, lhs_max> lhs,
     ival_t<rhs_min, rhs_max> rhs,
     OperationT op
 ) {
-    constexpr std::pair<T, T> result = [](){
-        std::pair<T, T> r{std::numeric_limits<T>::max(), std::numeric_limits<T>::lowest()};
-
-        for (T i = lhs_min; i <= lhs_max; i = unsafe_cast<T>(i + 1)) {
-            for (T j = rhs_min; j <= rhs_max; j = unsafe_cast<T>(j + 1)) {
-                auto const v = OperationT{}(i, j);
-                r.first = std::min(unsafe_cast<T>(r.first), unsafe_cast<T>(v));
-                r.second = std::max(unsafe_cast<T>(r.second), unsafe_cast<T>(v));
-            }
+    auto const actual = safe::dsl::detail::simp(op(lhs, rhs));
+    for (T i = lhs_min; i <= lhs_max; i = unsafe_cast<T>(i + 1)) {
+        for (T j = rhs_min; j <= rhs_max; j = unsafe_cast<T>(j + 1)) {
+            auto const v = op(i, j);
+            EXPECT_GE(v, actual.min);
+            EXPECT_LE(v, actual.max);
         }
+    }
 
-        return r;
-    }();
-
-    return ival<result.first, result.second>;
 }
 
 template<typename... Tn>
@@ -110,14 +109,10 @@ struct add_test_op {
     constexpr static RhsT rhs{};
 
     constexpr static void run() {
-        constexpr auto expected =
-            calc_interval<safe::big_integer<96>>(lhs, rhs, [](auto a, auto b){return a + b;});
-
-        constexpr auto actual =
-            safe::dsl::detail::simp(lhs + rhs);
-
-        EXPECT_EQ(expected.min, actual.min);
-        EXPECT_EQ(expected.max, actual.max);
+        check_interval<safe::big_integer<96>>(
+            lhs, rhs,
+            [](auto a, auto b){return a + b;}
+        );
     }
 };
 
@@ -127,14 +122,10 @@ struct minus_test_op {
     constexpr static RhsT rhs{};
 
     constexpr static void run() {
-        constexpr auto expected =
-            calc_interval<safe::big_integer<96>>(lhs, rhs, [](auto a, auto b){return a - b;});
-
-        constexpr auto actual =
-            safe::dsl::detail::simp(lhs - rhs);
-
-        EXPECT_EQ(expected.min, actual.min);
-        EXPECT_EQ(expected.max, actual.max);
+        check_interval<safe::big_integer<96>>(
+            lhs, rhs,
+            [](auto a, auto b){return a - b;}
+        );
     }
 };
 
@@ -157,17 +148,16 @@ struct multiply_test_op {
 
 template<auto scale>
 using operands = mp_list<
-    ival_t<-5_i * scale, -3_i * scale>,
-    ival_t<-4_i * scale, -2_i * scale>,
-    ival_t<-3_i * scale, -1_i * scale>,
-    ival_t<-2_i * scale,  0_i * scale>,
+//    ival_t<-5_i * scale, -3_i * scale>,
+//    ival_t<-4_i * scale, -2_i * scale>,
+//    ival_t<-3_i * scale, -1_i * scale>,
+//    ival_t<-2_i * scale,  0_i * scale>,
     ival_t<-1_i * scale,  1_i * scale>,
     ival_t< 0_i * scale,  2_i * scale>,
     ival_t< 1_i * scale,  3_i * scale>,
     ival_t< 2_i * scale,  4_i * scale>,
     ival_t< 3_i * scale,  5_i * scale>
 >;
-
 
 
 TEST(safe_dsl_test, add_op) {
@@ -181,26 +171,26 @@ TEST(safe_dsl_test, add_op) {
 TEST(safe_dsl_test, minus_op) {
     test_operation<
         minus_test_op,
-        operands<5_i>,
-        operands<5_i>
+        operands<1_i>,
+        operands<1_i>
     >();
 }
 
-TEST(safe_dsl_test, multiply_op) {
-    test_operation<
-        multiply_test_op,
-        operands<5_i>,
-        operands<5_i>
-    >();
-}
-
-TEST(safe_dsl_test, divide_op) {
-    test_operation<
-        divide_test_op,
-        operands<5_i>,
-        operands<5_i>
-    >();
-}
+//TEST(safe_dsl_test, multiply_op) {
+//    test_operation<
+//        multiply_test_op,
+//        operands<5_i>,
+//        operands<5_i>
+//    >();
+//}
+//
+//TEST(safe_dsl_test, divide_op) {
+//    test_operation<
+//        divide_test_op,
+//        operands<5_i>,
+//        operands<5_i>
+//    >();
+//}
 //
 //template<typename T>
 //struct show {

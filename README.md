@@ -8,8 +8,12 @@ true at runtime.
 ## Pre-release Disclaimer
 
 This library is a work in progress and should not yet be used in production.
-The API may change, there may be bugs, and it is not yet complete. However,
-please feel free to try it out and file issues or discuss the library.
+It is being developed "in the open" at a very early stage not usually seen.
+The API will change, there are definitely bugs, it may not even compile, and it
+is not yet complete. It is currently undergoing large changes in the API, 
+design, and implementation. If you are interested, please take a look at the
+documentation on the webpage and provide feedback about the API, design, and
+user guide.
 
 ## Motivation
 

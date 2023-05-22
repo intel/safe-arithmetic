@@ -95,15 +95,26 @@ namespace safe {
         }
     };
 
-    template<typename T>
-    requires(Var<T> || BigInteger<T>)
-    [[nodiscard]] constexpr auto unsafe_cast(auto const & src) {
-        return T{unsafe_cast_ferry{src}};
-    }
-
-    template<typename T>
-    requires(!Var<T> && !BigInteger<T>)
-    [[nodiscard]] constexpr auto unsafe_cast(auto const & src) {
-        return src;
-    }
 }
+
+
+template<typename T>
+requires(safe::Var<T> || safe::BigInteger<T>)
+[[nodiscard]] constexpr auto unsafe_cast(auto const & src) {
+    return T{safe::unsafe_cast_ferry{src}};
+}
+
+template<typename T>
+requires(!safe::Var<T> && !safe::BigInteger<T>)
+[[nodiscard]] constexpr auto unsafe_cast(auto const & src) {
+    return src;
+}
+
+template<typename T>
+struct unsafe_shift_amt {
+    T value;
+
+    constexpr explicit(true) unsafe_shift_amt(T init_value)
+        : value{init_value}
+    {}
+};

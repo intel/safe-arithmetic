@@ -1,3 +1,7 @@
+.DS_Store
+*.lst
+*.orign
 /Testing/
 /build/
 /cmake-build-*
+.idea

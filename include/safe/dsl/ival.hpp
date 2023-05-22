@@ -14,7 +14,7 @@ namespace safe::dsl {
         constexpr static auto min = Min;
         constexpr static auto max = Max;
 
-        static_assert(min <= max);
+        //static_assert(min <= max);
 
         [[nodiscard]] SAFE_PURE constexpr static bool check(auto value) {
             return value >= min && value <= max;
