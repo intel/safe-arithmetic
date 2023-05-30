@@ -16,6 +16,5 @@ add_versioned_package("gh:boostorg/mp11#boost-1.80.0")
 
 add_subdirectory(include)
 add_subdirectory(test)
-add_subdirectory(examples)
 
 

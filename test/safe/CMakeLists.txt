@@ -79,6 +79,17 @@ add_unit_test(
     LIBRARIES
         safe_arithmetic)
 
+
+add_unit_test(
+    big_integer_test
+    GTEST
+    FILES
+        big_integer/interface/big_integer.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)
+
 ## Google tests
 #add_executable(gtests
 ##    var.cpp

@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <array>
 #include <compare>
+#include <type_traits>
+
+#include <safe/big_integer/interface/fwd.hpp>
 
 
 namespace safe::_big_integer::detail {
@@ -14,6 +17,9 @@ namespace safe::_big_integer::detail {
     struct storage {
     public:
         static constexpr auto num_elems = (NumBits + 31) / 32;
+        static constexpr auto num_bits = NumBits;
+
+        std::array<elem_t, num_elems> elems{};
 
         constexpr storage() = default;
 
@@ -71,18 +77,76 @@ namespace safe::_big_integer::detail {
                 elems[i] = elem;
             }
         }
-
-        std::array<elem_t, num_elems> elems{};
     };
 
-    [[nodiscard]] constexpr auto make_storage(int32_t v) -> storage<32> {
-        return storage<32>{{static_cast<uint32_t>(v)}};
+    template<std::signed_integral T> 
+    requires (sizeof(T) * 8 <= 32)
+    [[nodiscard]] constexpr auto to_storage(T v) -> storage<sizeof(T) * 8> {
+        return {{static_cast<uint32_t>(static_cast<int32_t>(v))}};
     }
 
-    [[nodiscard]] constexpr auto make_storage(int64_t v) -> storage<64> {
-        return storage<64>{{
+    template<std::unsigned_integral T> 
+    requires (sizeof(T) * 8 <= 32)
+    [[nodiscard]] constexpr auto to_storage(T v) -> storage<(sizeof(T) * 8) + 1> {
+        return {{static_cast<uint32_t>(v)}};
+    }
+
+    [[nodiscard]] constexpr auto to_storage(int64_t v) -> storage<64> {
+        return {{
             static_cast<uint32_t>(v),
             static_cast<uint32_t>(v >> 32)
         }};
     }
+
+    [[nodiscard]] constexpr auto to_storage(uint64_t v) -> storage<65> {
+        return {{
+            static_cast<uint32_t>(v),
+            static_cast<uint32_t>(v >> 32)
+        }};
+    }
+
+    template<std::size_t NumBits>
+    [[nodiscard]] constexpr auto const & to_storage(interface::big_integer<NumBits> const & v)  {
+        return v.unsafe_storage;
+    }
+
+    template<std::size_t NumBits>
+    [[nodiscard]] constexpr auto & to_storage(storage<NumBits> & v)  {
+        return v;
+    }
+
+    template<std::size_t NumBits>
+    [[nodiscard]] constexpr auto const & to_storage(storage<NumBits> const & v)  {
+        return v;
+    }
+
+    template<typename T, T value>
+    [[nodiscard]] constexpr auto to_storage(std::integral_constant<T, value>)  {
+        return to_storage(value);
+    }
+
+    [[nodiscard]] constexpr auto make_storage(auto v)  {
+        return to_storage(v);
+    }
+
+    constexpr static auto max_width_plus_one = [](
+        std::size_t left_bits,
+        std::size_t right_bits
+    ) -> std::size_t {
+        return std::max(left_bits, right_bits) + 1;
+    };
+
+    constexpr static auto max_width = [](
+        std::size_t left_bits,
+        std::size_t right_bits
+    ) -> std::size_t {
+        return std::max(left_bits, right_bits);
+    };
+
+    constexpr static auto sum_width = [](
+        std::size_t left_bits,
+        std::size_t right_bits
+    ) -> std::size_t {
+        return left_bits + right_bits;
+    };
 }
