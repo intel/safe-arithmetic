@@ -13,76 +13,137 @@ While they are useful, both the API and design must be carefully considered in
 order to minimize compile-time and runtime performance impacts and arithmetic
 correctness with respect to overflow and underflow conditions.
 
-In order to meet these basic requirements, the following design guide posts
+In order to meet these basic requirements, the following design rules
 are selected:
 
 1. No dynamic memory allocation. Integer types will be represented by a type
    templated by its bit width.
 2. Specialized integer promotion rules. The return type of an operation
    _should_ be wide enough to represent any result without overflow or
-   underflow. This is not always possible, but exceptions should be clear
-   when writing and reading code.
+   underflow.
 3. No C++ exceptions. Exceptional conditions will not be handled by
    `big_integer`. For user code, `big_integer` should always be wrapped in a
    `safe::var` to provide protection from unsafe operations.
 4. `big_integer` shall be signed and there will be no unsigned version.
-5. Seamless interop with standard integral types, including
-   `std::integral_constant`.
+5. Seamless interop with standard integral types.
 
 
 === Examples
 
 
 
-=== API Design and Reference
+=== Design
 
-The best way to explain the integer promotion rules and some limitations
-is to show a summary of the API.
+[source,c++]
+----
+namespace safe::_big_integer::detail {
+   using elem_t = std::uint32_t;
+   using double_elem_t = std::uint64_t;
 
-==== operator+
+   template<std::size_t NumBits>
+   struct storage {
+      static constexpr auto num_elems = (NumBits + 31) / 32;
 
-```c++
-template<
-    ConvertableToBigInteger Lhs,
-    ConvertableToBigInteger Rhs>
-requires
-    AtMostOneIntegralConstant<Lhs, Rhs> and
-    AtMostOnePrimitive<Lhs, Rhs>
-[[nodiscard]] constexpr auto operator+(
-    Lhs lhs,
-    Rhs rhs
-) -> big_integer_with_extra_bit_t<Lhs, Rhs>;
+      auto operator[](std::size_t i) -> elem_t &;
+      auto operator[](std::size_t i) const -> elem_t;
+   };
 
-template<
-    typename Lhs, Lhs lhs,
-    typename Rhs, Rhs rhs>
-[[nodiscard]] constexpr auto operator+(
-    std::integral_constant<Lhs, lhs>,
-    std::integral_constant<Rhs, rhs>
-) -> std::integral_constant<decltype(lhs + rhs), lhs + rhs>;
-```
+   template<std::size_t NumBits>
+   struct big_integer {
+      big_integer();
+      big_integer(NarrowerThan<NumBits> auto const & b);
+      big_integer(NarrowerThan<NumBits> auto const && b);
 
+      auto operator=(NarrowerThan<NumBits> auto const & b) -> big_integer &;
+      auto operator=(NarrowerThan<NumBits> auto const && b) -> big_integer &;
 
-==== operator-
+      auto operator+=(auto b) -> big_integer &;
+      auto operator-=(auto b) -> big_integer &;
+      auto operator*=(auto b) -> big_integer &;
+      auto operator/=(auto b) -> big_integer &;
+      auto operator%=(auto b) -> big_integer &;
 
+      auto operator|=(auto b) -> big_integer &;
+      auto operator&=(auto b) -> big_integer &;
+      auto operator^=(auto b) -> big_integer &;
 
-```c++
-template<
-    ConvertableToBigInteger Lhs,
-    ConvertableToBigInteger Rhs>
-requires
-    AtMostOneIntegralConstant<Lhs, Rhs> and
-    AtMostOnePrimitive<Lhs, Rhs>
-[[nodiscard]] constexpr auto operator-(
-    Lhs lhs,
-    Rhs rhs
-) -> big_integer_with_extra_bit_t<Lhs, Rhs>;
+      auto operator>>=(auto b) -> big_integer &;
+      auto operator<<=(auto b) -> big_integer &;
 
-template<
-    typename Lhs, Lhs lhs,
-    typename Rhs, Rhs rhs>
-[[nodiscard]] constexpr auto operator-(
-    std::integral_constant<Lhs, lhs>,
-    std::integral_constant<Rhs, rhs>
-) -> std::integral_constant<decltype(lhs - rhs), lhs - rhs>;
-```
+      template<auto = 0> requires NumBits <=  8 operator  int8_t() const;
+      template<auto = 0> requires NumBits <= 16 operator int16_t() const;
+      template<auto = 0> requires NumBits <= 32 operator int32_t() const;
+      template<auto = 0> requires NumBits <= 64 operator int64_t() const;
+   };
+
+    template<auto Value>
+    struct integral_constant {
+       static constexpr auto value = Value;
+       operator decltype(Value)() const;
+    }
+
+   template<std::size_t LhsBits, std::size_t RhsBits>
+   auto extra_bit(big_integer<LhsBits>, big_integer<RhsBits>)
+      -> big_integer<std::max(LhsBits, RhsBits) + 1>;
+
+   template<std::size_t LhsBits, std::size_t RhsBits>
+   auto concat(big_integer<LhsBits>, big_integer<RhsBits>)
+      -> big_integer<LhsBits + RhsBits>;
+
+   template<std::size_t LhsBits, std::size_t RhsBits>
+   auto widest(big_integer<LhsBits>, big_integer<RhsBits>)
+      -> big_integer<std::max(LhsBits, RhsBits)>;
+
+   template<std::size_t LhsBits, auto ShiftAmt>
+   auto lsh(big_integer<LhsBits>, integral_constant<ShiftAmt>)
+      -> big_integer<LhsBits + ShiftAmt>;
+
+   template<std::size_t LhsBits, auto ShiftAmt>
+   auto rsh(big_integer<LhsBits>, integral_constant<ShiftAmt>)
+      -> big_integer<LhsBits <= ShiftAmt ? 1 : LhsBits - ShiftAmt>;
+
+   auto operator<=>(auto a, auto b) -> std::strong_ordering;
+
+   auto operator++(auto a) -> decltype(a) &;
+   auto operator--(auto a) -> decltype(a) &;
+   auto operator++(auto a, int) -> decltype(a);
+   auto operator--(auto a, int) -> decltype(a);
+
+   auto operator+(auto a, auto b) -> decltype(extra_bit(a, b));
+   auto operator-(auto a, auto b) -> decltype(extra_bit(a, b));
+   auto operator-(auto a) -> decltype(extra_bit(a));
+   auto operator*(auto a, auto b) -> decltype(concat(a, b));
+   auto operator/(auto a, auto b) -> decltype(a);
+   auto operator%(auto a, auto b) -> decltype(a);
+
+   auto operator|(auto a, auto b) -> decltype(widest(a, b));
+   auto operator&(auto a, auto b) -> decltype(widest(a, b));
+   auto operator^(auto a, auto b) -> decltype(widest(a, b));
+   auto operator~(auto a) -> decltype(a);
+
+   auto operator>>(auto a, auto b) -> decltype(a);
+   auto operator<<(auto a, auto b) -> decltype(a);
+
+   template<auto b>
+   auto operator>>(auto a, safe::integral_constant<b>) -> decltype(rsh(a, b));
+
+   template<auto b>
+   auto operator<<(auto a, safe::integral_constant<b>) -> decltype(lsh(a, b));
+}
+
+namespace safe {
+    template<std::size_t NumBits>
+    using big_integer = _big_integer::detail::big_integer<NumBits>;
+
+    template<auto Value>
+    struct constant {
+       static constexpr auto value = Value;
+       operator decltype(Value)() const;
+    }
+
+    namespace literals {
+        template <char... chars>
+        Constant auto operator""_i() {
+    }
+}
+----
