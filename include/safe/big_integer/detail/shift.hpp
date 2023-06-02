@@ -12,8 +12,16 @@
 namespace safe::_big_integer::detail {
     template<typename T>
     struct shift_left {
-        T const & source;
+        T source;
         int32_t shift_amt;
+
+        constexpr shift_left(
+            T source_arg, 
+            int32_t shift_amt_arg
+        ) 
+            : source{source_arg}
+            , shift_amt{shift_amt_arg}
+        {}
 
         [[nodiscard]] constexpr auto get(int32_t i) const -> elem_t {
             return source.get(i - shift_amt);
@@ -48,8 +56,16 @@ namespace safe::_big_integer::detail {
 
     template<typename T>
     struct shift_right {
-        T const & source;
+        T source;
         int32_t shift_amt;
+
+        constexpr shift_right(
+            T source_arg, 
+            int32_t shift_amt_arg
+        ) 
+            : source{source_arg}
+            , shift_amt{shift_amt_arg}
+        {}
 
         [[nodiscard]] constexpr auto get(int32_t i) const -> elem_t {
             return source.get(i + shift_amt);
