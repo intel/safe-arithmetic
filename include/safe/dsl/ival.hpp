@@ -22,7 +22,7 @@ namespace safe::dsl {
     };
 
     template<auto Min, auto Max>
-    constexpr ival_t<safe::detail::minimal_big_integer<Min>, safe::detail::minimal_big_integer<Max>> ival{};
+    constexpr ival_t<to_big_integer(Min), to_big_integer(Max)> ival{};
 
     template <typename T>
     constexpr bool is_ival_v = false;

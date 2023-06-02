@@ -10,7 +10,7 @@
 namespace safe::dsl {
     namespace detail {
         [[nodiscard]] constexpr auto abs(auto value) {
-            if (value < 0_i) {
+            if (value < 0) {
                 return -value;
             } else {
                 return decltype(-value){value};

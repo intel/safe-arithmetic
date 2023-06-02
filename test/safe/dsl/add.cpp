@@ -2,7 +2,7 @@
 #include "gmock/gmock.h"
 
 #include <safe.hpp>
-
+#include <safe/big_integer_gen.hpp>
 
 using ::testing::_;
 using ::testing::Return;

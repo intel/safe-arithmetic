@@ -11,7 +11,7 @@ env:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -32,13 +32,12 @@ jobs:
             install: sudo apt update && sudo apt-get install -y clang-12
             cc: " /usr/lib/llvm-12/bin/clang"
             cxx: "/usr/lib/llvm-12/bin/clang++"
-
-#          - name: gcc-12
-#            install: add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt update && apt-get install -y gcc-12 g++-12
-#            cc: "/usr/bin/gcc-12"
-#            cxx: "/usr/bin/g++-12"
+          - name: gcc-12
+            install: sudo apt update && sudo apt-get install -y gcc-12 g++-12
+            cc: "/usr/bin/gcc-12"
+            cxx: "/usr/bin/g++-12"
           - name: gcc-11
-            install: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt update && sudo apt-get install -y gcc-11 g++-11
+            install: sudo apt update && sudo apt-get install -y gcc-11 g++-11
             cc: "/usr/bin/gcc-11"
             cxx: "/usr/bin/g++-11"
           - name: gcc-10
@@ -63,11 +62,9 @@ jobs:
           CXX_STANDARD: ${{ matrix.compiler.cxx_standard }}
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-      - name: Build Unit Tests
-        run: cmake --build ${{github.workspace}}/build
+      - name: Build and Run Unit Tests
+        run: cmake --build ${{github.workspace}}/build --target unit_tests
 
-      - name: Run Unit Tests
-        run: cd ${{github.workspace}}/build && ctest --output-on-failure -j`nproc`
 
 
   quality_checks_pass:

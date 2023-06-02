@@ -22,55 +22,6 @@ namespace safe {
     concept Var = is_var_v<T>;
 
 
-    template<std::size_t NumBits>
-    struct big_integer;
-
-    template <typename T>
-    constexpr bool is_big_integer_v = false;
-
-    template<std::size_t NumBits>
-    constexpr bool is_big_integer_v<big_integer<NumBits>> = true;
-
-    template<typename T>
-    concept BigInteger = is_big_integer_v<T>;
-
-
-    template <typename T>
-    constexpr bool is_big_integral_constant_v = false;
-
-    template<std::size_t NumBits, big_integer<NumBits> Value>
-    constexpr bool is_big_integral_constant_v<std::integral_constant<big_integer<NumBits>, Value>> = true;
-
-    template<typename T>
-    concept BigIntegralConstant = is_big_integral_constant_v<T>;
-
-    template<typename T>
-    concept ConvertableToBigInteger =
-        is_big_integer_v<T> ||
-        is_big_integral_constant_v<T> ||
-        std::is_integral_v<T>;
-
-    template<typename T>
-    struct as_big_integer;
-
-    template<std::size_t NumBits>
-    struct as_big_integer<big_integer<NumBits>> {
-        using type = big_integer<NumBits>;
-    };
-
-    template<std::size_t NumBits, big_integer<NumBits> Value>
-    struct as_big_integer<std::integral_constant<big_integer<NumBits>, Value>> {
-        using type = big_integer<NumBits>;
-    };
-
-    template<std::integral T>
-    struct as_big_integer<T> {
-        using type = decltype(big_integer{T{}});
-    };
-
-    template<typename T>
-    using as_big_integer_t = typename as_big_integer<T>::type;
-
     [[nodiscard]] inline constexpr auto value(auto value);
 
     namespace detail {
@@ -99,22 +50,13 @@ namespace safe {
 
 
 template<typename T>
-requires(safe::Var<T> || safe::BigInteger<T>)
+requires(safe::Var<T>)
 [[nodiscard]] constexpr auto unsafe_cast(auto const & src) {
     return T{safe::unsafe_cast_ferry{src}};
 }
 
 template<typename T>
-requires(!safe::Var<T> && !safe::BigInteger<T>)
+requires(!safe::Var<T>)
 [[nodiscard]] constexpr auto unsafe_cast(auto const & src) {
     return src;
 }
-
-template<typename T>
-struct unsafe_shift_amt {
-    T value;
-
-    constexpr explicit(true) unsafe_shift_amt(T init_value)
-        : value{init_value}
-    {}
-};

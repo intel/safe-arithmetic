@@ -36,22 +36,24 @@ namespace safe::dsl {
 
     template<
         auto lhs_var_bits, auto lhs_const_bits,
-        auto rhs_val>
+        auto rhs_min, auto rhs_max>
+    requires (rhs_min == rhs_max)
     struct shift_right<
         mask_t<lhs_var_bits, lhs_const_bits>,
-        ival_t<rhs_val, rhs_val>
+        ival_t<rhs_min, rhs_max>
     >
         : public detail::binary_op
     {
         using type = mask_t<
-            operator>>(lhs_var_bits, rhs_val),
-            operator>>(lhs_const_bits, rhs_val)
+            operator>>(lhs_var_bits, rhs_max),
+            operator>>(lhs_const_bits, rhs_max)
         >;
     };
 
     template<
         auto lhs_var_bits, auto lhs_const_bits,
         auto rhs_min, auto rhs_max>
+    requires (rhs_min < rhs_max)
     struct shift_right<
         mask_t<lhs_var_bits, lhs_const_bits>,
         ival_t<rhs_min, rhs_max>

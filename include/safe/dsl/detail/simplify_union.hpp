@@ -2,6 +2,7 @@
 
 #include <safe/dsl/union.hpp>
 #include <safe/dsl/simplify_fwd.hpp>
+#include <safe/big_integer.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -25,8 +26,8 @@ namespace safe::dsl::detail {
 
     template<typename LhsT, typename RhsT>
     using binary_interval_merge = ival_t<
-        std::min({LhsT::min, RhsT::min}),
-        std::max({LhsT::max, RhsT::max})
+        std::min<common_integer_t<decltype(LhsT::min), decltype(RhsT::min)> >(LhsT::min, RhsT::min),
+        std::max<common_integer_t<decltype(LhsT::max), decltype(RhsT::max)> >(LhsT::max, RhsT::max)
     >;
 
     // assuming the intervals are sorted in ascending order by min

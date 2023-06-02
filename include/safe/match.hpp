@@ -35,7 +35,7 @@ namespace safe {
      * @return A function object.
      */
     template<typename RetT>
-    [[nodiscard]] inline constexpr auto function(
+    [[nodiscard]] inline constexpr auto match(
         auto func,
         auto... remaining_funcs
     ) {
@@ -64,7 +64,7 @@ namespace safe {
                     return func(unsafe_cast_ferry{detail::unwrap_var(std::forward<decltype(args)>(args))}...);
 
                 } else { // check the remaining functions' requirements
-                    return function<RetT>(remaining_funcs...)(std::forward<decltype(args)>(args)...);
+                    return match<RetT>(remaining_funcs...)(std::forward<decltype(args)>(args)...);
                 }
             }
         };

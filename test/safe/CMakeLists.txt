@@ -84,37 +84,180 @@ add_unit_test(
     big_integer_test
     GTEST
     FILES
-        big_integer/interface/big_integer.cpp
+        big_integer.cpp
     INCLUDE_DIRECTORIES
         ${CMAKE_SOURCE_DIR}/test/
     LIBRARIES
         safe_arithmetic)
 
-## Google tests
-#add_executable(gtests
-##    var.cpp
-##    invoke.cpp
-##    dsl.cpp
-##    array.cpp
-##    big_integer.cpp
-##    dsl/detail/checked.cpp
-##    dsl/add.cpp
-##    dsl/minus.cpp
-##    dsl/abs.cpp
-##    dsl/bitwise_and.cpp
-##    dsl/bitwise_or.cpp
-##    dsl/bitwise_xor.cpp
-##    dsl/bitwise_invert.cpp
-##    dsl/divide.cpp
-##    dsl/mask.cpp
-##    dsl/intersection.cpp
-##    dsl/is_equal.cpp
-##    dsl/is_subset.cpp
-#
-#)
-#
-#target_link_libraries(gtests PUBLIC rapidcheck PRIVATE safe_arithmetic gmock gtest gmock_main )
-#target_include_directories(gtests PRIVATE ${rapidcheck_SOURCE_DIR}/extras/gtest/include)
-#
-#include(GoogleTest)
-#gtest_discover_tests(gtests)
+add_unit_test(
+    var_test
+    GTEST
+    FILES
+        var.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)
+
+add_unit_test(
+    match_test
+    GTEST
+    FILES
+        match.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)
+
+add_unit_test(
+    array_test
+    GTEST
+    FILES
+        array.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)
+
+add_unit_test(
+    dsl_add_test
+    GTEST
+    FILES
+        dsl/add.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)
+
+add_unit_test(
+    dsl_divide_test
+    GTEST
+    FILES
+        dsl/divide.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)
+
+add_unit_test(
+    dsl_intersection_test
+    GTEST
+    FILES
+        dsl/intersection.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)      
+
+add_unit_test(
+    dsl_is_equal_test
+    GTEST
+    FILES
+        dsl/is_equal.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)    
+    
+
+add_unit_test(
+    dsl_is_subset_test
+    GTEST
+    FILES
+        dsl/is_subset.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)   
+
+add_unit_test(
+    dsl_abs_test
+    GTEST
+    FILES
+        dsl/abs.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+  
+add_unit_test(
+    dsl_mask_test
+    GTEST
+    FILES
+        dsl/mask.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+
+add_unit_test(
+    dsl_bitwise_and_test
+    GTEST
+    FILES
+        dsl/bitwise_and.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+
+
+add_unit_test(
+    dsl_detail_triint_test
+    GTEST
+    FILES
+        dsl/detail/triint.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+
+add_unit_test(
+    dsl_bitwise_or_test
+    GTEST
+    FILES
+        dsl/bitwise_or.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+
+add_unit_test(
+    dsl_bitwise_xor_test
+    GTEST
+    FILES
+        dsl/bitwise_xor.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+
+add_unit_test(
+    dsl_bitwise_invert_test
+    GTEST
+    FILES
+        dsl/bitwise_invert.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+
+add_unit_test(
+    dsl_test
+    GTEST
+    FILES
+        dsl.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  
+
+add_unit_test(
+    dsl_minus_test
+    GTEST
+    FILES
+        dsl/minus.cpp
+    INCLUDE_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/test/
+    LIBRARIES
+        safe_arithmetic)  

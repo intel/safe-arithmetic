@@ -7,6 +7,6 @@
 #include <safe/value.hpp>
 #include <safe/int.hpp>
 #include <safe/object.hpp>
-#include <safe/function.hpp>
+#include <safe/match.hpp>
 #include <safe/algorithm.hpp>
 #include <safe/array.hpp>

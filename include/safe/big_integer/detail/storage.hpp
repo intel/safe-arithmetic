@@ -79,26 +79,30 @@ namespace safe::_big_integer::detail {
         }
     };
 
-    template<std::signed_integral T> 
-    requires (sizeof(T) * 8 <= 32)
+    template<typename T> 
+    requires (sizeof(T) <= 4 && std::signed_integral<std::remove_cvref_t<T>>)
     [[nodiscard]] constexpr auto to_storage(T v) -> storage<sizeof(T) * 8> {
         return {{static_cast<uint32_t>(static_cast<int32_t>(v))}};
     }
 
-    template<std::unsigned_integral T> 
-    requires (sizeof(T) * 8 <= 32)
+    template<typename T> 
+    requires (sizeof(T) <= 4 && std::unsigned_integral<std::remove_cvref_t<T>>)
     [[nodiscard]] constexpr auto to_storage(T v) -> storage<(sizeof(T) * 8) + 1> {
         return {{static_cast<uint32_t>(v)}};
     }
 
-    [[nodiscard]] constexpr auto to_storage(int64_t v) -> storage<64> {
+    template<typename T> 
+    requires (sizeof(T) == 8 && std::signed_integral<std::remove_cvref_t<T>>)
+    [[nodiscard]] constexpr auto to_storage(T v)  -> storage<64> {
         return {{
             static_cast<uint32_t>(v),
             static_cast<uint32_t>(v >> 32)
         }};
     }
 
-    [[nodiscard]] constexpr auto to_storage(uint64_t v) -> storage<65> {
+    template<typename T> 
+    requires (sizeof(T) == 8 && std::unsigned_integral<std::remove_cvref_t<T>>)
+    [[nodiscard]] constexpr auto to_storage(T v) -> storage<65> {
         return {{
             static_cast<uint32_t>(v),
             static_cast<uint32_t>(v >> 32)
@@ -127,6 +131,32 @@ namespace safe::_big_integer::detail {
 
     [[nodiscard]] constexpr auto make_storage(auto v)  {
         return to_storage(v);
+    }
+
+    [[nodiscard]] constexpr auto to_integral(std::integral auto value)  {
+        return value;
+    }
+
+    template<std::integral T, T value>
+    [[nodiscard]] constexpr auto to_integral(std::integral_constant<T, value>)  {
+        return value;
+    }
+
+    template<std::size_t NumBits> requires (NumBits > 32 && NumBits <= 64)
+    [[nodiscard]] constexpr auto to_integral(storage<NumBits> const & value) -> int64_t {
+        return 
+            (static_cast<int64_t>(value.get(1)) << 32) |
+            (static_cast<int64_t>(value.get(0)));
+    }
+
+    template<std::size_t NumBits> requires (NumBits <= 32)
+    [[nodiscard]] constexpr auto to_integral(storage<NumBits> const & value) -> int32_t {
+        return static_cast<int32_t>(value.get(0));
+    } 
+
+    template<std::size_t NumBits> 
+    [[nodiscard]] constexpr auto to_integral(interface::big_integer<NumBits> const & value) {
+        return to_integral(value.unsafe_storage);
     }
 
     constexpr static auto max_width_plus_one = [](

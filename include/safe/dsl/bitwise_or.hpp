@@ -9,6 +9,16 @@ namespace safe::dsl {
     template<typename T, typename U>
     struct bitwise_or : public detail::binary_op {};
 
+
+    template<
+        Operand LhsT,
+        Operand RhsT>
+    [[nodiscard]] constexpr auto operator|(LhsT, RhsT)
+        -> bitwise_or<LhsT, RhsT>
+    {
+        return {};
+    }
+    
     template<
         detail::Primitive LhsT,
         detail::Primitive RhsT>
@@ -20,13 +30,4 @@ namespace safe::dsl {
         constexpr static auto value = lhs::value | rhs::value;
         using type = mask_t<value.var_bits(), value.const_bits()>;
     };
-
-    template<
-        Operand LhsT,
-        Operand RhsT>
-    [[nodiscard]] constexpr auto operator|(LhsT, RhsT)
-        -> bitwise_or<LhsT, RhsT>
-    {
-        return {};
-    }
 }

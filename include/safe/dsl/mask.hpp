@@ -10,9 +10,7 @@
 #include <bit>
 
 namespace safe::dsl {
-    using namespace safe::literals;
-
-    template<auto VariableBits, auto ConstantBits = 0_i>
+    template<auto VariableBits, auto ConstantBits = 0>
     struct mask_t : public detail::primitive {
         using type = mask_t;
 
@@ -29,8 +27,8 @@ namespace safe::dsl {
 
     template<auto VariableBits, auto ConstantBits = 0>
     constexpr mask_t<
-        safe::detail::minimal_big_integer<VariableBits>,
-        safe::detail::minimal_big_integer<ConstantBits>
+        to_big_integer(VariableBits),
+        to_big_integer(ConstantBits)
     > mask{};
 
 
@@ -44,7 +42,7 @@ namespace safe::dsl {
 
             do {
                 prev_value = value;
-                value = value | (value >> 1_i);
+                value = value | (value >> 1);
             } while (prev_value != value);
 
             return value;
@@ -76,7 +74,7 @@ namespace safe::dsl {
         using to_ival_t = typename to_ival<T>::type;
 
         [[nodiscard]] constexpr bool is_basic_mask(auto value) {
-            return ((value >> 1_i) & value) == (value >> 1_i);
+            return ((value >> 1) & value) == (value >> 1);
         }
 
         

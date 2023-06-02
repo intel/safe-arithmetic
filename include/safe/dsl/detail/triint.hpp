@@ -1,9 +1,12 @@
 #pragma once
 
 
+#include <safe/big_integer.hpp>
+
 #include <limits>
 #include <type_traits>
 #include <cstdint>
+#include <algorithm>
 
 
 namespace safe::dsl {
@@ -36,13 +39,21 @@ namespace safe::dsl {
         }
     };
 
-    
+    template<typename LhsT, typename RhsT>
+    [[nodiscard]] constexpr auto operator==(
+        triint<LhsT> lhs,
+        triint<RhsT> rhs
+    ) -> bool {
+        return 
+            (lhs.var_bits() == rhs.var_bits()) &&
+            (lhs.const_bits() == rhs.const_bits());
+    }
 
     template<typename LhsT, typename RhsT>
     [[nodiscard]] constexpr auto operator&(
         triint<LhsT> lhs,
         triint<RhsT> rhs
-    ) -> triint<std::common_type_t<LhsT, RhsT>> {
+    ) -> triint<common_integer_t<LhsT, RhsT>> {
         return {
             (
                 (lhs.var_bits() & (rhs.const_bits() | rhs.var_bits())) |
@@ -56,7 +67,7 @@ namespace safe::dsl {
     [[nodiscard]] constexpr auto operator|(
         triint<LhsT> lhs,
         triint<RhsT> rhs
-    ) -> triint<std::common_type_t<LhsT, RhsT>> {
+    ) -> triint<common_integer_t<LhsT, RhsT>> {
         auto const lhs_const_bits = lhs.const_bits() & ~lhs.var_bits();
         auto const rhs_const_bits = rhs.const_bits() & ~rhs.var_bits();
 
@@ -73,7 +84,7 @@ namespace safe::dsl {
     [[nodiscard]] constexpr auto operator^(
         triint<LhsT> lhs,
         triint<RhsT> rhs
-    ) -> triint<std::common_type_t<LhsT, RhsT>> {
+    ) -> triint<common_integer_t<LhsT, RhsT>> {
         return {
             lhs.var_bits() | rhs.var_bits(),
             lhs.const_bits() ^ rhs.const_bits()
@@ -132,8 +143,8 @@ namespace safe::dsl {
     [[nodiscard]] constexpr auto operator+(
         triint<LhsT> lhs,
         triint<RhsT> rhs
-    ) -> triint<std::common_type_t<LhsT, RhsT>> {
-        using int_t = std::common_type_t<LhsT, RhsT>;
+    ) -> triint<common_integer_t<LhsT, RhsT>> {
+        using int_t = common_integer_t<LhsT, RhsT>;
         triint<int_t> result{};
         triint<int_t> carry{};
 
@@ -157,13 +168,14 @@ namespace safe::dsl {
     [[nodiscard]] constexpr auto operator-(
         triint<LhsT> lhs,
         triint<RhsT> rhs
-    ) -> triint<std::common_type_t<LhsT, RhsT>> {
-        return lhs + ~rhs + triint{0, 1};
+    ) -> triint<common_integer_t<LhsT, RhsT>> {
+        using int_t = common_integer_t<LhsT, RhsT>;
+        return lhs + ~rhs + triint{int_t{0}, int_t{1}};
     }
 
     template<typename T, typename U>
     triint(
         T var_bits,
         U const_bits
-    ) -> triint<std::common_type_t<T, U>>;
+    ) -> triint<common_integer_t<T, U>>;
 }
