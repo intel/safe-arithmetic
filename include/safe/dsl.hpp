@@ -5,7 +5,7 @@
 #include <safe/dsl/minus.hpp>
 #include <safe/dsl/multiply.hpp>
 #include <safe/dsl/divide.hpp>
-//#include <safe/dsl/modulo.hpp>
+#include <safe/dsl/modulo.hpp>
 
 #include <safe/dsl/shift_left.hpp>
 #include <safe/dsl/shift_right.hpp>

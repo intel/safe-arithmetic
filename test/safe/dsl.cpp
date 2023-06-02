@@ -187,9 +187,37 @@ TEST(safe_dsl_test, divide_op) {
 //struct show {
 //    constexpr static bool value = false;
 //};
-//
-//// FIXME: need to rewrite modulo
-// TEST(safe_dsl_test, modulo_op) {
+
+TEST(safe_dsl_test, modulo_op) {
+    EXPECT_EQ(
+        (ival<101, 1000> % ival<1, 100>),
+        (ival<0, 99>)
+    );
+
+    EXPECT_EQ(
+        (ival<100, 1000> % ival<100, 1000>),
+        (ival<0, 999> || ival<100, 999>)
+    );
+
+    EXPECT_EQ(
+        (ival<100, 1000> % ival<2000, 3000>),
+        (ival<100, 1000>)
+    );
+
+    EXPECT_EQ(
+        (ival<-1000, -100> % ival<2000, 3000>),
+        (ival<-1000, -100>)
+    );
+
+    EXPECT_EQ(
+        (ival<-1000, -100> % ival<100, 1000>),
+        (ival<-900, 0> || ival<-999, -100>)
+    );
+
+    EXPECT_EQ(
+        (ival<-1000, -101> % ival<1, 100>),
+        (ival<-99, 0>)
+    );
 //    test_operation<
 //        modulo_test_op,
 //        operands<5>,
@@ -255,7 +283,7 @@ TEST(safe_dsl_test, divide_op) {
 //        (ival<0, 100> % ival<1, 50>),
 //        (ival<0l, 49l>)
 //    );
-// }
+}
 
 TEST(safe_dsl_test, ival_union_simplification) {
    EXPECT_EQ(

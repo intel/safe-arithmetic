@@ -1,8 +1,5 @@
-
-
 add_subdirectory(array)
 add_subdirectory(var)
-add_subdirectory(dsl)
 
 add_unit_test(
     storage_test

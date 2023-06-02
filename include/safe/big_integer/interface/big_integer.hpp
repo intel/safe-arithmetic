@@ -100,6 +100,26 @@ namespace safe::_big_integer::interface {
         using type = big_integer<std::max(LhsNumBits, RhsNumBits)>;
     };
     
+    template<std::signed_integral T, std::size_t RhsNumBits>
+    struct common_integer<T, big_integer<RhsNumBits>> {
+        using type = big_integer<std::max<std::size_t>(sizeof(T) * 8, RhsNumBits)>;
+    };
+    
+    template<std::unsigned_integral T, std::size_t RhsNumBits>
+    struct common_integer<T, big_integer<RhsNumBits>> {
+        using type = big_integer<std::max<std::size_t>((sizeof(T) * 8) + 1, RhsNumBits)>;
+    };
+    
+    template<std::size_t LhsNumBits, std::signed_integral T>
+    struct common_integer<big_integer<LhsNumBits>, T> {
+        using type = big_integer<std::max<std::size_t>(sizeof(T) * 8, LhsNumBits)>;
+    };
+    
+    template<std::size_t LhsNumBits, std::unsigned_integral T>
+    struct common_integer<big_integer<LhsNumBits>, T> {
+        using type = big_integer<std::max<std::size_t>((sizeof(T) * 8) + 1, LhsNumBits)>;
+    };
+    
     template<typename L, typename R>
     using common_integer_t = typename common_integer<std::remove_cvref_t<L>, std::remove_cvref_t<R>>::type;
 
