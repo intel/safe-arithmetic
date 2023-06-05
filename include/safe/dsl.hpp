@@ -30,7 +30,7 @@
 #include <safe/dsl/set.hpp>
 #include <safe/dsl/mask.hpp>
 
-#include <safe/dsl/simplify.hpp>
+#include <safe/dsl/eval.hpp>
 
 
 namespace safe {

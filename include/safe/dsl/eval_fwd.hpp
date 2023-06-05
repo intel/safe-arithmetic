@@ -12,20 +12,20 @@ namespace safe::dsl::detail {
     using namespace boost::mp11;
     
     template<typename T, typename Enable = void>
-    struct simplify {
+    struct eval {
         using type = typename T::type;
         constexpr static type value{};
     };
 
     template<typename T>
-    using simplify_t = typename simplify<T>::type;
+    using eval_t = typename eval<T>::type;
 
     template<typename T>
-    constexpr auto simplify_v = simplify<T>::value;
+    constexpr auto eval_v = eval<T>::value;
 
     template<typename T>
     [[nodiscard]] constexpr auto simp(T) {
-        return simplify_t<T>{};
+        return eval_t<T>{};
     }
 
     template<typename T>

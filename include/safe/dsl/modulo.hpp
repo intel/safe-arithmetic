@@ -2,7 +2,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/union.hpp>
-#include <safe/dsl/simplify_fwd.hpp>
+#include <safe/dsl/eval_fwd.hpp>
 #include <safe/big_integer.hpp>
 
 #include <cstdint>
@@ -70,7 +70,7 @@ namespace safe::dsl {
     >
         : public detail::binary_op
     {
-        using type = detail::simplify_t<
+        using type = detail::eval_t<
             union_t<
                 ival_t<0, lhs_max - lhs_min>, 
                 ival_t<lhs_min, lhs_max - 1>
@@ -122,7 +122,7 @@ namespace safe::dsl {
     >
         : public detail::binary_op
     {        
-        using type = detail::simplify_t<
+        using type = detail::eval_t<
             union_t<
                 ival_t<-(lhs_max - lhs_min), 0>, 
                 ival_t<lhs_min + 1, lhs_max>

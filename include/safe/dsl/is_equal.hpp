@@ -1,7 +1,7 @@
 #pragma once
 
 #include <safe/dsl/ival.hpp>
-#include <safe/dsl/simplify_fwd.hpp>
+#include <safe/dsl/eval_fwd.hpp>
 
 #include <type_traits>
 

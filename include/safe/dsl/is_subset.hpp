@@ -2,7 +2,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/mask.hpp>
-#include <safe/dsl/simplify_fwd.hpp>
+#include <safe/dsl/eval_fwd.hpp>
 
 
 namespace safe::dsl {
@@ -98,6 +98,6 @@ namespace safe::dsl {
         Operand LhsT,
         Operand RhsT>
     [[nodiscard]] constexpr bool operator<=(LhsT, RhsT) {
-        return detail::simplify_v<is_subset<LhsT, RhsT>>;
+        return detail::eval_v<is_subset<LhsT, RhsT>>;
     }
 }

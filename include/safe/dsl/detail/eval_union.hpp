@@ -1,7 +1,7 @@
 #pragma once
 
 #include <safe/dsl/union.hpp>
-#include <safe/dsl/simplify_fwd.hpp>
+#include <safe/dsl/eval_fwd.hpp>
 #include <safe/big_integer.hpp>
 
 #include <boost/mp11.hpp>
@@ -56,9 +56,15 @@ namespace safe::dsl::detail {
     template<typename IntervalList, typename NextInterval>
     using interval_union_merge_t = typename interval_union_merge<IntervalList, NextInterval>::type;
 
+    template<typename T>
+    using is_valid_ival = std::integral_constant<bool,
+        T::min <= T::max
+    >;
+
     template<typename T0, typename T1, typename... Ts>
-    struct simplify<union_t<T0, T1, Ts...>> {
-        using flat_union = mp_flatten<union_t<simplify_t<T0>, simplify_t<T1>, simplify_t<Ts>...>>;
+    struct eval<union_t<T0, T1, Ts...>> {
+        using flat_union = mp_flatten<union_t<eval_t<T0>, eval_t<T1>, eval_t<Ts>...>>;
+        using filtered_union = mp_filter<is_valid_ival, flat_union>;
         using sorted_union = mp_sort<flat_union, interval_less>;
         using merged_union = mp_fold<sorted_union, union_t<>, interval_union_merge_t>;
 
@@ -70,7 +76,7 @@ namespace safe::dsl::detail {
     };
 
     template<typename T>
-    struct simplify<union_t<T>> {
+    struct eval<union_t<T>> {
         using type = T;
     };
 }

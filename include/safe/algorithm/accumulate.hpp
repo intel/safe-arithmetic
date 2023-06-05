@@ -3,7 +3,7 @@
 
 #include <safe/var.hpp>
 #include <safe/constant.hpp>
-#include <safe/dsl/simplify.hpp>
+#include <safe/dsl/eval.hpp>
 
 #include <safe/detail/concepts.hpp>
 

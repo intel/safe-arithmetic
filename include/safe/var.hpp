@@ -8,7 +8,7 @@
 #include <safe/detail/var_assign_static_assert.hpp>
 #include <safe/detail/concepts.hpp>
 #include <safe/dsl.hpp>
-#include <safe/dsl/simplify.hpp>
+#include <safe/dsl/eval.hpp>
 
 #include <limits>
 #include <type_traits>

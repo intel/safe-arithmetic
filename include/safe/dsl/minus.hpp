@@ -2,7 +2,7 @@
 
 #include <safe/dsl/ival.hpp>
 #include <safe/dsl/mask.hpp>
-#include <safe/dsl/simplify_fwd.hpp>
+#include <safe/dsl/eval_fwd.hpp>
 
 namespace safe::dsl {
     template<typename T, typename U>

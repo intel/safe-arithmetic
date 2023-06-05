@@ -1,7 +1,7 @@
 #pragma once
 
 #include <safe/dsl/intersection.hpp>
-#include <safe/dsl/simplify_fwd.hpp>
+#include <safe/dsl/eval_fwd.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -35,8 +35,8 @@ namespace safe::dsl::detail {
     using interval_intersection_merge_t = typename interval_intersection_merge<IntervalList, NextInterval>::type;
 
     template<typename T0, typename T1, typename... Ts>
-    struct simplify<safe::dsl::intersection_t<T0, T1, Ts...>> {
-        using flat_intersection = mp_flatten<safe::dsl::intersection_t<simplify_t<T0>, simplify_t<T1>, simplify_t<Ts>...>>;
+    struct eval<safe::dsl::intersection_t<T0, T1, Ts...>> {
+        using flat_intersection = mp_flatten<safe::dsl::intersection_t<eval_t<T0>, eval_t<T1>, eval_t<Ts>...>>;
         using sorted_intersection = mp_sort<flat_intersection, interval_less>;
         using merged_intersection = mp_fold<sorted_intersection, safe::dsl::intersection_t<>, interval_intersection_merge_t>;
 
@@ -53,7 +53,7 @@ namespace safe::dsl::detail {
 
 
     template<typename T>
-    struct simplify<safe::dsl::intersection_t<T>> {
+    struct eval<safe::dsl::intersection_t<T>> {
         using type = T;
     };
 }
