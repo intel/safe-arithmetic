@@ -94,7 +94,7 @@ namespace safe::_big_integer::interface {
 
     template<typename L, typename R>
     struct common_integer;
-    
+
     template<std::size_t LhsNumBits, std::size_t RhsNumBits>
     struct common_integer<big_integer<LhsNumBits>, big_integer<RhsNumBits>> {
         using type = big_integer<std::max(LhsNumBits, RhsNumBits)>;

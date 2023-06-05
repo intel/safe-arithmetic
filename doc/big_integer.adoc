@@ -1,4 +1,3 @@
-
 == Arbitrary Precision Integers
 
 === Introduction to safe::big_integer
@@ -34,116 +33,22 @@ are selected:
 
 === Design
 
-[source,c++]
-----
-namespace safe::_big_integer::detail {
-   using elem_t = std::uint32_t;
-   using double_elem_t = std::uint64_t;
+The `big_integer` type is implemented in two major components:
 
-   template<std::size_t NumBits>
-   struct storage {
-      static constexpr auto num_elems = (NumBits + 31) / 32;
+1. `detail::storage` contains the low-level implementation of the integer 
+   representation and operations. Results are returned through reference 
+   parameters. This is done to decouple result bit-width from the operation
+   implementation.
+2. `interface::big_integer` contains the outward-facing interface of 
+   `big_integer`. It has implementations for the integral operators and behaves
+   much like a regular integral type. 
 
-      auto operator[](std::size_t i) -> elem_t &;
-      auto operator[](std::size_t i) const -> elem_t;
-   };
+Concepts are used to ensure the operator functions have at least one 
+`big_integer` parameter while the other parameter could be a built-in integral
+type, `std::integral_constant`, or another `big_integer`.
 
-   template<std::size_t NumBits>
-   struct big_integer {
-      big_integer();
-      big_integer(NarrowerThan<NumBits> auto const & b);
-      big_integer(NarrowerThan<NumBits> auto const && b);
-
-      auto operator=(NarrowerThan<NumBits> auto const & b) -> big_integer &;
-      auto operator=(NarrowerThan<NumBits> auto const && b) -> big_integer &;
-
-      auto operator+=(auto b) -> big_integer &;
-      auto operator-=(auto b) -> big_integer &;
-      auto operator*=(auto b) -> big_integer &;
-      auto operator/=(auto b) -> big_integer &;
-      auto operator%=(auto b) -> big_integer &;
-
-      auto operator|=(auto b) -> big_integer &;
-      auto operator&=(auto b) -> big_integer &;
-      auto operator^=(auto b) -> big_integer &;
-
-      auto operator>>=(auto b) -> big_integer &;
-      auto operator<<=(auto b) -> big_integer &;
-
-      template<auto = 0> requires NumBits <=  8 operator  int8_t() const;
-      template<auto = 0> requires NumBits <= 16 operator int16_t() const;
-      template<auto = 0> requires NumBits <= 32 operator int32_t() const;
-      template<auto = 0> requires NumBits <= 64 operator int64_t() const;
-   };
-
-    template<auto Value>
-    struct integral_constant {
-       static constexpr auto value = Value;
-       operator decltype(Value)() const;
-    }
-
-   template<std::size_t LhsBits, std::size_t RhsBits>
-   auto extra_bit(big_integer<LhsBits>, big_integer<RhsBits>)
-      -> big_integer<std::max(LhsBits, RhsBits) + 1>;
-
-   template<std::size_t LhsBits, std::size_t RhsBits>
-   auto concat(big_integer<LhsBits>, big_integer<RhsBits>)
-      -> big_integer<LhsBits + RhsBits>;
-
-   template<std::size_t LhsBits, std::size_t RhsBits>
-   auto widest(big_integer<LhsBits>, big_integer<RhsBits>)
-      -> big_integer<std::max(LhsBits, RhsBits)>;
-
-   template<std::size_t LhsBits, auto ShiftAmt>
-   auto lsh(big_integer<LhsBits>, integral_constant<ShiftAmt>)
-      -> big_integer<LhsBits + ShiftAmt>;
-
-   template<std::size_t LhsBits, auto ShiftAmt>
-   auto rsh(big_integer<LhsBits>, integral_constant<ShiftAmt>)
-      -> big_integer<LhsBits <= ShiftAmt ? 1 : LhsBits - ShiftAmt>;
-
-   auto operator<=>(auto a, auto b) -> std::strong_ordering;
-
-   auto operator++(auto a) -> decltype(a) &;
-   auto operator--(auto a) -> decltype(a) &;
-   auto operator++(auto a, int) -> decltype(a);
-   auto operator--(auto a, int) -> decltype(a);
-
-   auto operator+(auto a, auto b) -> decltype(extra_bit(a, b));
-   auto operator-(auto a, auto b) -> decltype(extra_bit(a, b));
-   auto operator-(auto a) -> decltype(extra_bit(a));
-   auto operator*(auto a, auto b) -> decltype(concat(a, b));
-   auto operator/(auto a, auto b) -> decltype(a);
-   auto operator%(auto a, auto b) -> decltype(a);
-
-   auto operator|(auto a, auto b) -> decltype(widest(a, b));
-   auto operator&(auto a, auto b) -> decltype(widest(a, b));
-   auto operator^(auto a, auto b) -> decltype(widest(a, b));
-   auto operator~(auto a) -> decltype(a);
-
-   auto operator>>(auto a, auto b) -> decltype(a);
-   auto operator<<(auto a, auto b) -> decltype(a);
-
-   template<auto b>
-   auto operator>>(auto a, safe::integral_constant<b>) -> decltype(rsh(a, b));
-
-   template<auto b>
-   auto operator<<(auto a, safe::integral_constant<b>) -> decltype(lsh(a, b));
-}
-
-namespace safe {
-    template<std::size_t NumBits>
-    using big_integer = _big_integer::detail::big_integer<NumBits>;
-
-    template<auto Value>
-    struct constant {
-       static constexpr auto value = Value;
-       operator decltype(Value)() const;
-    }
-
-    namespace literals {
-        template <char... chars>
-        Constant auto operator""_i() {
-    }
-}
-----
+Almost all operations return a `big_integer` wide enough for the result without
+overflow or underflow. The exception is `operator<<`, which may overflow when
+given a runtime value. If `operator<<` is given a `std::integral_constant`
+shift amount, then the resulting type will be widened by the size of the shift
+amount. In that case, no overflow or underflow is possible.

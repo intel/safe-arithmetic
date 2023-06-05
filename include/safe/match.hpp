@@ -23,9 +23,6 @@ namespace safe {
      * If RetT is void, then no default function should be specified and the
      * function object's return value will be bool.
      *
-     * @tparam RetT
-     *      The return type of the function object.
-     *
      * @param func
      *      The first function to attempt to apply to the arguments.
      *
@@ -34,7 +31,7 @@ namespace safe {
      *
      * @return A function object.
      */
-    template<typename RetT>
+    template<typename RetT> // FIXME: calculate common return type
     [[nodiscard]] inline constexpr auto match(
         auto func,
         auto... remaining_funcs
@@ -48,7 +45,7 @@ namespace safe {
             if constexpr (sizeof...(remaining_funcs) == 0) {
                 static_assert(
                     mp_size<func_arg_types>::value == 0,
-                    "Last function in `safe::function` returns the default value and must not take any arguments.");
+                    "Last function in `safe::match` returns the default value and must not take any arguments.");
 
                 return func();
 

@@ -1,0 +1,131 @@
+
+== Motivation
+
+C++ represents numerical values with finite bounds and discrete steps, as do
+all commonly used programming languages and processors. This is not a problem
+as long as specific rules regarding overflow, underflow, and loss of precision
+are meticulously followed. There are a number of guidelines and standards
+published for functional safety and security that detail the rules for safe
+arithmetic operations as well as many other concerns:
+
+* https://www.misra.org.uk/publications/[MISRA C and MISRA C++ Guidelines]
+* https://wiki.sei.cmu.edu/confluence/display/seccode/SEI+CERT+Coding+Standards[CERT C and CERT C++ Secure Coding Standards]
+* https://www.iso.org/standard/61134.html[ISO/IEC TS 17961:2013 (C Secure Coding Rules)]
+* https://en.wikipedia.org/wiki/IEC_61508[IEC 61508 (Functional Safety of Electrical/Electronic/Programmable Electronic Safety-related Systems)]
+
+These publications represent a large investment in the safe application of
+software, and for good reason. The consequences for such bugs can be catastrophic.
+
+* https://en.wikipedia.org/wiki/Therac-25[Therac-25 radiotherapy machine]. An
+  integer overflow caused the machine to bypass software safety checks and
+  deliver deadly radiotherapy doses to patients.
+* https://en.wikipedia.org/wiki/Ariane_flight_V88[Ariane rocket flight V88].
+  An integer overflow was caught, but lead to an exception that was handled
+  incorrectly, thus halting its inertial navigation system. This ultimately
+  led to the catastrophic destruction of the rocket and its payload.
+* https://en.wikipedia.org/wiki/Time_formatting_and_storage_bugs#Boeing[Boeing
+  787 computer crash]. Two different integer overflows caused either misleading
+  data to be displayed or systems crash.
+
+There are countless other functional bugs and security vulnerabilities all due
+to unsafe arithmetic operations.
+
+The Safe Arithmetic library is intended and designed to protect against unsafe
+arithmetic operations. It follows the "Valley of success" strategy; The natural
+state of a software project utilizing the Safe Arithmetic library contains
+clear boundaries between safe and unsafe arithmetic. Within the safe arithmetic
+environment the easiest and simplest thing to do is also the safest thing to do.
+In this context, arithmetic includes assignment and construction.
+
+Specifically, the library protects against the following in the safe
+environment at compile-time:
+
+1. Use of uninitialized integral values
+2. Integer overflow and underflow
+3. Integer divide by zero
+4. Out of bounds array access through subscript operator
+5. Incompatible operation passed to safe algorithm. For example, attempting
+   to use `reduce` over integers with a non-commutative operation like division
+   or subtraction.
+
+=== Numeric Type Support
+
+The current version of the Safe Arithmetic library supports the following value
+types:
+
+* C++20 integer primitives
+* `safe::big_integer<N>` arbitrary precision integers
+
+In the future, it is likely support for the following numeric types will be
+added:
+
+* Fixed point
+* Pointers
+
+It is unlikely that other numeric types, like `float` and `double` will be
+supported in the near-term. They at least are not needed by the original author
+of the library. That being said, pull-requests are more than welcome and we
+greatly appreciate community involvement.
+
+=== Library Inter-op
+
+==== Dimensional Analysis
+
+Dimensional analysis libraries in {cpp} typically use the language's type
+system to enforce correct assignment of values with dimensions to variables
+or function arguments and forbid nonsensical operations like adding a length
+value to a temperature value. Multiplication and division operations of
+differing dimensions are allowed and the resulting type represents a new unit
+and dimension.
+
+The Safe Arithmetic library also uses the {cpp} type system to enforce correct
+operations by encoding the set of possible values in a `safe::var` 's type.
+Operations on these `safe::var` s return new types with an updated set of
+possible values. The actual runtime value is guaranteed to be within this set.
+
+The {cpp} type system essentially supports sophisticated static analysis
+through compilation of the code. It is additionally possible to leverage a
+dimensional analysis library like `mp-units` as well as the Safe Arithmetic
+library to further increase confidence in your code.
+
+==== Messaging
+
+Intel's Compile-time Initialization and Build library's messaging capabilities
+may also be used with great success with the Safe Arithmetic library. Message
+fields may be given safe types to enforce correct assignment to fields as well
+as provide field values that are already wrapped in safe types when read.
+
+==== Register Access
+
+Intel's internal Config Register Operation Optimizer library may be used with
+the Safe Arithmetic library to ensure safe and correct access of registers.
+Without the Safe Arithmetic library, it is possible to write values too large
+to be represented by a register field's bit width. With the Safe Arithmetic
+library, it is possible to ensure only values in range are written to fields
+and field read types will also be automatically wrapped in an appropriately
+constrained safe type.
+
+=== Similar Libraries
+
+Safe Arithmetic is not the only library that attempts to solve the problem of
+unsafe integer or numeric operations in programs. There are a number of other
+libraries with different strategies and tradeoffs that are worthwhile to look
+at.
+
+* https://github.com/boostorg/safe_numerics[Boost's safe_numerics]. A library
+  by Robert Ramey included in Boost. It works on the {cpp}14 standard rather than
+  {cpp}20 as required by Safe Arithmetic. It offers more customization points
+  on how exceptional cases are handled: compile-time, runtime exceptions, or a
+  custom error handler. It also allows customization for how integer promotion
+  is handled. It has been around longer than Safe Arithmetic. It only supports
+  intervals to specify value requirements, while Safe Arithmetic implements a
+  DSL to allow more tightly-constrained requirements.
+* https://github.com/davidstone/bounded-integer[bounded::integer]. A library
+  by David Stone. Defines a `bounded::integer<Min, Max>` template type that
+  tracks the set of potential values of operations using interval math.
+  Implemented in {cpp}20 as modules.
+* https://github.com/dcleblanc/SafeInt[SafeInt]. Provides both a {cpp}11 and C
+  library implementation. Appears to only support runtime checking.
+* https://github.com/PeterSommerlad/PSsimplesafeint[PSsimplesafeint].
+  "A {cpp}20 implementation of safe (wrap around) integers following MISRA
+  {cpp} rules."

@@ -1,0 +1,744 @@
+
+== API Reference
+
+=== safe::var
+
+```c++
+namespace safe {
+    template<typename T, auto Requirement>
+    struct var;
+}
+```
+
+`safe::var` wraps a runtime value with an associated `safe::dsl` requirement
+describing the set of values it must be contained in. The requirement is used
+to check the value at runtime or prove at compile-time it is satisfied.
+
+==== Member constants
+
+===== `requirement`
+
+The `safe::dsl` requirement describing allowed values.
+
+==== Member functions
+
+===== Constructor
+
+```c++
+constexpr var() requires(requirement >= set<0>);
+```
+
+Default constructor, only valid if the requirement allows a value of '0'.
+
+```c++
+template<typename U>
+requires(std::is_convertable_v<U, T>)
+constexpr var(unsafe_cast_ferry<U> ferry);
+```
+
+Unsafe constructor. Used to construct a `safe::var` bypassing all compile-time
+and runtime checking mechanisms. Leads to undefined behavior if used
+incorrectly.
+
+```c++
+constexpr var(Var auto const & rhs);
+```
+
+Construct a `safe::var` from another instance with potentially different,
+but compatible requirements. Assignment safety is checked at compile time.
+
+===== operator=
+
+```c++
+constexpr auto operator=(Var auto & rhs) -> var &;
+```
+
+Assign value from another instance with potentially different, but compatible
+requirements. Assignment safety is checked at compile time.
+
+==== Non-member functions
+
+===== operator{lt}={gt}
+
+```c++
+[[nodiscard]] constexpr auto operator<=>(Var auto lhs, Var auto rhs);
+```
+
+Apply `operator{lt}={gt}` to `lhs` and `rhs` and return the result.
+
+===== operator==
+
+```c++
+[[nodiscard]] constexpr auto operator==(Var auto lhs, Var auto rhs) -> bool;
+```
+
+Apply `operator==` to `lhs` and `rhs` and return the result.
+
+===== operator+
+
+```c++
+[[nodiscard]] constexpr auto operator+(Var auto lhs, Var auto rhs);
+```
+
+Add the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+===== operator-
+
+```c++
+[[nodiscard]] constexpr auto operator-(Var auto lhs, Var auto rhs);
+```
+
+Subtract the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+```c++
+[[nodiscard]] constexpr auto operator-(Var auto v);
+```
+
+Returns `0_i - v`.
+
+===== operator*
+
+```c++
+[[nodiscard]] constexpr auto operator*(Var auto lhs, Var auto rhs);
+```
+
+Multiply the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+===== operator/
+
+```c++
+[[nodiscard]] constexpr auto operator/(Var auto lhs, Var auto rhs);
+```
+
+Divide the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+====
+
+===== operator%
+
+```c++
+[[nodiscard]] constexpr auto operator%(Var auto lhs, Var auto rhs);
+```
+
+Modulo the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+====
+
+===== operator<<
+
+```c++
+[[nodiscard]] constexpr auto operator<<(Var auto lhs, Var auto rhs);
+```
+
+Shift `lhs` left by `rhs` bit positions and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude
+all negative numbers or numbers larger than the bit width of `lhs`.
+====
+
+===== operator>>
+
+```c++
+[[nodiscard]] constexpr auto operator>>(Var auto lhs, Var auto rhs);
+```
+
+Shift `lhs` right by `rhs` bit positions and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude
+all negative numbers or numbers larger than the bit width of `lhs`.
+====
+
+===== operator|
+
+```c++
+[[nodiscard]] constexpr auto operator|(Var auto lhs, Var auto rhs);
+```
+
+Bitwise OR the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== operator&
+
+```c++
+[[nodiscard]] constexpr auto operator&(Var auto lhs, Var auto rhs);
+```
+
+Bitwise AND the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the narrower type of `lhs` and `rhs`.
+
+===== operator^
+
+```c++
+[[nodiscard]] constexpr auto operator^(Var auto lhs, Var auto rhs);
+```
+
+Bitwise XOR the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== abs
+
+```c++
+[[nodiscard]] constexpr auto abs(Var auto v);
+```
+
+Calculate the absolute value of `v` and return the result.
+
+===== bit_width
+
+```c++
+[[nodiscard]] constexpr auto bit_width(Var auto v);
+```
+
+Calculate the bit width of `v` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+===== min
+
+```c++
+[[nodiscard]] constexpr auto min(Var auto lhs, Var auto rhs);
+```
+
+Calculate the minimum of `lhs` and `rhs` and return the result.
+
+The resulting value type is the narrower type of `lhs` and `rhs`.
+
+===== max
+
+```c++
+[[nodiscard]] constexpr auto max(Var auto lhs, Var auto rhs);
+```
+
+Calculate the maximum of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== clamp
+
+```c++
+[[nodiscard]] constexpr auto clamp(
+    Var auto value,
+    Var auto min_val,
+    Var auto max_val
+);
+```
+
+Clamps `value` from `min_val` to `max_val` and return the result.
+
+The resulting value type is the underlying type of `max_val`.
+
+```c++
+[[nodiscard]] constexpr auto clamp(
+    auto unsafe_value,
+    Var auto min_val,
+    Var auto max_val
+);
+```
+
+Clamps `value` from `min_val` to `max_val` and return the result.
+
+The resulting value type is the underlying type of `max_val`.
+
+
+=== `safe::dsl`
+
+===== operator==
+
+```c++
+[[nodiscard]] constexpr auto operator==(auto A, auto B) -> bool;
+```
+
+stem:[A = B]
+
+Return true if the set of numbers represented by the requirements `A` and
+`B` contain exactly the same numbers.
+
+===== operator!=
+
+```c++
+[[nodiscard]] constexpr auto operator!=(auto A, auto B) -> bool;
+```
+
+stem:[A != B]
+
+Return true if the set of numbers represented by the requirements `A` and
+`B` contain at least one different number.
+
+===== operator{lt}=
+
+```c++
+[[nodiscard]] constexpr auto operator<=(auto A, auto B) -> bool;
+```
+
+stem:[A subseteq B]
+
+Return true if the set of numbers represented by the requirement `rhs` contains
+all the numbers `lhs` does.
+
+===== operator{gt}=
+
+```c++
+[[nodiscard]] constexpr auto operator>=(auto A, auto B) -> bool;
+```
+
+stem:[A supe B]
+
+Return true if the set of numbers represented by the requirement `lhs` contains
+all the numbers `rhs` does.
+
+===== operator||
+
+```c++
+[[nodiscard]] constexpr auto operator||(auto A, auto B) -> bool;
+```
+
+stem:[A uu B]
+
+===== operator&&
+
+```c++
+[[nodiscard]] constexpr auto operator&&(auto A, auto B) -> bool;
+```
+
+stem:[A nn B]
+
+===== operator+
+
+```c++
+[[nodiscard]] constexpr auto operator+(auto A, auto B);
+```
+
+stem:[{a + b \| a in A, b in B}]
+
+===== operator-
+
+```c++
+[[nodiscard]] constexpr auto operator-(auto A, auto B);
+```
+
+stem:[{a - b \| a in A, b in B}]
+
+===== operator*
+
+```c++
+[[nodiscard]] constexpr auto operator*(auto A, auto B);
+```
+
+stem:[{a * b \| a in A, b in B}]
+
+===== operator/
+
+```c++
+[[nodiscard]] constexpr auto operator/(auto A, auto B);
+```
+
+stem:[{a / b \| a in A, b in B}]
+
+===== operator%
+
+```c++
+[[nodiscard]] constexpr auto operator/(auto A, auto B);
+```
+
+stem:[{a % b \| a in A, b in B}]
+
+===== abs
+
+```c++
+[[nodiscard]] constexpr auto abs(auto A);
+```
+
+stem:[{\|a\| \| a in A}]
+
+===== min
+
+```c++
+[[nodiscard]] constexpr auto min(auto A, auto B);
+```
+
+stem:[{min(a, b) \| a in A, b in B}]
+
+===== max
+
+```c++
+[[nodiscard]] constexpr auto max(auto A, auto B);
+```
+
+stem:[{max(a, b) \| a in A, b in B}]
+
+===== operator&
+
+```c++
+[[nodiscard]] constexpr auto operator&(auto A, auto B);
+```
+
+stem:[{a\ &\ b \| a in A, b in B}]
+
+===== operator|
+
+```c++
+[[nodiscard]] constexpr auto operator|(auto A, auto B);
+```
+
+stem:[{a \| b \ \|\ a in A, b in B}]
+
+===== operator^
+
+```c++
+[[nodiscard]] constexpr auto operator^(auto A, auto B);
+```
+
+stem:[{a\ o+\ b \| a in A, b in B}]
+
+===== operator~
+
+```c++
+[[nodiscard]] constexpr auto operator~(auto A);
+```
+
+stem:[{~a \| a in A}]
+
+===== operator<<
+
+```c++
+[[nodiscard]] constexpr auto operator<<(auto A, auto B);
+```
+
+stem:[{a " << " b \| a in A, b in B}]
+
+===== operator>>
+
+```c++
+[[nodiscard]] constexpr auto operator>>(auto A, auto B);
+```
+
+stem:[{a " >> " b \| a in A, b in B}]
+
+
+=== `safe::array`
+
+=== `safe::integer`
+
+=== Algorithms
+
+
+
+
+
+
+
+
+
+
+
+
+
+=== safe::array
+
+```c++
+namespace safe {
+    template<typename T, std::size_t Size>
+    struct array;
+}
+```
+
+`safe::array` is a thin wrapper around `std::array`. It adds the ability to
+check `operator[](pos)` and `at(pos)` access at compile-time. It does not
+perform any checks at runtime and should otherwise be equivalent to 
+`std::array`.
+
+
+==== Member functions
+
+Member functions are same as `std::array` with the following exceptions:
+
+1. No C++ exceptions will be thrown by any member function.
+2. `data()` is intentionally omitted.
+3. `operator[](pos)` and `at(pos)` have different signatures to support indexing by 
+   `safe:var`.
+
+===== operator[]
+
+```c++
+constexpr auto operator[](var<size_type, ival<0, Size - 1>> pos) -> reference;
+constexpr auto operator[](var<size_type, ival<0, Size - 1>> pos) const -> const_reference;
+```
+
+Access element at `pos`. The value of `pos` must be proven to be within the
+range of the array at compile-time.
+
+===== at
+
+```c++
+constexpr auto at(var<size_type, ival<0, Size - 1>> pos) -> reference;
+constexpr auto at(var<size_type, ival<0, Size - 1>> pos) const -> const_reference;
+```
+
+Identical to `operator[]`. Access element at `pos`. The value of `pos` must be
+proven to be within the range of the array at compile-time.
+
+==== Non-member functions
+
+===== operator{lt}={gt}
+
+```c++
+[[nodiscard]] constexpr auto operator<=>(Var auto lhs, Var auto rhs);
+```
+
+Apply `operator{lt}={gt}` to `lhs` and `rhs` and return the result.
+
+===== operator==
+
+```c++
+[[nodiscard]] constexpr auto operator==(Var auto lhs, Var auto rhs) -> bool;
+```
+
+Apply `operator==` to `lhs` and `rhs` and return the result.
+
+===== operator+
+
+```c++
+[[nodiscard]] constexpr auto operator+(Var auto lhs, Var auto rhs);
+```
+
+Add the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+===== operator-
+
+```c++
+[[nodiscard]] constexpr auto operator-(Var auto lhs, Var auto rhs);
+```
+
+Subtract the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+```c++
+[[nodiscard]] constexpr auto operator-(Var auto v);
+```
+
+Returns `0_i - v`.
+
+===== operator*
+
+```c++
+[[nodiscard]] constexpr auto operator*(Var auto lhs, Var auto rhs);
+```
+
+Multiply the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+===== operator/
+
+```c++
+[[nodiscard]] constexpr auto operator/(Var auto lhs, Var auto rhs);
+```
+
+Divide the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+====
+
+===== operator%
+
+```c++
+[[nodiscard]] constexpr auto operator%(Var auto lhs, Var auto rhs);
+```
+
+Modulo the underlying values of `lhs` and `rhs` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+====
+
+===== operator<<
+
+```c++
+[[nodiscard]] constexpr auto operator<<(Var auto lhs, Var auto rhs);
+```
+
+Shift `lhs` left by `rhs` bit positions and return the result.
+
+Value types are promoted to a wider type if the result would otherwise
+overflow or underflow. No wraparound for signed or unsigned types.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude
+all negative numbers or numbers larger than the bit width of `lhs`.
+====
+
+===== operator>>
+
+```c++
+[[nodiscard]] constexpr auto operator>>(Var auto lhs, Var auto rhs);
+```
+
+Shift `lhs` right by `rhs` bit positions and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+[WARNING]
+====
+A compilation error will result if the `rhs` requirement doesn't exclude
+all negative numbers or numbers larger than the bit width of `lhs`.
+====
+
+===== operator|
+
+```c++
+[[nodiscard]] constexpr auto operator|(Var auto lhs, Var auto rhs);
+```
+
+Bitwise OR the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== operator&
+
+```c++
+[[nodiscard]] constexpr auto operator&(Var auto lhs, Var auto rhs);
+```
+
+Bitwise AND the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the narrower type of `lhs` and `rhs`.
+
+===== operator^
+
+```c++
+[[nodiscard]] constexpr auto operator^(Var auto lhs, Var auto rhs);
+```
+
+Bitwise XOR the underlying values of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== abs
+
+```c++
+[[nodiscard]] constexpr auto abs(Var auto v);
+```
+
+Calculate the absolute value of `v` and return the result.
+
+===== bit_width
+
+```c++
+[[nodiscard]] constexpr auto bit_width(Var auto v);
+```
+
+Calculate the bit width of `v` and return the result.
+
+Value types are demoted to a narrower type, down to the natural word size of
+the underlying architecture, if all possible results will fit.
+
+===== min
+
+```c++
+[[nodiscard]] constexpr auto min(Var auto lhs, Var auto rhs);
+```
+
+Calculate the minimum of `lhs` and `rhs` and return the result.
+
+The resulting value type is the narrower type of `lhs` and `rhs`.
+
+===== max
+
+```c++
+[[nodiscard]] constexpr auto max(Var auto lhs, Var auto rhs);
+```
+
+Calculate the maximum of `lhs` and `rhs` and return the result.
+
+The resulting value type is the wider type of `lhs` and `rhs`.
+
+===== clamp
+
+```c++
+[[nodiscard]] constexpr auto clamp(
+    Var auto value,
+    Var auto min_val,
+    Var auto max_val
+);
+```
+
+Clamps `value` from `min_val` to `max_val` and return the result.
+
+The resulting value type is the underlying type of `max_val`.
+
+```c++
+[[nodiscard]] constexpr auto clamp(
+    auto unsafe_value,
+    Var auto min_val,
+    Var auto max_val
+);
+```
+
+Clamps `value` from `min_val` to `max_val` and return the result.
+
+The resulting value type is the underlying type of `max_val`.
+

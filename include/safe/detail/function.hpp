@@ -49,30 +49,41 @@ namespace safe::detail {
         return detail::runtime<VarT, ValueT>::check(value);
     }
 
+    template<typename T, typename ReturnT, typename... ArgTs>
+    ReturnT ret_helper(ReturnT (T::*)(ArgTs...));
 
     template<typename T, typename ReturnT, typename... ArgTs>
-    mp_list<ArgTs...> helper(ReturnT (T::*)(ArgTs...));
+    ReturnT ret_helper(ReturnT (T::*)(ArgTs...) const);
 
     template<typename T, typename ReturnT, typename... ArgTs>
-    mp_list<ArgTs...> helper(ReturnT (T::*)(ArgTs...) const);
+    mp_list<ArgTs...> args_helper(ReturnT (T::*)(ArgTs...));
+
+    template<typename T, typename ReturnT, typename... ArgTs>
+    mp_list<ArgTs...> args_helper(ReturnT (T::*)(ArgTs...) const);
 
     template<typename F>
-    struct function_args {
-        using type = decltype(helper(&F::operator()));
+    struct function_info {
+        using ret = decltype(ret_helper(&F::operator()));
+        using args = decltype(args_helper(&F::operator()));
     };
 
     template<typename ReturnT, typename... ArgTs>
-    struct function_args<ReturnT(ArgTs...)> {
-        using type = mp_list<ArgTs...>;
+    struct function_info<ReturnT(ArgTs...)> {
+        using ret = ReturnT;
+        using args = mp_list<ArgTs...>;
     };
 
     template<typename ReturnT, typename... ArgTs>
-    struct function_args<ReturnT(*)(ArgTs...)> {
-        using type = mp_list<ArgTs...>;
+    struct function_info<ReturnT(*)(ArgTs...)> {
+        using ret = ReturnT;
+        using args = mp_list<ArgTs...>;
     };
 
     template<typename F>
-    using function_args_t = typename function_args<F>::type;
+    using function_args_t = typename function_info<F>::args;
+
+    template<typename F>
+    using function_ret_t = typename function_info<F>::ret;
 
     template<
         typename... ContractTs,
