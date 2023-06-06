@@ -111,7 +111,7 @@ type large enough to represent the possible values of an arithmetic operation.
 There is little need to explicitly use `safe::integer`.
 
 ```c++
-auto big_int_value = 0xba5eball'd00d5a7e'a11f00d5'900dg00b_i;
+auto big_int_value = 0xba5eball'd00d5a7e'a11f00d5'900d900b_i;
 
 // SAFE: The result of the operation is known at compile time to fit.
 safe::u64 small_1 = big_int_value >> 64_i;
@@ -192,7 +192,7 @@ constexpr auto process_event_count = safe::match<void>(
 
         // this example is making the implementation choice of saturating the
         // event count to prevent overflow and rollover.
-        event_counts[event_type] = max(new_count, safe::u16::max_value);
+        event_counts[event_type] = max(new_count, std::numeric_limits<safe::u16>::max());
     },
 
     // Multiple functions with different requirements for parameters may be
