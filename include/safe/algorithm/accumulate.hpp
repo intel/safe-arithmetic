@@ -60,6 +60,7 @@ namespace safe {
     [[nodiscard]] inline constexpr auto accumulate(
         detail::iter_like auto first,
         auto last,
+        auto init,
         auto op
     ) {
         constexpr auto req = decltype((*first).requirement){};
@@ -68,7 +69,7 @@ namespace safe {
         using ret_num_t = decltype((*first).unsafe_value());
 
         auto iter_count = size_t{};
-        auto sum = ret_num_t{};
+        auto sum = init;
         while ((first != last) && (iter_count < max_iter)) {
             sum = op(sum, (*first).unsafe_value());
             first++;
@@ -81,36 +82,40 @@ namespace safe {
     template<size_t max_iter>
     [[nodiscard]] inline constexpr auto accumulate(
         detail::iter_like auto first,
-        auto last
+        auto last,
+        auto init
     ) {
-        return accumulate<max_iter>(first, last, detail::plus_op);
+        return accumulate<max_iter>(first, last, init, detail::plus_op);
     }
 
     template<size_t max_iter>
     [[nodiscard]] inline constexpr auto accumulate(
         detail::range_like auto & range,
+        auto init,
         auto op
     ) {
-        return accumulate<max_iter>(range.begin(), range.end(), op);
+        return accumulate<max_iter>(range.begin(), range.end(), init, op);
     }
 
     template<size_t max_iter>
     [[nodiscard]] inline constexpr auto accumulate(
-        detail::range_like auto & range
+        detail::range_like auto & range,
+        auto init
     ) {
-        return accumulate<max_iter>(range.begin(), range.end(), detail::plus_op);
+        return accumulate<max_iter>(range.begin(), range.end(), init, detail::plus_op);
     }
 
     template<size_t max_iter>
     [[nodiscard]] inline constexpr auto accumulate(
         detail::range_like auto const & range,
+        auto init,
         auto op
     ) {
-        return accumulate<max_iter>(range.begin(), range.end(), op);
+        return accumulate<max_iter>(range.begin(), range.end(), init, op);
     }
 
     template<size_t max_iter>
-    [[nodiscard]] inline constexpr auto accumulate(auto const & range) {
-        return accumulate<max_iter>(range.begin(), range.end(), detail::plus_op);
+    [[nodiscard]] inline constexpr auto accumulate(auto const & range, auto init) {
+        return accumulate<max_iter>(range.begin(), range.end(), init, detail::plus_op);
     }
 }
