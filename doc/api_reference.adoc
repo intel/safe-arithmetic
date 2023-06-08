@@ -507,10 +507,6 @@ Identical to `operator[]`. Access element at `pos`. The value of `pos` must be
 proven to be within the range of the array at compile-time.
 
 
-=== safe::match
-
-TODO
-
 === Algorithms
 
 ==== safe::irange
@@ -552,7 +548,7 @@ safe::array<safe::s32, 10> values{};
 //     :'(
 // }
 
-for (auto i : safe::irange(0_s32, 9_s32)) {
+for (auto i : safe::irange(0_s32, 10_s32)) {
     // 'i' is proven to be one of 0 through 9...
     static_assert(std::is_same_v<decltype(i), safe::ival_s32<0, 9>>);
 
