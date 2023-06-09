@@ -28,6 +28,12 @@ jobs:
           ls -la ./generated-html
           cat ./generated-html/index.html
 
+      - name: Build Single Header
+        run: |
+          pushd include
+          python3 ../tools/gen_release_header.py safe.hpp > ../generated-html/safe.hpp
+          popd include
+
       - name: Setup GH-Pages
         uses: actions/configure-pages@v3
 
