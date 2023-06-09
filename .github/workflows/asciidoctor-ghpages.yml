@@ -32,7 +32,7 @@ jobs:
         run: |
           pushd include
           python3 ../tools/gen_release_header.py safe.hpp > ../generated-html/safe.hpp
-          popd include
+          popd
 
       - name: Setup GH-Pages
         uses: actions/configure-pages@v3
