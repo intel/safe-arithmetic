@@ -3,7 +3,7 @@
 
 #include <safe/int.hpp>
 
-// FIXME: make this work with big integer
+
 namespace safe {
     template<typename BeginT, typename EndT>
     struct irange {

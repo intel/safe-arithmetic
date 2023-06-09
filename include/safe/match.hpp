@@ -11,6 +11,27 @@
 
 
 namespace safe {
+    namespace detail {
+        template<typename F, typename... Fs>
+        struct common_ret {
+            using type = function_ret_t<F>;
+        };
+
+        template<typename F, typename... Fs> 
+        requires (Var<function_ret_t<F>> && ... && Var<function_ret_t<Fs>>)
+        struct common_ret<F, Fs...> {
+            constexpr static auto ret_requirement =
+                (function_ret_t<F>::requirement || ... || function_ret_t<Fs>::requirement);
+
+            using value_type = typename function_ret_t<F>::value_type;
+
+            using type = var<value_type, ret_requirement>;
+        };
+
+        template<typename... Fs>
+        using common_ret_t = typename common_ret<Fs...>::type;
+    }
+
     /**
      * @brief Create a safe, optionally piece-wise, function.
      *
@@ -20,9 +41,6 @@ namespace safe {
      * the last function is called with no arguments and its return value is
      * returned.
      *
-     * If RetT is void, then no default function should be specified and the
-     * function object's return value will be bool.
-     *
      * @param func
      *      The first function to attempt to apply to the arguments.
      *
@@ -31,17 +49,20 @@ namespace safe {
      *
      * @return A function object.
      */
-    template<typename RetT> // FIXME: calculate common return type
+    template<typename F, typename... Fs>
     [[nodiscard]] inline constexpr auto match(
-        auto func,
-        auto... remaining_funcs
+        F func,
+        Fs... remaining_funcs
     ) {
         using namespace boost::mp11;
         
         using func_arg_types =
-            detail::function_args_t<decltype(func)>;
+            detail::function_args_t<F>;
 
-        return [=](auto && ... args) -> RetT {
+        using ret_t = 
+            detail::common_ret_t<F, Fs...>;
+
+        return [=](auto && ... args) -> ret_t {
             if constexpr (sizeof...(remaining_funcs) == 0) {
                 static_assert(
                     mp_size<func_arg_types>::value == 0,
@@ -61,7 +82,7 @@ namespace safe {
                     return func(unsafe_cast_ferry{detail::unwrap_var(std::forward<decltype(args)>(args))}...);
 
                 } else { // check the remaining functions' requirements
-                    return match<RetT>(remaining_funcs...)(std::forward<decltype(args)>(args)...);
+                    return match(remaining_funcs...)(std::forward<decltype(args)>(args)...);
                 }
             }
         };

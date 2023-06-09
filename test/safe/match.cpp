@@ -21,7 +21,7 @@ struct mock_function {
 
 mock_function * mock_function_ptr{};
 
-class safe_invoke_test : public ::testing::Test {
+class safe_match_test : public ::testing::Test {
 protected:
     mock_function my_mock_function;
 
@@ -37,36 +37,62 @@ void two_safe_vars(
     mock_function_ptr->two_safe_vars(a.unsafe_value(), b.unsafe_value());
 }
 
-TEST_F(safe_invoke_test, simple_pass) {
+TEST_F(safe_match_test, simple_pass) {
     EXPECT_CALL(my_mock_function, two_safe_vars(2, 5)).Times(1);
 
-    safe::match<void>(two_safe_vars, [](){})(2, 5);
+    safe::match(two_safe_vars, [](){})(2, 5);
 }
 
-TEST_F(safe_invoke_test, pass_with_an_input_var) {
+TEST_F(safe_match_test, pass_with_an_input_var) {
     EXPECT_CALL(my_mock_function, two_safe_vars(9, 3)).Times(1);
 
-    safe::match<void>(two_safe_vars, [](){})(9, 3_s32);
+    safe::match(two_safe_vars, [](){})(9, 3_s32);
 }
 
-TEST_F(safe_invoke_test, pass_with_both_input_vars) {
+TEST_F(safe_match_test, pass_with_both_input_vars) {
     EXPECT_CALL(my_mock_function, two_safe_vars(0, 4)).Times(1);
 
-    safe::match<void>(two_safe_vars, [](){})(0_s32, 4_s32);
+    safe::match(two_safe_vars, [](){})(0_s32, 4_s32);
 }
 
-TEST_F(safe_invoke_test, simple_fail) {
+TEST_F(safe_match_test, simple_fail) {
     EXPECT_CALL(my_mock_function, two_safe_vars(_, _)).Times(0);
     bool fail = false;
-    safe::match<void>(two_safe_vars, [&](){fail = true;})(12, 5);
+    safe::match(two_safe_vars, [&](){fail = true;})(12, 5);
     EXPECT_TRUE(fail);
 }
 
-TEST_F(safe_invoke_test, fail_with_an_input_var) {
+TEST_F(safe_match_test, fail_with_an_input_var) {
     EXPECT_CALL(my_mock_function, two_safe_vars(_, _)).Times(0);
     bool fail = false;
-    safe::match<void>(two_safe_vars, [&](){fail = true;})(11, 9_s32);
+    safe::match(two_safe_vars, [&](){fail = true;})(11, 9_s32);
     EXPECT_TRUE(fail);
+}
+
+TEST_F(safe_match_test, char_to_ord_example) {
+    auto const char_to_ord = safe::match(
+        [](ival_s32<'0', '9'> dec_digit){
+            return dec_digit - s32_<'0'>;
+        }, 
+        [](ival_s32<'a', 'f'> lower_hex_digit){
+            return lower_hex_digit - s32_<'a'> + 10_s32;
+        },
+        [](ival_s32<'A', 'F'> upper_hex_digit){
+            return upper_hex_digit - s32_<'A'> + 10_s32;
+        },
+        [](){
+            return 0_s32;
+        }
+    );
+
+    EXPECT_EQ(char_to_ord('0'), 0_s32);
+    EXPECT_EQ(char_to_ord('3'), 3_s32);
+    EXPECT_EQ(char_to_ord('9'), 9_s32);
+    EXPECT_EQ(char_to_ord('a'), 10_s32);
+    EXPECT_EQ(char_to_ord('A'), 10_s32);
+    EXPECT_EQ(char_to_ord('f'), 15_s32);
+    EXPECT_EQ(char_to_ord('F'), 15_s32);
+    EXPECT_EQ(char_to_ord('g'), 0_s32);
 }
 
 TEST(safe_runtime_check_test, single_interval) {

@@ -507,6 +507,64 @@ Identical to `operator[]`. Access element at `pos`. The value of `pos` must be
 proven to be within the range of the array at compile-time.
 
 
+=== safe::match
+
+Use runtime checking to safely encapsulate values into `safe::var`s. 
+Automatically infer `safe::var` return type from multiple possible
+return values.
+
+==== Examples
+
+===== Interpreting ASCII character as hexadecimal
+
+Without Safe Arithmetic, interpreting an ASCII character as hexadecimal may
+look something like the following code.
+
+```c++
+auto char_to_ord = [](auto digit){
+    if ('0' <= digit && digit <= '9') {
+        return digit - '0';
+
+    } else if ('a' <= digit && digit <= 'f') {
+        return digit - 'a' - 10;
+
+    } else if ('A' <= digit && digit <= 'F') {
+        return digit - 'A' - 10;
+
+    } else {
+        return 0;
+    }
+};
+```
+
+Refactoring this code to use the Safe Arithmetic library is straight-forward 
+using the `safe::match` function.
+
+```c++
+auto char_to_ord = safe::match(
+    [](ival_s32<'0', '9'> dec_digit){
+        return dec_digit - s32_<'0'>;
+    }, 
+    [](ival_s32<'a', 'f'> lower_hex_digit){
+        return lower_hex_digit - s32_<'a'> + 10_s32;
+    },
+    [](ival_s32<'A', 'F'> upper_hex_digit){
+        return upper_hex_digit - s32_<'A'> + 10_s32;
+    },
+    [](){
+        return 0_s32;
+    }
+);
+```
+
+This implementation ensures the return type of `char_to_ord` is 
+`ival_s32<0, 15>`. This minimal interval was automatically calculated by
+`safe::match`. This is the power of `safe::match`: check runtime values are 
+within a specified set of values, wrap the values in the corresponding 
+`safe::var` type, and optionally return a value whose `safe::var` requirement
+is the union of the possible values from each branch.
+
+
 === Algorithms
 
 ==== safe::irange

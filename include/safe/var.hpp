@@ -22,6 +22,7 @@ namespace safe {
     struct var {
     public:
         constexpr static auto requirement = Requirement;
+        using value_type = T;
 
         constexpr var() requires(requirement >= ival<0, 0>)
             : value_(0)

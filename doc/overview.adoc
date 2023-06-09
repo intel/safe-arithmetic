@@ -163,7 +163,7 @@ concept Callable = requires(F f, auto... args) {
 
 namespace safe {
     template<typename Return, std::size_t NumArgs>
-    Callable<Return, NumArgs> auto match<Return>(
+    Callable<Return, NumArgs> auto match(
         Callable<Return, NumArgs> auto... matchable_funcs,
         Callable<Return, 0> auto default_func
     );
@@ -182,7 +182,7 @@ volatile std::uint32_t event_type_hw_reg;
 // Firmware array keeping track of updated event counts.
 safe::array<safe::u16, 17> event_counts{};
 
-constexpr auto process_event_count = safe::match<void>(
+constexpr auto process_event_count = safe::match(
     [](
         safe::ival_u32<0, 1023> event_count,
         safe::ival_u32<0, 16> event_type
