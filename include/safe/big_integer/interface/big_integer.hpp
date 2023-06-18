@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <cmath>
 
 
 namespace safe::_big_integer::interface {
