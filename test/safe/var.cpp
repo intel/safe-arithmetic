@@ -141,6 +141,38 @@ TYPED_TEST(safe_var_ops_test, clamp_op) {
     EXPECT_EQ(result.unsafe_value(), 48);
 }
 
+TEST(safe_var_test, init_primitive_1) {
+    safe::s64 result{-42};
+    EXPECT_EQ(result.unsafe_value(), -42);
+}
+
+TEST(safe_var_test, init_primitive_2) {
+    safe::s64 result = -42;
+    EXPECT_EQ(result.unsafe_value(), -42);
+}
+
+TEST(safe_var_test, assign_primitive) {
+    safe::s64 result{};
+    result = -42;
+    EXPECT_EQ(result.unsafe_value(), -42);
+}
+
+TEST(safe_var_test, init_int_const_1) {
+    safe::s64 result{std::integral_constant<uint32_t, 89>{}};
+    EXPECT_EQ(result.unsafe_value(), 89);
+}
+
+TEST(safe_var_test, init_int_const_2) {
+    safe::s64 result = std::integral_constant<uint32_t, 89>{};
+    EXPECT_EQ(result.unsafe_value(), 89);
+}
+
+TEST(safe_var_test, assign_int_const) {
+    safe::s64 result{};
+    result = std::integral_constant<int32_t, -55>{};
+    EXPECT_EQ(result.unsafe_value(), -55);
+}
+
 TEST(safe_var_test, negate_op) {
     auto const result = -42_s32;
     EXPECT_EQ(result.unsafe_value(), -42);
@@ -158,20 +190,26 @@ TEST(safe_var_test, bitwise_or_op) {
     EXPECT_EQ(result.unsafe_value(), 9);
 }
 
+TEST(safe_var_test, add_int_const) {
+    safe::var<uint32_t, ival<0, 100>> const a = 15_s32;
+    auto const result = a + std::integral_constant<int, 10>{};
+    EXPECT_EQ(result.unsafe_value(), 25);
+}
+
 // FIXME: need to automatically convert integral_constants to safe::var
-//TEST(safe_var_test, use_case_bitfield_extract_1) {
-//    safe::u32 const reg = u32_<0xba5eba11>;
-//    auto const field = (reg >> u32_<16>) & u32_<0xff>;
-//
-//    EXPECT_TRUE(field.requirement <= mask<0xff>);
-//    EXPECT_EQ(field.unsafe_value(), 0x5e);
-//}
-//
-//TEST(safe_var_test, use_case_bitfield_extract_2) {
-//    auto const reg = u32_<0xba5eba11>;
-//    auto const field = (reg >> u32_<16>) & u32_<0xff>;
-//
-//    EXPECT_TRUE(field.requirement <= mask<0xff>);
-//    EXPECT_EQ(field.unsafe_value(), 0x5e);
-//}
-//
+TEST(safe_var_test, use_case_bitfield_extract_1) {
+   safe::u32 const reg = u32_<0xba5eba11>;
+   auto const field = (reg >> u32_<16>) & u32_<0xff>;
+
+   EXPECT_TRUE(field.requirement <= mask<0xff>);
+   EXPECT_EQ(field.unsafe_value(), 0x5e);
+}
+
+TEST(safe_var_test, use_case_bitfield_extract_2) {
+   auto const reg = u32_<0xba5eba11>;
+   auto const field = (reg >> u32_<16>) & u32_<0xff>;
+
+   EXPECT_TRUE(field.requirement <= mask<0xff>);
+   EXPECT_EQ(field.unsafe_value(), 0x5e);
+}
+
