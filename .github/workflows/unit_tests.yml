@@ -1,13 +1,20 @@
 name: Unit Tests
 
 on:
+  workflow_dispatch:
+  merge_group:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
 env:
-  BUILD_TYPE: Debug
+  DEBIAN_FRONTEND: noninteractive
+  CMAKE_GENERATOR: Ninja
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build_and_test:
@@ -15,69 +22,193 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler:
-          - name: clang-16
+        compiler: [clang, gcc]
+        version: [12, 13, 14, 15, 16]
+        cxx_standard: [20]
+        stdlib: [libstdc++, libc++]
+        build_type: [Debug]
+        include:
+          - compiler: clang
+            cc: "clang"
+            cxx: "clang++"
+          - version: 16
+            compiler: clang
             install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16
-            cc: " /usr/lib/llvm-16/bin/clang"
-            cxx: "/usr/lib/llvm-16/bin/clang++"
-          - name: clang-15
-            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 15
-            cc: " /usr/lib/llvm-15/bin/clang"
-            cxx: "/usr/lib/llvm-15/bin/clang++"
-          - name: clang-14
-            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 14
-            cc: " /usr/lib/llvm-14/bin/clang"
-            cxx: "/usr/lib/llvm-14/bin/clang++"
-          - name: clang-13
-            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 13
-            cc: " /usr/lib/llvm-13/bin/clang"
-            cxx: "/usr/lib/llvm-13/bin/clang++"
-          - name: clang-12
-            install: sudo apt update && sudo apt-get install -y clang-12
-            cc: " /usr/lib/llvm-12/bin/clang"
-            cxx: "/usr/lib/llvm-12/bin/clang++"
-          - name: gcc-13
+            toolchain_root: "/usr/lib/llvm-16"
+          - version: 16
+            compiler: clang
+            stdlib: libc++
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16 && sudo apt install -y libc++-16-dev libc++abi-16-dev
+          - version: 15
+            compiler: clang
+            install: sudo apt update && sudo apt install -y clang-15
+            toolchain_root: "/usr/lib/llvm-15"
+          - version: 15
+            compiler: clang
+            stdlib: libc++
+            install: sudo apt update && sudo apt install -y clang-15 libc++-15-dev libc++abi-15-dev
+          - version: 14
+            compiler: clang
+            install: sudo apt update && sudo apt install -y clang-14
+            toolchain_root: "/usr/lib/llvm-14"
+          - version: 14
+            compiler: clang
+            stdlib: libc++
+            install: sudo apt update && sudo apt install -y clang-14 libc++-14-dev libc++abi-14-dev
+          - version: 13
+            compiler: gcc
             install: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt update && sudo apt-get install -y gcc-13 g++-13
-            cc: "/usr/bin/gcc-13"
-            cxx: "/usr/bin/g++-13"
-          - name: gcc-12
-            install: sudo apt update && sudo apt-get install -y gcc-12 g++-12
-            cc: "/usr/bin/gcc-12"
-            cxx: "/usr/bin/g++-12"
-          - name: gcc-11
-            install: sudo apt update && sudo apt-get install -y gcc-11 g++-11
-            cc: "/usr/bin/gcc-11"
-            cxx: "/usr/bin/g++-11"
-          - name: gcc-10
-            install: sudo apt update && sudo apt-get install -y gcc-10 g++-10
-            cc: "/usr/bin/gcc-10"
-            cxx: "/usr/bin/g++-10"
+            toolchain_root: "/usr"
+            cc: "gcc-13"
+            cxx: "g++-13"
+          - version: 12
+            compiler: gcc
+            install: sudo apt update && sudo apt install -y gcc-12
+            toolchain_root: "/usr"
+            cc: "gcc-12"
+            cxx: "g++-12"
+        exclude:
+          - compiler: gcc
+            version: 16
+          - compiler: gcc
+            version: 15
+          - compiler: gcc
+            version: 14
+          - compiler: clang
+            version: 13
+          - compiler: clang
+            version: 12
+          - compiler: gcc
+            stdlib: libc++
 
-          
     steps:
-      - name: install support tools
-        run: sudo apt update && DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles sudo apt-get install -y git wget software-properties-common gnupg cmake lsb-release libstdc++-10-dev ninja-build
-
-      - name: install compiler
-        run: ${{ matrix.compiler.install }}
-
       - uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: |
+          ${{ matrix.install }}
+          sudo apt install -y ninja-build
 
       - name: Configure CMake
         env:
-          CC: ${{ matrix.compiler.cc }}
-          CXX: ${{ matrix.compiler.cxx }}
-          CXX_STANDARD: ${{ matrix.compiler.cxx_standard }}
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          CC: ${{matrix.toolchain_root}}/bin/${{matrix.cc}}
+          CXX: ${{matrix.toolchain_root}}/bin/${{matrix.cxx}}
+          CXX_STANDARD: ${{matrix.cxx_standard}}
+          CXX_STDLIB: ${{matrix.stdlib}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/toolchains/${{matrix.compiler}}.cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
 
-      - name: Build and Run Unit Tests
-        run: cmake --build ${{github.workspace}}/build --target unit_tests
+      - name: Build Unit Tests
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -v -t build_unit_tests
 
-
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -j $(nproc) -C ${{matrix.build_type}}
 
   quality_checks_pass:
-    runs-on: ubuntu-20.04
-    needs: build_and_test
+    runs-on: ubuntu-22.04
     steps:
-      - name: Say Hello
-        run: echo "Hello!"
+      - uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: |
+          wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16
+          sudo apt install -y ninja-build clang-tidy-16 clang-format-16
+
+      - name: Install cmake-format
+        run: |
+          pip3 install --upgrade pip
+          pip3 install pyyaml cmake-format
+
+      - name: Configure CMake
+        env:
+          CC: "/usr/lib/llvm-16/bin/clang"
+          CXX: "/usr/lib/llvm-16/bin/clang++"
+          CXX_STANDARD: 20
+        run: cmake -B ${{github.workspace}}/build
+
+      - name: Run quality checks
+        run: cmake --build ${{github.workspace}}/build -t quality
+
+  sanitize:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [undefined, address, thread]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: |
+          wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16
+          sudo apt install -y ninja-build
+
+      - name: Configure CMake
+        env:
+          CC: "/usr/lib/llvm-16/bin/clang"
+          CXX: "/usr/lib/llvm-16/bin/clang++"
+          CXX_STANDARD: 20
+          SANITIZERS: ${{matrix.sanitizer}}
+        run: cmake -B ${{github.workspace}}/build
+
+      - name: Build Unit Tests
+        run: cmake --build ${{github.workspace}}/build -t unit_tests
+
+  valgrind:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: sudo apt update && sudo apt install -y gcc-12 ninja-build valgrind
+
+      - name: Configure CMake
+        env:
+          CC: "/usr/bin/gcc-12"
+          CXX: "/usr/bin/g++-12"
+          CXX_STANDARD: 20
+        run: cmake -B ${{github.workspace}}/build
+
+      - name: Build Unit Tests
+        run: cmake --build ${{github.workspace}}/build -t build_unit_tests
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: |
+          ctest -j $(nproc) -T memcheck
+
+          LOGFILE=$(ls ./Testing/Temporary/LastDynamicAnalysis_*.log)
+          FAILSIZE=$(du -c ./Testing/Temporary/MemoryChecker.* | tail -1 | cut -f1)
+          echo "<details>" >> $GITHUB_STEP_SUMMARY
+
+          echo "<summary>" >> $GITHUB_STEP_SUMMARY
+          if [ $FAILSIZE != "0" ]; then
+            echo "Failing tests:" | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "No failing tests" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "</summary>" >> $GITHUB_STEP_SUMMARY
+
+          for f in ./Testing/Temporary/MemoryChecker.*
+          do
+            if [ -s $f ]; then
+              FILENAME=$(cd $(dirname $f) && pwd)/$(basename $f)
+              TEST_COMMAND=$(grep $FILENAME $LOGFILE)
+              echo "" | tee -a $GITHUB_STEP_SUMMARY
+              echo "========================================"
+              echo $TEST_COMMAND | tee -a $GITHUB_STEP_SUMMARY
+              echo "--------------------"
+              cat $f
+            fi
+          done
+
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          test $FAILSIZE = "0"
+
+  merge_ok:
+    runs-on: ubuntu-22.04
+    needs: [build_and_test, quality_checks_pass, sanitize, valgrind]
+    steps:
+      - name: Enable merge
+        run: echo "OK to merge!"
