@@ -2,6 +2,7 @@
 
 #include <safe/big_integer/detail/storage.hpp>
 
+#include <gtest/gtest.h>
 #include <rapidcheck/gtest.h>
 
 #include <iostream>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <safe/dsl/detail/eval_union.hpp>
 #include <safe/dsl/eval_fwd.hpp>
 #include <safe/dsl/intersection.hpp>
 
