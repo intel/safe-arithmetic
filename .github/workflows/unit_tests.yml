@@ -176,7 +176,7 @@ jobs:
       - name: Test
         working-directory: ${{github.workspace}}/build
         run: |
-          ctest -j $(nproc) -T memcheck
+          ctest -j $(nproc) -E EXPECT_FAIL -T memcheck
 
           LOGFILE=$(ls ./Testing/Temporary/LastDynamicAnalysis_*.log)
           FAILSIZE=$(du -c ./Testing/Temporary/MemoryChecker.* | tail -1 | cut -f1)

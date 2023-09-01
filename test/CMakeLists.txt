@@ -1,22 +1,15 @@
 # Test that code is NOT able to compile
-function(test_static_assert_fail TEST_NAME)
-    add_executable(${TEST_NAME}_t EXCLUDE_FROM_ALL ${TEST_NAME}.cpp)
-    target_link_libraries(${TEST_NAME}_t PRIVATE safe_arithmetic)
-    add_test(NAME ${TEST_NAME}
+function(test_static_assert_fail test_file)
+    string(REPLACE "/" "_" test_name "${test_file}")
+    string(PREPEND test_name "EXPECT_FAIL.")
+    add_executable(${test_name} EXCLUDE_FROM_ALL ${test_file})
+    target_link_libraries(${test_name} PRIVATE safe_arithmetic)
+    add_test(NAME ${test_name}
              COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target
-                     ${TEST_NAME}_t)
+                     ${test_name})
     set_tests_properties(
-        ${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION
+        ${test_name} PROPERTIES PASS_REGULAR_EXPRESSION
                                 "(static_assert)|(static assertion failed)")
-endfunction()
-
-# Test that code that must compile
-function(test_static_assert_pass TEST_NAME)
-    add_executable(${TEST_NAME}_t EXCLUDE_FROM_ALL ${TEST_NAME}.cpp)
-    target_link_libraries(${TEST_NAME}_t PRIVATE safe_arithmetic)
-    add_test(NAME ${TEST_NAME}
-             COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target
-                     ${TEST_NAME}_t)
 endfunction()
 
 add_subdirectory(safe)
