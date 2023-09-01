@@ -1,22 +1,17 @@
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <safe.hpp>
 
-
 using ::testing::_;
-using ::testing::Return;
 using ::testing::InSequence;
-
+using ::testing::Return;
 
 using namespace safe::interval_types;
 using namespace safe::int_types;
 using namespace safe::literals;
 
-
-TEST(safe_array_test, construction) {
-    safe::array<int, 16> t{};
-}
+TEST(safe_array_test, construction) { safe::array<int, 16> t{}; }
 
 TEST(safe_array_test, bracket_op) {
     safe::array<int, 16> t{};
