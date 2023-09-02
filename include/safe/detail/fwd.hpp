@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 #ifndef SAFE_INLINE
 #define SAFE_INLINE inline
 #endif
@@ -32,7 +30,7 @@ template <typename T> struct unsafe_cast_ferry {
     SAFE_INLINE constexpr explicit(true) unsafe_cast_ferry(T new_value)
         : v{new_value} {}
 
-    [[nodiscard]] SAFE_INLINE constexpr T value() const { return v; }
+    [[nodiscard]] SAFE_INLINE constexpr auto value() const -> T { return v; }
 };
 
 } // namespace safe

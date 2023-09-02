@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 namespace safe::dsl::detail {
 struct binary_op {};
 struct unary_op {};
