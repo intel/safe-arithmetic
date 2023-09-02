@@ -92,8 +92,8 @@ template <typename LhsT, typename RhsT>
     constexpr auto num_bits =
         std::numeric_limits<int_t>::digits + (std::is_signed_v<int_t> ? 1 : 0);
 
-    for (int i = 0; i < num_bits; i++) {
-        auto const digit = triint<int_t>{0, static_cast<int_t>(1 << i)};
+    for (auto i = std::size_t{}; i < num_bits; ++i) {
+        auto const digit = triint<int_t>{0, static_cast<int_t>(1u << i)};
         auto const a = lhs & digit;
         auto const b = rhs & digit;
         auto const sum = full_adder(a, b, carry, carry);

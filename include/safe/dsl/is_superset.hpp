@@ -9,6 +9,6 @@ template <typename T, typename U> using is_superset = is_subset<U, T>;
 
 template <Operand LhsT, Operand RhsT>
 [[nodiscard]] constexpr auto operator>=(LhsT, RhsT) -> bool {
-    return detail::eval_v<is_superset<LhsT, RhsT>>;
+    return static_cast<bool>(detail::eval_v<is_superset<LhsT, RhsT>>);
 }
 } // namespace safe::dsl

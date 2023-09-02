@@ -19,11 +19,11 @@ template <std::size_t NumBits> struct storage {
     std::array<elem_t, num_elems> elems{};
 
     constexpr storage() = default;
-    constexpr storage(std::array<elem_t, num_elems> const &new_elems)
+    constexpr explicit storage(std::array<elem_t, num_elems> const &new_elems)
         : elems{new_elems} {}
 
     template <std::size_t RhsNumBits>
-    constexpr storage(storage<RhsNumBits> const &rhs) {
+    constexpr explicit storage(storage<RhsNumBits> const &rhs) {
         for (auto i = std::size_t{}; i < NumBits; i++) {
             set(i, rhs.get(i));
         }
@@ -76,25 +76,28 @@ template <std::size_t NumBits> struct storage {
 template <typename T>
     requires(sizeof(T) <= 4 && std::signed_integral<std::remove_cvref_t<T>>)
 [[nodiscard]] constexpr auto to_storage(T v) -> storage<sizeof(T) * 8> {
-    return {{static_cast<uint32_t>(static_cast<int32_t>(v))}};
+    return storage<sizeof(T) * 8>{
+        {static_cast<uint32_t>(static_cast<int32_t>(v))}};
 }
 
 template <typename T>
     requires(sizeof(T) <= 4 && std::unsigned_integral<std::remove_cvref_t<T>>)
 [[nodiscard]] constexpr auto to_storage(T v) -> storage<(sizeof(T) * 8) + 1> {
-    return {{static_cast<uint32_t>(v)}};
+    return storage<(sizeof(T) * 8) + 1>{{static_cast<uint32_t>(v)}};
 }
 
 template <typename T>
     requires(sizeof(T) == 8 && std::signed_integral<std::remove_cvref_t<T>>)
 [[nodiscard]] constexpr auto to_storage(T v) -> storage<64> {
-    return {{static_cast<uint32_t>(v), static_cast<uint32_t>(v >> 32)}};
+    return storage<64>{
+        {static_cast<uint32_t>(v), static_cast<uint32_t>(v >> 32)}};
 }
 
 template <typename T>
     requires(sizeof(T) == 8 && std::unsigned_integral<std::remove_cvref_t<T>>)
 [[nodiscard]] constexpr auto to_storage(T v) -> storage<65> {
-    return {{static_cast<uint32_t>(v), static_cast<uint32_t>(v >> 32)}};
+    return storage<65>{
+        {static_cast<uint32_t>(v), static_cast<uint32_t>(v >> 32)}};
 }
 
 template <std::size_t NumBits>
@@ -134,8 +137,8 @@ template <std::size_t NumBits>
     requires(NumBits > 32 && NumBits <= 64)
 [[nodiscard]] constexpr auto to_integral(storage<NumBits> const &value)
     -> int64_t {
-    return (static_cast<int64_t>(value.get(1)) << 32) |
-           (static_cast<int64_t>(value.get(0)));
+    return (static_cast<uint64_t>(value.get(1)) << 32u) |
+           (static_cast<uint64_t>(value.get(0)));
 }
 
 template <std::size_t NumBits>

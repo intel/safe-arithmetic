@@ -22,6 +22,6 @@ target_link_libraries(safe_arithmetic INTERFACE boost_mp11)
 
 if(PROJECT_IS_TOP_LEVEL)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    # clang_tidy_interface(safe_arithmetic)
+    clang_tidy_interface(safe_arithmetic)
     add_subdirectory(test)
 endif()

@@ -11,18 +11,17 @@ template <std::size_t LhsNumBits, std::size_t RhsNumBits>
 [[nodiscard]] constexpr auto unsigned_compare(storage<LhsNumBits> const &lhs,
                                               storage<RhsNumBits> const &rhs)
     -> std::strong_ordering {
-    auto i = std::max(lhs.num_elems, rhs.num_elems);
-    do {
-        i--;
-
-        if (lhs.get(i) < rhs.get(i)) {
+    for (auto i = std::max(lhs.num_elems, rhs.num_elems); i > std::size_t{};) {
+        --i;
+        auto const l = lhs.get(i);
+        auto const r = rhs.get(i);
+        if (l < r) {
             return std::strong_ordering::less;
         }
-        if (lhs.get(i) > rhs.get(i)) {
+        if (l > r) {
             return std::strong_ordering::greater;
         }
-    } while (i > 0);
-
+    }
     return std::strong_ordering::equal;
 }
 

@@ -6,9 +6,6 @@
 #include <safe/dsl/fwd.hpp>
 #include <safe/dsl/ival.hpp>
 
-#include <bit>
-#include <type_traits>
-
 namespace safe::dsl {
 template <auto VariableBits, auto ConstantBits = 0>
 struct mask_t : public detail::primitive {
@@ -32,14 +29,11 @@ namespace detail {
  * Takes a bitmask and sets all digits to the right of the first
  * '1' to '1'.
  */
-[[nodiscard]] constexpr auto fill_in_bitmask(auto value) {
-    auto prev_value = value;
-
-    do {
+template <typename T> [[nodiscard]] constexpr auto fill_in_bitmask(T value) {
+    for (T prev_value{}; prev_value != value;) {
         prev_value = value;
-        value = value | (value >> 1);
-    } while (prev_value != value);
-
+        value |= value >> 1;
+    }
     return value;
 }
 

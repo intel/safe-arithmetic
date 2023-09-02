@@ -15,7 +15,7 @@ template <std::size_t LhsNumBits, std::size_t RhsNumBits>
                                               storage<RhsNumBits> b) {
     using ret_t = storage<std::max(LhsNumBits, RhsNumBits) + 1>;
 
-    ret_t ret = b;
+    auto ret = ret_t{b};
 
     auto const not_big_enough = [&]() -> bool {
         auto a_prime = a;
