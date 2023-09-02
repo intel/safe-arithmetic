@@ -8,12 +8,12 @@ function(add_test_suites)
         add_unit_test(
             ${test_name}
             GTEST
-            FILES 
-                ${test_file}
+            FILES
+            ${test_file}
             INCLUDE_DIRECTORIES
-                ${CMAKE_SOURCE_DIR}/test/
+            ${CMAKE_SOURCE_DIR}/test/
             LIBRARIES
-                safe_arithmetic)
+            safe_arithmetic)
     endforeach()
 endfunction()
 
@@ -47,5 +47,4 @@ add_test_suites(
     dsl/bitwise_xor.cpp
     dsl/bitwise_invert.cpp
     dsl.cpp
-    dsl/minus.cpp
-)
+    dsl/minus.cpp)

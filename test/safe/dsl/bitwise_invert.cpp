@@ -1,16 +1,14 @@
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <safe.hpp>
 
-
 using ::testing::_;
-using ::testing::Return;
 using ::testing::InSequence;
+using ::testing::Return;
 
 using namespace safe;
 using namespace safe::literals;
-
 
 TEST(safe_dsl_bitwise_invert, mask_bitwise_invert) {
     EXPECT_EQ(~mask<0>, (mask<0, ~0>));

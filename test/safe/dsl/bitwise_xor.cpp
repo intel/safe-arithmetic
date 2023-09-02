@@ -1,16 +1,14 @@
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <safe.hpp>
 
-
 using ::testing::_;
-using ::testing::Return;
 using ::testing::InSequence;
+using ::testing::Return;
 
 using namespace safe;
 using namespace safe::literals;
-
 
 TEST(safe_dsl_bitwise_xor, mask_variable_bits_only) {
     EXPECT_EQ(mask<0> ^ mask<0>, mask<0>);
@@ -31,7 +29,6 @@ TEST(safe_dsl_bitwise_xor, constant_bits_only) {
 
     EXPECT_EQ((mask<0, 0xff00> ^ mask<0, 0xfeed>), (mask<0, 0x01ed>));
 }
-
 
 TEST(safe_dsl_bitwise_xor, const_x_var_bits) {
     EXPECT_EQ((mask<0, 0> ^ mask<0, 0>), (mask<0, 0>));

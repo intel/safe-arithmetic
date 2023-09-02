@@ -1,19 +1,16 @@
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <safe.hpp>
 
-
 using ::testing::_;
-using ::testing::Return;
 using ::testing::InSequence;
+using ::testing::Return;
 
 using namespace safe;
 using namespace safe::literals;
 
-TEST(safe_dsl_mask, create_mask) {
-    [[maybe_unused]] auto v = mask<0b1001>;
-}
+TEST(safe_dsl_mask, create_mask) { [[maybe_unused]] auto v = mask<0b1001>; }
 
 TEST(safe_dsl_mask, mask_subset_var_only) {
     EXPECT_TRUE(mask<0b1111> >= mask<0b1010>);
@@ -66,9 +63,9 @@ TEST(safe_dsl_mask, mask_equal_var_only) {
 }
 
 TEST(safe_dsl_mask, mask_equal_const_only) {
-     EXPECT_TRUE((mask<0, 0b1000>) == (mask<0, 0b1000>));
-     EXPECT_TRUE((mask<0, 0b0000>) == (mask<0, 0b0000>));
-     EXPECT_TRUE((mask<0, 0b0001>) == (mask<0, 0b0001>));
+    EXPECT_TRUE((mask<0, 0b1000>) == (mask<0, 0b1000>));
+    EXPECT_TRUE((mask<0, 0b0000>) == (mask<0, 0b0000>));
+    EXPECT_TRUE((mask<0, 0b0001>) == (mask<0, 0b0001>));
     EXPECT_FALSE((mask<0, 0b1000>) == (mask<0, 0b1001>));
     EXPECT_FALSE((mask<0, 0b0011>) == (mask<0, 0b0010>));
     EXPECT_FALSE((mask<0, 0b0110>) == (mask<0, 0b0100>));
@@ -93,7 +90,6 @@ TEST(safe_dsl_mask, mask_not_equal_const_only) {
     EXPECT_TRUE((mask<0, 0b0110>) != (mask<0, 0b0100>));
 }
 
-
 TEST(safe_dsl_mask, detail_is_basic_mask) {
     EXPECT_TRUE(dsl::detail::is_basic_mask(0xffffffff));
     EXPECT_TRUE(dsl::detail::is_basic_mask(0xffffffffu));
@@ -102,7 +98,6 @@ TEST(safe_dsl_mask, detail_is_basic_mask) {
     EXPECT_TRUE(dsl::detail::is_basic_mask(0b0000111111));
     EXPECT_TRUE(dsl::detail::is_basic_mask(0b0000000001));
     EXPECT_TRUE(dsl::detail::is_basic_mask(0b0000000000));
-
 
     EXPECT_FALSE(dsl::detail::is_basic_mask(0x80000000));
     EXPECT_FALSE(dsl::detail::is_basic_mask(0b0000000010));
@@ -182,7 +177,6 @@ TEST(safe_dsl_test, mask_const_to_ival) {
     EXPECT_EQ(mask_ival::min, 42);
     EXPECT_EQ(mask_ival::max, 42);
 }
-
 
 TEST(safe_dsl_test, mask_ival_eq) {
     EXPECT_TRUE((ival<0, 15> <= mask<0b1111>));

@@ -1,6 +1,6 @@
-#include <safe/var.hpp>
 #include <safe/array.hpp>
 #include <safe/int.hpp>
+#include <safe/var.hpp>
 
 using namespace safe::literals;
 

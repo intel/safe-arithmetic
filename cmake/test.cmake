@@ -13,28 +13,30 @@ set(MEMORYCHECK_SUPPRESSIONS_FILE
 configure_file(${CMAKE_ROOT}/Modules/DartConfiguration.tcl.in
                ${PROJECT_BINARY_DIR}/DartConfiguration.tcl)
 
-add_versioned_package("gh:emil-e/rapidcheck#a5724ea")
+if(DEFINED ENV{CXX_STANDARD})
+    set(CMAKE_CXX_STANDARD $ENV{CXX_STANDARD})
+else()
+    set(CMAKE_CXX_STANDARD 17)
+endif()
 
 macro(get_catch2)
-    if(NOT DEFINED CPM_GOT_CATCH)
-        add_versioned_package("gh:catchorg/Catch2@3.3.2")
+    if(NOT TARGET Catch2::Catch2WithMain)
+        add_versioned_package("gh:catchorg/Catch2@3.4.0")
         list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
         include(Catch)
-        set(CPM_GOT_CATCH 1)
     endif()
 endmacro()
 
 macro(get_gtest)
-    if(NOT DEFINED CPM_GOT_GTEST)
-        add_versioned_package("gh:google/googletest@1.13.0")
+    if(NOT TARGET gtest)
+        add_versioned_package("gh:google/googletest@1.14.0")
         include(GoogleTest)
-        set(CPM_GOT_GTEST 1)
     endif()
 endmacro()
 
 macro(get_gunit)
     get_gtest()
-    if(NOT DEFINED CPM_GOT_GUNIT)
+    if(NOT DEFINED gunit_SOURCE_DIR)
         add_versioned_package(
             NAME
             gunit
@@ -44,27 +46,40 @@ macro(get_gunit)
             cpp-testing/GUnit
             DOWNLOAD_ONLY
             YES)
-        set(CPM_GOT_GUNIT 1)
     endif()
 endmacro()
 
 macro(add_boost_di)
-    if(NOT DEFINED CPM_GOT_BOOST_DI)
+    if(NOT TARGET Boost.DI)
         add_versioned_package("gh:boost-ext/di#9866a4a")
-        set(CPM_GOT_BOOST_DI 1)
     endif()
 endmacro()
 
 macro(add_gherkin)
-    if(NOT DEFINED CPM_GOT_GHERKIN)
+    if(NOT TARGET gherkin-cpp)
         add_subdirectory(
             ${gunit_SOURCE_DIR}/libs/gherkin-cpp
             ${gunit_BINARY_DIR}/libs/gherkin-cpp EXCLUDE_FROM_ALL SYSTEM)
-        set(CPM_GOT_GHERKIN 1)
     endif()
 endmacro()
 
-function(add_unit_test name)
+macro(add_rapidcheck)
+    if(NOT TARGET rapidcheck)
+        add_versioned_package(NAME rapidcheck GIT_TAG a5724ea GITHUB_REPOSITORY
+                              emil-e/rapidcheck)
+        add_subdirectory(
+            ${rapidcheck_SOURCE_DIR}/extras/catch
+            ${rapidcheck_BINARY_DIR}/extras/catch EXCLUDE_FROM_ALL SYSTEM)
+        add_subdirectory(
+            ${rapidcheck_SOURCE_DIR}/extras/gtest
+            ${rapidcheck_BINARY_DIR}/extras/gtest EXCLUDE_FROM_ALL SYSTEM)
+        add_subdirectory(
+            ${rapidcheck_SOURCE_DIR}/extras/gmock
+            ${rapidcheck_BINARY_DIR}/extras/gmock EXCLUDE_FROM_ALL SYSTEM)
+    endif()
+endmacro()
+
+function(add_unit_test_target name)
     set(options CATCH2 GTEST GUNIT)
     set(multiValueArgs FILES INCLUDE_DIRECTORIES LIBRARIES SYSTEM_LIBRARIES)
     cmake_parse_arguments(UNIT "${options}" "" "${multiValueArgs}" ${ARGN})
@@ -77,27 +92,38 @@ function(add_unit_test name)
     add_dependencies(build_unit_tests ${name})
 
     if(UNIT_CATCH2)
-        get_catch2()
         catch_discover_tests(${name})
-        target_link_libraries_system(${name} PRIVATE Catch2::Catch2WithMain)
+        target_link_libraries_system(${name} PRIVATE Catch2::Catch2WithMain
+                                     rapidcheck rapidcheck_catch)
         set(target_test_command $<TARGET_FILE:${name}> "--order" "rand")
     elseif(UNIT_GTEST)
-        get_gtest()
         gtest_discover_tests(${name})
-        target_link_libraries_system(${name} PRIVATE gmock gtest gmock_main rapidcheck)
+        target_link_libraries_system(
+            ${name}
+            PRIVATE
+            gmock
+            gtest
+            gmock_main
+            rapidcheck
+            rapidcheck_gtest
+            rapidcheck_gmock)
         set(target_test_command $<TARGET_FILE:${name}> "--gtest_shuffle")
-        target_include_directories(${name} SYSTEM PRIVATE ${rapidcheck_SOURCE_DIR}/extras/gtest/include)
     elseif(UNIT_GUNIT)
-        get_gunit()
-        add_boost_di()
-        gtest_discover_tests(${name})
         target_include_directories(
             ${name} SYSTEM
             PRIVATE ${gunit_SOURCE_DIR}/include
                     ${gunit_SOURCE_DIR}/libs/json/single_include/nlohmann)
-        target_link_libraries_system(${name} PRIVATE gtest_main gmock_main
-                                     Boost.DI)
+        target_link_libraries_system(
+            ${name}
+            PRIVATE
+            gtest_main
+            gmock_main
+            Boost.DI
+            rapidcheck
+            rapidcheck_gtest
+            rapidcheck_gmock)
         set(target_test_command $<TARGET_FILE:${name}> "--gtest_shuffle")
+        add_test(NAME ${name} COMMAND ${target_test_command})
     else()
         set(target_test_command $<TARGET_FILE:${name}>)
         add_test(NAME ${name} COMMAND ${target_test_command})
@@ -114,7 +140,38 @@ function(add_unit_test name)
     add_dependencies(unit_tests "run_${name}")
 endfunction()
 
-function(add_feature_test name)
+function(detect_test_framework)
+    set(options CATCH2 GTEST GUNIT)
+    cmake_parse_arguments(TF "${options}" "" "" ${ARGN})
+    if(TF_CATCH)
+        return(PROPAGATE TF_CATCH)
+    elseif(TF_GTEST)
+        return(PROPAGATE TF_GTEST)
+    elseif(TF_GUNIT)
+        return(PROPAGATE TF_GUNIT)
+    endif()
+endfunction()
+
+macro(add_unit_test)
+    detect_test_framework(${ARGN})
+    if(TF_CATCH)
+        get_catch2()
+        add_rapidcheck()
+        unset(TF_CATCH)
+    elseif(TF_GTEST)
+        get_gtest()
+        add_rapidcheck()
+        unset(TF_GTEST)
+    elseif(TF_GUNIT)
+        get_gunit()
+        add_boost_di()
+        add_rapidcheck()
+        unset(TF_GUNIT)
+    endif()
+    add_unit_test_target(${ARGN})
+endmacro()
+
+function(add_feature_test_target name)
     set(singleValueArgs FEATURE)
     set(multiValueArgs FILES INCLUDE_DIRECTORIES LIBRARIES SYSTEM_LIBRARIES)
     cmake_parse_arguments(FEAT "${options}" "${singleValueArgs}"
@@ -127,15 +184,21 @@ function(add_feature_test name)
     target_link_libraries(${name} PRIVATE sanitizers)
     add_dependencies(build_unit_tests ${name})
 
-    get_gunit()
-    add_gherkin()
-    add_boost_di()
     target_include_directories(
         ${name} SYSTEM
         PRIVATE ${gunit_SOURCE_DIR}/include
-                ${gunit_SOURCE_DIR}/libs/json/single_include/nlohmann)
-    target_link_libraries_system(${name} PRIVATE gtest_main gmock_main
-                                 gherkin-cpp Boost.DI)
+                ${gunit_SOURCE_DIR}/libs/json/single_include/nlohmann
+                ${rapidcheck_SOURCE_DIR}/extras/gmock/include)
+    target_link_libraries_system(
+        ${name}
+        PRIVATE
+        gtest_main
+        gmock_main
+        gherkin-cpp
+        Boost.DI
+        rapidcheck
+        rapidcheck_gtest
+        rapidcheck_gmock)
     set(target_test_command $<TARGET_FILE:${name}> "--gtest_shuffle")
 
     add_custom_target(all_${name} ALL DEPENDS run_${name})
@@ -152,3 +215,11 @@ function(add_feature_test name)
     set_property(TEST ${name} PROPERTY ENVIRONMENT "SCENARIO=${FEATURE_FILE}")
     add_dependencies(unit_tests "run_${name}")
 endfunction()
+
+macro(add_feature_test)
+    get_gunit()
+    add_gherkin()
+    add_boost_di()
+    add_rapidcheck()
+    add_feature_test_target(${ARGN})
+endmacro()

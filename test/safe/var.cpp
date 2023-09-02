@@ -1,13 +1,11 @@
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <safe.hpp>
 
-
 using ::testing::_;
-using ::testing::Return;
 using ::testing::InSequence;
-
+using ::testing::Return;
 
 using namespace safe::interval_types;
 using namespace safe::int_types;
@@ -16,12 +14,11 @@ using namespace safe::literals;
 using safe::ival;
 using safe::mask;
 
-template <typename T>
-class safe_int_assign_test : public testing::Test { };
+template <typename T> class safe_int_assign_test : public testing::Test {};
 
-using safe_int_types = ::testing::Types<
-    safe::u8, safe::u16, safe::u32, safe::u64,
-    safe::s8, safe::s16, safe::s32, safe::s64>;
+using safe_int_types =
+    ::testing::Types<safe::u8, safe::u16, safe::u32, safe::u64, safe::s8,
+                     safe::s16, safe::s32, safe::s64>;
 
 TYPED_TEST_SUITE(safe_int_assign_test, safe_int_types);
 
@@ -36,12 +33,10 @@ TYPED_TEST(safe_int_assign_test, assign_vars) {
     EXPECT_EQ(value.unsafe_value(), 33);
 }
 
-template <typename T>
-class safe_var_ops_test : public testing::Test { };
+template <typename T> class safe_var_ops_test : public testing::Test {};
 
-using std_int_types = ::testing::Types<
-    uint8_t, uint16_t, uint32_t, uint64_t,
-     int8_t,  int16_t,  int32_t,  int64_t>;
+using std_int_types = ::testing::Types<uint8_t, uint16_t, uint32_t, uint64_t,
+                                       int8_t, int16_t, int32_t, int64_t>;
 
 TYPED_TEST_SUITE(safe_var_ops_test, std_int_types);
 
@@ -74,7 +69,7 @@ TYPED_TEST(safe_var_ops_test, divide_op) {
 }
 
 // FIXME: MODULO NEEDS TO BE REWRITTEN
-//TYPED_TEST(safe_var_ops_test, modulo_op) {
+// TYPED_TEST(safe_var_ops_test, modulo_op) {
 //    safe::var<TypeParam, ival<0, 100>> const a = 12_s32;
 //    safe::var<TypeParam, ival<1, 100>> const b = 5_s32;
 //    auto const result = a % b;
@@ -82,7 +77,7 @@ TYPED_TEST(safe_var_ops_test, divide_op) {
 //}
 
 // FIXME: big_integer needs variable left shift support
-//TYPED_TEST(safe_var_ops_test, left_shift_op) {
+// TYPED_TEST(safe_var_ops_test, left_shift_op) {
 //    safe::var<TypeParam, ival<0, 8>> const a = 8_s32;
 //    safe::var<TypeParam, ival<0, 3>> const b = 2_s32;
 //    auto const result = a << b;
@@ -90,7 +85,7 @@ TYPED_TEST(safe_var_ops_test, divide_op) {
 //}
 
 // FIXME: big_integer needs variable right shift support
-//TYPED_TEST(safe_var_ops_test, right_shift_op) {
+// TYPED_TEST(safe_var_ops_test, right_shift_op) {
 //    safe::var<TypeParam, ival<0, 100>> const a = 48_s32;
 //    safe::var<TypeParam, ival<0, 8>> const b = 2_s32;
 //    auto const result = a >> b;
@@ -198,18 +193,17 @@ TEST(safe_var_test, add_int_const) {
 
 // FIXME: need to automatically convert integral_constants to safe::var
 TEST(safe_var_test, use_case_bitfield_extract_1) {
-   safe::u32 const reg = u32_<0xba5eba11>;
-   auto const field = (reg >> u32_<16>) & u32_<0xff>;
+    safe::u32 const reg = u32_<0xba5eba11>;
+    auto const field = (reg >> u32_<16>)&u32_<0xff>;
 
-   EXPECT_TRUE(field.requirement <= mask<0xff>);
-   EXPECT_EQ(field.unsafe_value(), 0x5e);
+    EXPECT_TRUE(field.requirement <= mask<0xff>);
+    EXPECT_EQ(field.unsafe_value(), 0x5e);
 }
 
 TEST(safe_var_test, use_case_bitfield_extract_2) {
-   auto const reg = u32_<0xba5eba11>;
-   auto const field = (reg >> u32_<16>) & u32_<0xff>;
+    auto const reg = u32_<0xba5eba11>;
+    auto const field = (reg >> u32_<16>)&u32_<0xff>;
 
-   EXPECT_TRUE(field.requirement <= mask<0xff>);
-   EXPECT_EQ(field.unsafe_value(), 0x5e);
+    EXPECT_TRUE(field.requirement <= mask<0xff>);
+    EXPECT_EQ(field.unsafe_value(), 0x5e);
 }
-
