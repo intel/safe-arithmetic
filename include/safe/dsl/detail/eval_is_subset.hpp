@@ -10,14 +10,14 @@ template <typename... Ts> struct all_of {
     using type = all_of;
     constexpr static bool value = (eval_t<Ts>::value && ...);
 
-    [[nodiscard]] constexpr operator bool() const { return value; }
+    [[nodiscard]] constexpr explicit operator bool() const { return value; }
 };
 
 template <typename... Ts> struct any_of {
     using type = any_of;
     constexpr static bool value = (eval_t<Ts>::value || ...);
 
-    [[nodiscard]] constexpr operator bool() const { return value; }
+    [[nodiscard]] constexpr explicit operator bool() const { return value; }
 };
 
 template <typename... LhsTs, typename RhsT>

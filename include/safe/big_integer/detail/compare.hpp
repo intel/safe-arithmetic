@@ -17,8 +17,8 @@ template <std::size_t LhsNumBits, std::size_t RhsNumBits>
 
         if (lhs.get(i) < rhs.get(i)) {
             return std::strong_ordering::less;
-
-        } else if (lhs.get(i) > rhs.get(i)) {
+        }
+        if (lhs.get(i) > rhs.get(i)) {
             return std::strong_ordering::greater;
         }
     } while (i > 0);
@@ -33,15 +33,12 @@ template <std::size_t LhsNumBits, std::size_t RhsNumBits>
     if (lhs.negative()) {
         if (rhs.negative()) {
             return unsigned_compare(lhs, rhs);
-        } else {
-            return std::strong_ordering::less;
         }
-    } else {
-        if (rhs.negative()) {
-            return std::strong_ordering::greater;
-        } else {
-            return unsigned_compare(lhs, rhs);
-        }
+        return std::strong_ordering::less;
     }
+    if (rhs.negative()) {
+        return std::strong_ordering::greater;
+    }
+    return unsigned_compare(lhs, rhs);
 }
 } // namespace safe::_big_integer::detail

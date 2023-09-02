@@ -21,7 +21,9 @@ template <typename BeginT, typename EndT> struct irange {
         constexpr iterator(irange const *parent, T value, bool end)
             : parent_{parent}, value_{value}, end_{end} {}
 
-        constexpr ret_t operator*() const { return unsafe_cast<ret_t>(value_); }
+        constexpr auto operator*() const -> ret_t {
+            return unsafe_cast<ret_t>(value_);
+        }
 
         constexpr auto operator++() {
             auto const new_unsafe_value = value_++;
@@ -37,14 +39,11 @@ template <typename BeginT, typename EndT> struct irange {
             return *this;
         }
 
-        constexpr bool operator==(iterator rhs) {
+        constexpr auto operator==(iterator rhs) -> bool {
             if (end_) {
                 return rhs.end_;
-
-            } else {
-                return parent_ == rhs.parent_ && value_ == rhs.value_ &&
-                       !rhs.end_;
             }
+            return parent_ == rhs.parent_ && value_ == rhs.value_ && !rhs.end_;
         }
     };
 

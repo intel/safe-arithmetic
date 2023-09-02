@@ -3,6 +3,6 @@
 #include <iostream>
 #include <safe.hpp>
 
-std::ostream &operator<<(std::ostream &os, safe::Var auto var) {
+auto operator<<(std::ostream &os, safe::Var auto var) -> std::ostream & {
     return os << var.unsafe_value();
 }

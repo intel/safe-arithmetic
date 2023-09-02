@@ -21,7 +21,7 @@ constexpr static auto unsigned_multiplies = [](auto &result, auto const &lhs,
 
             result_t partial_product{
                 {static_cast<elem_t>(raw_partial_product & 0xffff'ffffu),
-                 static_cast<elem_t>(raw_partial_product >> 32)}};
+                 static_cast<elem_t>(raw_partial_product >> 32u)}};
 
             bit_shift_left(partial_product, partial_product, (i + j) * 32);
 

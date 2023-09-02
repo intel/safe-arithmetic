@@ -8,17 +8,17 @@ namespace safe::detail {
 using namespace boost::mp11;
 
 template <typename ArgT, typename InputT> struct runtime {
-    [[nodiscard]] constexpr static bool check(InputT) { return true; }
+    [[nodiscard]] constexpr static auto check(InputT) -> bool { return true; }
 };
 
 template <Var VarT, typename InputT> struct runtime<VarT, InputT> {
-    [[nodiscard]] constexpr static bool check(InputT const &input) {
+    [[nodiscard]] constexpr static auto check(InputT const &input) -> bool {
         return VarT::requirement.check(input);
     }
 };
 
 template <Var VarT, Var InputVarT> struct runtime<VarT, InputVarT> {
-    [[nodiscard]] constexpr static bool check(InputVarT const &input) {
+    [[nodiscard]] constexpr static auto check(InputVarT const &input) -> bool {
         if constexpr (VarT::requirement >= InputVarT::requirement) {
             return true;
         } else {
@@ -28,21 +28,21 @@ template <Var VarT, Var InputVarT> struct runtime<VarT, InputVarT> {
 };
 
 template <typename VarT, typename ValueT>
-[[nodiscard]] constexpr bool check(ValueT value) {
+[[nodiscard]] constexpr auto check(ValueT value) -> bool {
     return detail::runtime<VarT, ValueT>::check(value);
 }
 
 template <typename T, typename ReturnT, typename... ArgTs>
-ReturnT ret_helper(ReturnT (T::*)(ArgTs...));
+auto ret_helper(ReturnT (T::*)(ArgTs...)) -> ReturnT;
 
 template <typename T, typename ReturnT, typename... ArgTs>
-ReturnT ret_helper(ReturnT (T::*)(ArgTs...) const);
+auto ret_helper(ReturnT (T::*)(ArgTs...) const) -> ReturnT;
 
 template <typename T, typename ReturnT, typename... ArgTs>
-mp_list<ArgTs...> args_helper(ReturnT (T::*)(ArgTs...));
+auto args_helper(ReturnT (T::*)(ArgTs...)) -> mp_list<ArgTs...>;
 
 template <typename T, typename ReturnT, typename... ArgTs>
-mp_list<ArgTs...> args_helper(ReturnT (T::*)(ArgTs...) const);
+auto args_helper(ReturnT (T::*)(ArgTs...) const) -> mp_list<ArgTs...>;
 
 template <typename F> struct function_info {
     using ret = decltype(ret_helper(&F::operator()));
@@ -66,11 +66,12 @@ template <typename F> using function_args_t = typename function_info<F>::args;
 template <typename F> using function_ret_t = typename function_info<F>::ret;
 
 template <typename... ContractTs, typename... ArgTs>
-constexpr bool check(mp_list<ContractTs...>, ArgTs... args) {
+constexpr auto check(mp_list<ContractTs...>, ArgTs... args) -> bool {
     return (check<ContractTs, ArgTs>(args) && ...);
 }
 
-template <typename T> [[nodiscard]] constexpr decltype(auto) unwrap_var(T &&v) {
+template <typename T>
+[[nodiscard]] constexpr auto unwrap_var(T &&v) -> decltype(auto) {
     if constexpr (Var<std::remove_cvref_t<T>>) {
         return v.unsafe_value();
     } else {

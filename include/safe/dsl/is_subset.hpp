@@ -67,7 +67,7 @@ struct is_subset<mask_t<lhs_variable_bits, lhs_constant_bits>,
 };
 
 template <Operand LhsT, Operand RhsT>
-[[nodiscard]] constexpr bool operator<=(LhsT, RhsT) {
+[[nodiscard]] constexpr auto operator<=(LhsT, RhsT) -> bool {
     return detail::eval_v<is_subset<LhsT, RhsT>>;
 }
 } // namespace safe::dsl

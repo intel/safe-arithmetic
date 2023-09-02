@@ -7,7 +7,7 @@
 
 namespace safe::dsl {
 template <Operand LhsT, Operand RhsT>
-[[nodiscard]] constexpr bool operator==(LhsT lhs, RhsT rhs) {
+[[nodiscard]] constexpr auto operator==(LhsT lhs, RhsT rhs) -> bool {
     auto const simp_lhs = detail::simp(lhs);
     auto const simp_rhs = detail::simp(rhs);
 
@@ -15,7 +15,7 @@ template <Operand LhsT, Operand RhsT>
 }
 
 template <Operand LhsT, Operand RhsT>
-[[nodiscard]] constexpr bool operator!=(LhsT lhs, RhsT rhs) {
+[[nodiscard]] constexpr auto operator!=(LhsT lhs, RhsT rhs) -> bool {
     return !(lhs == rhs);
 }
 } // namespace safe::dsl
