@@ -2,17 +2,15 @@
 
 #include <safe/big_integer/detail/storage.hpp>
 
-#include <algorithm>
-#include <cstdint>
+#include <cstddef>
 
 namespace safe::_big_integer::detail {
 [[nodiscard]] constexpr auto reverse_zip_transform(auto op) {
     return [=](auto &result, auto const &lhs, auto const &rhs) -> void {
-        auto i = result.num_elems;
-        do {
-            i--;
+        for (auto i = result.num_elems; i > std::size_t{};) {
+            --i;
             result.set(i, op(lhs.get(i), rhs.get(i)));
-        } while (i > std::size_t{});
+        }
     };
 }
 

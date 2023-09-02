@@ -27,6 +27,7 @@ template <typename T, auto Requirement> struct var {
 
     template <typename U>
         requires(std::is_convertible_v<U, T>)
+    // NOLINTNEXTLINE(google-explicit-constructor)
     SAFE_INLINE constexpr var(unsafe_cast_ferry<U> ferry)
         : unsafe_value_{static_cast<T>(ferry.value())} {
         SAFE_ASSUME(requirement.check(unsafe_value_));
@@ -35,22 +36,18 @@ template <typename T, auto Requirement> struct var {
     template <typename U>
         requires(std::integral<U> &&
                  (requirement >= detail::integral_type<U>::requirement))
+    // NOLINTNEXTLINE(google-explicit-constructor)
     SAFE_INLINE constexpr var(U rhs) : unsafe_value_{rhs} {}
 
     template <typename U, U rhs>
         requires(requirement.check(rhs))
+    // NOLINTNEXTLINE(google-explicit-constructor)
     SAFE_INLINE constexpr var(std::integral_constant<U, rhs>)
         : unsafe_value_(rhs) // intentionally allowing narrowing conversions
     {}
 
+    // NOLINTNEXTLINE(google-explicit-constructor)
     SAFE_INLINE constexpr var(Var auto const &rhs)
-        : unsafe_value_(rhs.unsafe_value()) // intentionally allowing narrowing
-                                            // conversions
-    {
-        static_assert_assign_requirements(*this, rhs);
-    }
-
-    SAFE_INLINE constexpr var(Var auto &&rhs)
         : unsafe_value_(rhs.unsafe_value()) // intentionally allowing narrowing
                                             // conversions
     {

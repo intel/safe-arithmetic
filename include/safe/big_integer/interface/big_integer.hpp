@@ -12,7 +12,8 @@ namespace safe::_big_integer::interface {
 template <std::size_t NumBits> struct big_integer {
     detail::storage<NumBits> unsafe_storage{};
 
-    constexpr big_integer(auto value)
+    // NOLINTNEXTLINE(google-explicit-constructor)
+    constexpr explicit(false) big_integer(auto value)
         : unsafe_storage{detail::to_storage(value)} {}
     constexpr big_integer() = default;
 
