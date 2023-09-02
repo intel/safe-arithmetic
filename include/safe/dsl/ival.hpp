@@ -15,7 +15,7 @@ template <auto Min, auto Max> struct ival_t : public detail::primitive {
 
     // static_assert(min <= max);
 
-    [[nodiscard]] SAFE_PURE constexpr static bool check(auto value) {
+    [[nodiscard]] SAFE_PURE constexpr static auto check(auto value) -> bool {
         return value >= min && value <= max;
     }
 };

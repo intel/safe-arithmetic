@@ -18,7 +18,7 @@ struct mask_t : public detail::primitive {
     constexpr static auto const_bits = ConstantBits;
     constexpr static auto value = triint{var_bits, const_bits};
 
-    [[nodiscard]] SAFE_PURE constexpr static bool check(auto value) {
+    [[nodiscard]] SAFE_PURE constexpr static auto check(auto value) -> bool {
         return (~var_bits & value) == (~var_bits & const_bits);
     }
 };
@@ -65,7 +65,7 @@ template <auto min, auto max> struct to_ival<ival_t<min, max>> {
 
 template <typename T> using to_ival_t = typename to_ival<T>::type;
 
-[[nodiscard]] constexpr bool is_basic_mask(auto value) {
+[[nodiscard]] constexpr auto is_basic_mask(auto value) -> bool {
     return ((value >> 1) & value) == (value >> 1);
 }
 

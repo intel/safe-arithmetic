@@ -13,7 +13,7 @@ constexpr static auto plus =
         double_elem_t const result =
             lhs + rhs + static_cast<double_elem_t>(carry);
 
-        carry = result >> 32;
+        carry = result >> 32u;
         return result & 0xffff'ffffu;
     });
 

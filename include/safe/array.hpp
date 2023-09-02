@@ -28,87 +28,97 @@ template <typename T, std::size_t Size> struct array {
 
     // TODO: constructors
     template <typename... Us>
-    constexpr array(Us... values) : storage({values...}) {}
+    constexpr explicit array(Us... values) : storage({values...}) {}
 
-    [[nodiscard]] constexpr reference
-    operator[](var<size_type, ival<0, Size - 1>> pos) {
+    [[nodiscard]] constexpr auto
+    operator[](var<size_type, ival<0, Size - 1>> pos) -> reference {
         return storage[pos.unsafe_value()];
     }
 
-    [[nodiscard]] constexpr const_reference
-    operator[](var<size_type, ival<0, Size - 1>> pos) const {
+    [[nodiscard]] constexpr auto
+    operator[](var<size_type, ival<0, Size - 1>> pos) const -> const_reference {
         return storage[pos.unsafe_value()];
     }
 
-    [[nodiscard]] constexpr reference
-    at(var<size_type, ival<0, Size - 1>> pos) {
+    [[nodiscard]] constexpr auto at(var<size_type, ival<0, Size - 1>> pos)
+        -> reference {
         return storage[pos.unsafe_value()];
     }
 
-    [[nodiscard]] constexpr const_reference
-    at(var<size_type, ival<0, Size - 1>> pos) const {
+    [[nodiscard]] constexpr auto at(var<size_type, ival<0, Size - 1>> pos) const
+        -> const_reference {
         return storage[pos.unsafe_value()];
     }
 
-    [[nodiscard]] constexpr reference front() { return storage.front(); }
-
-    [[nodiscard]] constexpr const_reference front() const {
+    [[nodiscard]] constexpr auto front() -> reference {
         return storage.front();
     }
 
-    [[nodiscard]] constexpr reference back() { return storage.back(); }
+    [[nodiscard]] constexpr auto front() const -> const_reference {
+        return storage.front();
+    }
 
-    [[nodiscard]] constexpr const_reference back() const {
+    [[nodiscard]] constexpr auto back() -> reference { return storage.back(); }
+
+    [[nodiscard]] constexpr auto back() const -> const_reference {
         return storage.back();
     }
 
     // NOTE: intentionally omitting data()
 
-    [[nodiscard]] constexpr iterator begin() { return storage.begin(); }
+    [[nodiscard]] constexpr auto begin() -> iterator { return storage.begin(); }
 
-    [[nodiscard]] constexpr const_iterator begin() const {
+    [[nodiscard]] constexpr auto begin() const -> const_iterator {
         return storage.begin();
     }
 
-    [[nodiscard]] constexpr const_iterator cbegin() const {
+    [[nodiscard]] constexpr auto cbegin() const -> const_iterator {
         return storage.cbegin();
     }
 
-    [[nodiscard]] constexpr iterator end() { return storage.end(); }
+    [[nodiscard]] constexpr auto end() -> iterator { return storage.end(); }
 
-    [[nodiscard]] constexpr const_iterator end() const { return storage.end(); }
+    [[nodiscard]] constexpr auto end() const -> const_iterator {
+        return storage.end();
+    }
 
-    [[nodiscard]] constexpr const_iterator cend() const {
+    [[nodiscard]] constexpr auto cend() const -> const_iterator {
         return storage.cend();
     }
 
-    [[nodiscard]] constexpr reverse_iterator rbegin() {
+    [[nodiscard]] constexpr auto rbegin() -> reverse_iterator {
         return storage.rbegin();
     }
 
-    [[nodiscard]] constexpr const_reverse_iterator rbegin() const {
+    [[nodiscard]] constexpr auto rbegin() const -> const_reverse_iterator {
         return storage.rbegin();
     }
 
-    [[nodiscard]] constexpr const_reverse_iterator crbegin() const {
+    [[nodiscard]] constexpr auto crbegin() const -> const_reverse_iterator {
         return storage.crbegin();
     }
 
-    [[nodiscard]] constexpr reverse_iterator rend() { return storage.rend(); }
-
-    [[nodiscard]] constexpr const_reverse_iterator rend() const {
+    [[nodiscard]] constexpr auto rend() -> reverse_iterator {
         return storage.rend();
     }
 
-    [[nodiscard]] constexpr const_reverse_iterator crend() const {
+    [[nodiscard]] constexpr auto rend() const -> const_reverse_iterator {
+        return storage.rend();
+    }
+
+    [[nodiscard]] constexpr auto crend() const -> const_reverse_iterator {
         return storage.crend();
     }
 
-    [[nodiscard]] constexpr bool empty() const { return storage.empty(); }
+    [[nodiscard]] constexpr auto empty() const -> bool {
+        return storage.empty();
+    }
 
-    [[nodiscard]] constexpr size_type size() const { return storage.size(); }
+    [[nodiscard]] constexpr auto size() const -> size_type {
+        return storage.size();
+    }
 
-    [[nodiscard]] constexpr size_type max_size() const {
+    [[nodiscard]] constexpr auto max_size() const -> size_type {
         return storage.max_size();
     }
 
@@ -116,8 +126,8 @@ template <typename T, std::size_t Size> struct array {
 
     constexpr void swap(array &other) { storage.swap(other.storage); }
 
-    [[nodiscard]] friend constexpr bool operator==(array const &lhs,
-                                                   array const &rhs) {
+    [[nodiscard]] friend constexpr auto operator==(array const &lhs,
+                                                   array const &rhs) -> bool {
         return lhs.storage == rhs.storage;
     }
 
@@ -132,22 +142,24 @@ template <class T, class... U> array(T, U...) -> array<T, 1 + sizeof...(U)>;
 
 namespace std {
 template <std::size_t I, class T, std::size_t N>
-[[nodiscard]] constexpr T &get(safe::array<T, N> &a) noexcept {
+[[nodiscard]] constexpr auto get(safe::array<T, N> &a) noexcept -> T & {
     return a[safe::constant<std::size_t, I>];
 }
 
 template <std::size_t I, class T, std::size_t N>
-[[nodiscard]] constexpr T &&get(safe::array<T, N> &&a) noexcept {
+[[nodiscard]] constexpr auto get(safe::array<T, N> &&a) noexcept -> T && {
+    return std::move(a)[safe::constant<std::size_t, I>];
+}
+
+template <std::size_t I, class T, std::size_t N>
+[[nodiscard]] constexpr auto get(safe::array<T, N> const &a) noexcept
+    -> T const & {
     return a[safe::constant<std::size_t, I>];
 }
 
 template <std::size_t I, class T, std::size_t N>
-[[nodiscard]] constexpr T const &get(safe::array<T, N> const &a) noexcept {
-    return a[safe::constant<std::size_t, I>];
-}
-
-template <std::size_t I, class T, std::size_t N>
-[[nodiscard]] constexpr T const &&get(safe::array<T, N> const &&a) noexcept {
+[[nodiscard]] constexpr auto get(safe::array<T, N> const &&a) noexcept
+    -> T const && {
     return a[safe::constant<std::size_t, I>];
 }
 

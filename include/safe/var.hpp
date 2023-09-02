@@ -69,7 +69,7 @@ template <typename T, auto Requirement> struct var {
         return *this;
     }
 
-    [[nodiscard]] SAFE_INLINE constexpr T unsafe_value() const {
+    [[nodiscard]] SAFE_INLINE constexpr auto unsafe_value() const -> T {
         SAFE_ASSUME(requirement.check(unsafe_value_));
         return unsafe_value_;
     }

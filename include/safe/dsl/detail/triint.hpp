@@ -19,9 +19,9 @@ template <typename T> struct triint {
     constexpr triint(T var_bits, T const_bits)
         : var_bits_{var_bits}, const_bits_{const_bits & ~var_bits} {}
 
-    [[nodiscard]] constexpr T var_bits() const { return var_bits_; }
+    [[nodiscard]] constexpr auto var_bits() const -> T { return var_bits_; }
 
-    [[nodiscard]] constexpr T const_bits() const { return const_bits_; }
+    [[nodiscard]] constexpr auto const_bits() const -> T { return const_bits_; }
 };
 
 template <typename LhsT, typename RhsT>

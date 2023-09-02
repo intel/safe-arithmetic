@@ -10,11 +10,11 @@
 
 namespace safe::_big_integer::interface {
 template <std::size_t NumBits> struct big_integer {
-    detail::storage<NumBits> unsafe_storage;
+    detail::storage<NumBits> unsafe_storage{};
 
     constexpr big_integer(auto value)
         : unsafe_storage{detail::to_storage(value)} {}
-    constexpr big_integer() : unsafe_storage{} {}
+    constexpr big_integer() = default;
 
     constexpr auto operator&=(auto const &rhs) -> big_integer & {
         return do_assign_op(detail::bit_and, rhs);

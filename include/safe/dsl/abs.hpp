@@ -12,9 +12,8 @@ namespace detail {
 [[nodiscard]] constexpr auto abs(auto value) {
     if (value < 0) {
         return -value;
-    } else {
-        return decltype(-value){value};
     }
+    return decltype(-value){value};
 }
 } // namespace detail
 

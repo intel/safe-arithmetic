@@ -74,10 +74,9 @@ template <typename F, typename... Fs>
                 return func(unsafe_cast_ferry{
                     detail::unwrap_var(std::forward<decltype(args)>(args))}...);
 
-            } else { // check the remaining functions' requirements
-                return match(remaining_funcs...)(
-                    std::forward<decltype(args)>(args)...);
-            }
+            } // check the remaining functions' requirements
+            return match(remaining_funcs...)(
+                std::forward<decltype(args)>(args)...);
         }
     };
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <safe/dsl/bitwise_or.hpp>
 #include <safe/dsl/eval_fwd.hpp>
 #include <safe/dsl/ival.hpp>
 

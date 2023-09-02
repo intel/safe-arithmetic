@@ -19,10 +19,8 @@ template <std::size_t NumBits> struct storage {
     std::array<elem_t, num_elems> elems{};
 
     constexpr storage() = default;
-
-    constexpr storage(std::array<elem_t, num_elems> const &new_elems) {
-        elems = new_elems;
-    }
+    constexpr storage(std::array<elem_t, num_elems> const &new_elems)
+        : elems{new_elems} {}
 
     template <std::size_t RhsNumBits>
     constexpr storage(storage<RhsNumBits> const &rhs) {
@@ -51,22 +49,21 @@ template <std::size_t NumBits> struct storage {
         return true;
     }
 
-    [[nodiscard]] constexpr bool negative() const {
+    [[nodiscard]] constexpr auto negative() const -> bool {
         return (elems.back() >> 31) & 1;
     }
 
     [[nodiscard]] constexpr auto get(int32_t i) const -> elem_t {
         if (i < 0) {
             return 0u;
-        } else if (i < num_elems) {
-            return elems[i];
-        } else {
-            if (negative()) {
-                return 0xffff'ffffu;
-            } else {
-                return 0u;
-            }
         }
+        if (i < num_elems) {
+            return elems[i];
+        }
+        if (negative()) {
+            return 0xffff'ffffu;
+        }
+        return 0u;
     }
 
     constexpr auto set(int32_t i, elem_t elem) -> void {
@@ -101,18 +98,19 @@ template <typename T>
 }
 
 template <std::size_t NumBits>
-[[nodiscard]] constexpr auto const &
-to_storage(interface::big_integer<NumBits> const &v) {
+[[nodiscard]] constexpr auto
+to_storage(interface::big_integer<NumBits> const &v) -> auto const & {
     return v.unsafe_storage;
 }
 
 template <std::size_t NumBits>
-[[nodiscard]] constexpr auto &to_storage(storage<NumBits> &v) {
+[[nodiscard]] constexpr auto to_storage(storage<NumBits> &v) -> auto & {
     return v;
 }
 
 template <std::size_t NumBits>
-[[nodiscard]] constexpr auto const &to_storage(storage<NumBits> const &v) {
+[[nodiscard]] constexpr auto to_storage(storage<NumBits> const &v)
+    -> auto const & {
     return v;
 }
 

@@ -33,9 +33,8 @@ constexpr static auto bit_shift_left =
     reverse_zip_transform([=](elem_t const upper, elem_t const lower) {
         if (bit_shift_amt == 0) {
             return upper;
-        } else {
-            return (upper << bit_shift_amt) | (lower >> (32 - bit_shift_amt));
         }
+        return (upper << bit_shift_amt) | (lower >> (32 - bit_shift_amt));
     })(result, lhs_shifted_upper, lhs_shifted_lower);
 };
 
@@ -63,9 +62,8 @@ constexpr static auto bit_shift_right =
     zip_transform([=](elem_t const upper, elem_t const lower) {
         if (bit_shift_amt == 0) {
             return lower;
-        } else {
-            return (upper << (32 - bit_shift_amt)) | (lower >> bit_shift_amt);
         }
+        return (upper << (32 - bit_shift_amt)) | (lower >> bit_shift_amt);
     })(result, lhs_shifted_upper, lhs_shifted_lower);
 };
 } // namespace safe::_big_integer::detail
