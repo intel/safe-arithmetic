@@ -1,44 +1,41 @@
-name: GitHub Pages Publish
+name: Publish GitHub Pages
 
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
 
+env:
+  DEBIAN_FRONTEND: noninteractive
+
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout Source
-        uses: actions/checkout@v3
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-      - name: Install asciidoc
+      - name: Install asciidoctor
         run: |
           sudo apt update
-          DEBIAN_FRONTEND=noninteractive TZ=America/Los_Angeles sudo apt-get install -y git wget asciidoctor
-          sudo gem install asciidoctor-diagram
+          sudo apt install -y asciidoctor
+          sudo gem install asciidoctor asciidoctor-diagram rouge
 
-      - name: Build Documentation
+      - name: Build documentation
         run: |
           mkdir -p ./generated-html
-          asciidoctor -r asciidoctor-diagram doc/index.adoc -D ./generated-html
-          if [ -e doc/static ]; then cp -rf doc/static ./generated-html; fi
+          asciidoctor -r asciidoctor-diagram docs/index.adoc -D ./generated-html
+          if [ -e docs/static ]; then cp -rf docs/static ./generated-html; fi
           touch ./generated-html/.nojekyll
           ls -la ./generated-html
           cat ./generated-html/index.html
 
-      - name: Build Single Header
-        run: |
-          pushd include
-          python3 ../tools/gen_release_header.py safe.hpp > ../generated-html/safe.hpp
-          popd
-
-      - name: Setup GH-Pages
+      - name: Setup github pages
         uses: actions/configure-pages@v3
 
-      - name: Upload Artifacts to GH-Pages
-        uses: actions/upload-pages-artifact@v1
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./generated-html
 
@@ -54,9 +51,9 @@ jobs:
       name: github-pages
       url: $${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy to github pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v2
