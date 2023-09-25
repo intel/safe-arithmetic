@@ -127,7 +127,7 @@ intervals can be used in the `safe::var`:
 
 ```c++
 constexpr void dont_give_me_zero(
-    safe::var<int, safe::ival<-1000, 1> || safe::ival<1, 1000>> not_zero
+    safe::var<int, safe::ival<-1000, -1> || safe::ival<1, 1000>> not_zero
 ) {
     // ... do something really cool with this non-zero value ...
 }
