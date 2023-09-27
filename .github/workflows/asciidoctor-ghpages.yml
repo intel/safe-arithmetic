@@ -10,7 +10,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: intel-ubuntu-latest
 
     steps:
       - name: Checkout source
@@ -51,7 +51,7 @@ jobs:
       name: github-pages
       url: $${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-22.04
+    runs-on: intel-ubuntu-latest
 
     steps:
       - name: Deploy to github pages
