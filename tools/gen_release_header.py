@@ -9,7 +9,9 @@ import os
 
 version = os.popen("git describe --tags").read().strip()
 visited_includes = set()
-root = Path(sys.argv[1]).parent.parent
+
+include_dir = Path(sys.argv[1])
+main_header = Path(sys.argv[2])
 
 # store content rather than emit directly
 content_lines = []
@@ -18,7 +20,7 @@ insert_system_headers_line = None
 
 
 def process(base_filepath):
-    global version, visited_includes, root
+    global version, visited_includes, include_dir
     global content_lines, system_headers, insert_system_headers_line
 
     if base_filepath not in visited_includes:
@@ -33,7 +35,7 @@ def process(base_filepath):
                         insert_system_headers_line = len(content_lines)
 
                     sub_filepath = Path(m.group(1))
-                    full_path = root / sub_filepath
+                    full_path = include_dir / sub_filepath
 
                     if full_path.exists():
                         # recurse into a cib header
@@ -50,7 +52,7 @@ def process(base_filepath):
                     content_lines.append(line)
 
 
-process(Path(sys.argv[1]))
+process(include_dir / main_header)
 
 # write out the content, when we get to the line number the location to emit
 # system headers, write those out before proceeding with the remaining content
