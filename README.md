@@ -5,6 +5,8 @@ bug-free code. It allows variables and functions to advertise and enforce
 requirements at compile-time. The requirements are guaranteed to be held 
 true at runtime.
 
+[![CppCon 2023. Safe Arithmetic: Have your integer and add it to two!](https://img.youtube.com/vi/E1LfLQ13bgA/0.jpg)](https://www.youtube.com/watch?v=E1LfLQ13bgA)
+
 ## Pre-release Disclaimer
 
 This library is a work in progress and should not yet be used in production.
