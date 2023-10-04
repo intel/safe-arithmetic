@@ -1,0 +1,49 @@
+name: Publish Release Header
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  build:
+    runs-on: intel-ubuntu-22.04
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Build Release Header
+        run: |
+          mkdir -p ./generated-hpp
+          python3 tools/gen_release_header.py include safe.hpp > ./generated-hpp/safe.hpp
+
+      - name: Setup github pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./generated-hpp
+
+  deploy:
+    needs: build
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: $${{ steps.deployment.outputs.page_url }}
+
+    runs-on: intel-ubuntu-22.04
+
+    steps:
+      - name: Deploy to github pages
+        id: deployment
+        uses: actions/deploy-pages@v2
