@@ -11,14 +11,14 @@ env:
 jobs:
   configure:
     name: Configure Github Pages Publishing
-    runs-on: intel-ubuntu-22.04
+    runs-on: ${{ github.repository_owner == 'intel' && 'intel-' || '' }}ubuntu-22.04
     outputs:
       enable_publish: ${{ steps.check.outputs.isfork == 'NO' }}
     steps:
       - id: check
         name: Check if Fork
         run: |
-          if [ "${{ github.repository }}" = "intel/compile-time-init-build" ]; then
+          if [ "${{ github.repository_owner }}" = "intel" ]; then
             echo "This is the main repository, **enabling publishing**" >> "$GITHUB_STEP_SUMMARY"
             echo "isfork=NO" >> "$GITHUB_OUTPUT"
           else
@@ -29,7 +29,7 @@ jobs:
   build:
     needs: configure
     name: Build Documentation
-    runs-on: intel-ubuntu-22.04
+    runs-on: ${{ github.repository_owner == 'intel' && 'intel-' || '' }}ubuntu-22.04
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
     environment:
       name: github-pages
       url: $${{ steps.deployment.outputs.page_url }}
-    runs-on: intel-ubuntu-22.04
+    runs-on: ${{ github.repository_owner == 'intel' && 'intel-' || '' }}ubuntu-22.04
     steps:
       - name: Deploy to github pages
         id: deployment

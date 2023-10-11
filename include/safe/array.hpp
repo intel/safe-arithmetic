@@ -124,7 +124,7 @@ template <typename T, std::size_t Size> struct array {
 
     constexpr void fill(T const &value) { storage.fill(value); }
 
-    constexpr void swap(array &other) { storage.swap(other.storage); }
+    constexpr void swap(array &other) noexcept { storage.swap(other.storage); }
 
     [[nodiscard]] friend constexpr auto operator==(array const &lhs,
                                                    array const &rhs) -> bool {
@@ -164,7 +164,7 @@ template <std::size_t I, class T, std::size_t N>
 }
 
 template <class T, std::size_t N>
-constexpr void swap(safe::array<T, N> &lhs, safe::array<T, N> &rhs) {
+constexpr void swap(safe::array<T, N> &lhs, safe::array<T, N> &rhs) noexcept {
     lhs.swap(rhs);
 }
 
