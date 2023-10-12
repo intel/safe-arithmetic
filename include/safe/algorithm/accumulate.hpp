@@ -36,22 +36,20 @@ template <auto count> inline consteval auto fold(auto e, auto op) {
                 );
 
     } else if constexpr (count > 10) {
-                return safe::dsl::detail::simp(op(
-                    op(op(op(op(op(op(op(op(op(fold<count - 10>(e, op), e), e),
-                                         e),
-                                      e),
-                                   e),
-                                e),
-                             e),
-                          e),
-                       e),
-                    e));
+        return safe::dsl::detail::simp(op(
+            op(op(op(op(op(op(op(op(op(fold<count - 10>(e, op), e), e), e), e),
+                           e),
+                        e),
+                     e),
+                  e),
+               e),
+            e));
 
     } else if constexpr (count > 1) {
-                return safe::dsl::detail::simp(op(fold<count - 1>(e, op), e));
+        return safe::dsl::detail::simp(op(fold<count - 1>(e, op), e));
 
     } else {
-                return e;
+        return e;
     }
 }
 
@@ -69,9 +67,9 @@ template <size_t max_iter>
     auto iter_count = size_t{};
     auto sum = init;
     while ((first != last) && (iter_count < max_iter)) {
-                sum = op(sum, (*first).unsafe_value());
-                first++;
-                iter_count++;
+        sum = op(sum, (*first).unsafe_value());
+        first++;
+        iter_count++;
     }
 
     return unsafe_cast<var<ret_num_t, sum_req>>(sum);
