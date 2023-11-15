@@ -10,7 +10,7 @@ add_versioned_package("gh:boostorg/mp11#boost-1.83.0")
 add_library(safe_arithmetic INTERFACE)
 target_compile_features(safe_arithmetic INTERFACE cxx_std_20)
 target_include_directories(safe_arithmetic INTERFACE include)
-target_link_libraries(safe_arithmetic INTERFACE boost_mp11)
+target_link_libraries_system(safe_arithmetic INTERFACE boost_mp11)
 
 if(PROJECT_IS_TOP_LEVEL)
     add_docs(docs)
