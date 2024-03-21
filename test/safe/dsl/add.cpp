@@ -1,8 +1,6 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <safe/big_integer_gen.hpp>
-
 #include <safe.hpp>
 
 using ::testing::_;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <safe/big_integer.hpp>
 #include <safe/detail/pure.hpp>
 #include <safe/dsl/detail/triint.hpp>
 #include <safe/dsl/fwd.hpp>

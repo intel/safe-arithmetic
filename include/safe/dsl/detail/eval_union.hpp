@@ -1,6 +1,6 @@
 #pragma once
 
-#include <safe/big_integer.hpp>
+#include <safe/common_integer.hpp>
 #include <safe/dsl/eval_fwd.hpp>
 #include <safe/dsl/union.hpp>
 

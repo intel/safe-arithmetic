@@ -76,7 +76,6 @@ TYPED_TEST(safe_var_ops_test, divide_op) {
 //    EXPECT_EQ(result.unsafe_value(), 2);
 //}
 
-// FIXME: big_integer needs variable left shift support
 // TYPED_TEST(safe_var_ops_test, left_shift_op) {
 //    safe::constrained_number<constrain_interval<0, 8>, TypeParam> const a = 8_s32;
 //    safe::constrained_number<constrain_interval<0, 3>, TypeParam> const b = 2_s32;
@@ -84,7 +83,6 @@ TYPED_TEST(safe_var_ops_test, divide_op) {
 //    EXPECT_EQ(result.unsafe_value(), 32);
 //}
 
-// FIXME: big_integer needs variable right shift support
 // TYPED_TEST(safe_var_ops_test, right_shift_op) {
 //    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const a = 48_s32;
 //    safe::constrained_number<constrain_interval<0, 8>, TypeParam> const b = 2_s32;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <safe/big_integer.hpp>
 #include <safe/dsl/eval_fwd.hpp>
 #include <safe/dsl/constrain_interval.hpp>
 #include <safe/dsl/union.hpp>
