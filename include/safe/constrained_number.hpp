@@ -36,7 +36,7 @@ template <auto Constraint, typename T> struct constrained_number {
 
     template <typename U>
         requires(std::integral<U> &&
-                 (constraint >= detail::integral_type<U>::constraint))
+                 (constraint >= dsl::constraint_of<U>))
     // NOLINTNEXTLINE(google-explicit-constructor)
     SAFE_INLINE constexpr constrained_number(U rhs) : _raw_value{rhs} {}
 

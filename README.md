@@ -51,20 +51,20 @@ using namespace safe::literals;
 to assign a value to this variable outside this range.
 
 ```c++
-ival_s32<0, 1023> enqueue_index = 0_s32;
+ival_s32<0, 1023> enqueue_index = 0_cn;
 ```
 
 We can perform arithmetic operations and prove we will not overflow. If we 
 try to just add '1' to enqueue_index, we could overflow
 
 ```c++
-enqueue_index = enqueue_index + 1_s32; // <- COMPILE ERROR 
+enqueue_index = enqueue_index + 1_cn; // <- COMPILE ERROR 
 ```
 Instead, we are required to keep the value in-bounds, in this case we choose
 to use the modulo operator.
 
 ```c++
-enqueue_index = (enqueue_index + 1_s32) % 1024_s32; // GOOD!
+enqueue_index = (enqueue_index + 1_cn) % 1024_cn; // GOOD!
 ```
 
 for cases in which we must index into an array, the *safe arithmetic* library
@@ -86,7 +86,7 @@ The `_u32` user-defined literal creates a `safe::constrained_number` type at com
 is constrained to the single value given to it. 
 
 ```c++
-auto result = queue_data[4_u32]; // GOOD!
+auto result = queue_data[4_cn]; // GOOD!
 ```
 
 Arithmetic operations generate a new constraint for the result-type. Adding `1`
@@ -94,7 +94,7 @@ to `enqueue_index` means it could be one larger than the last element of the
 array. The *safe arithmetic* library correctly produces a compilation error.
 
 ```c++
-auto result = queue_data[enqueue_index + 1_u32]; // <- COMPILE ERROR
+auto result = queue_data[enqueue_index + 1_cn]; // <- COMPILE ERROR
 ```
 
 We must prove to the `safe::array` that the index value is within bounds. 
@@ -102,7 +102,7 @@ There are many ways to do this. For this queue implementation we want
 `enqueue_index` to wrap around.
 
 ```c++
-auto result = queue_data[(enqueue_index + 1_u32) % 1024_u32]; // GOOD!
+auto result = queue_data[(enqueue_index + 1_cn) % 1024_cn]; // GOOD!
 ```
 
 The `safe::array` advertises this constraint on the `safe::constrained_number` index

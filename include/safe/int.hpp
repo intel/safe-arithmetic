@@ -61,6 +61,7 @@ namespace detail {
 template <typename T, char... Chars>
 [[nodiscard]] constexpr auto to_constant() {
     // FIXME: handle or fail at compile-time for invalid strings
+    // FIXME: select correct type ahead of time
     constexpr T value = []() {
         constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
         T sum = 0;
@@ -78,36 +79,8 @@ template <typename T, char... Chars>
 } // namespace detail
 
 namespace literals {
-template <char... Chars> constexpr auto operator""_s8() {
-    return safe::detail::to_constant<int8_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u8() {
-    return safe::detail::to_constant<uint8_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_s16() {
-    return safe::detail::to_constant<int16_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u16() {
-    return safe::detail::to_constant<uint16_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_s32() {
-    return safe::detail::to_constant<int32_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u32() {
-    return safe::detail::to_constant<uint32_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_s64() {
+template <char... Chars> constexpr auto operator""_cn() {
     return safe::detail::to_constant<int64_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u64() {
-    return safe::detail::to_constant<uint64_t, Chars...>();
 }
 } // namespace literals
 } // namespace safe

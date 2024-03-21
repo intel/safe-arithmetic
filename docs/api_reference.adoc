@@ -546,13 +546,13 @@ auto char_to_ord = safe::match(
         return dec_digit - s32_<'0'>;
     }, 
     [](ival_s32<'a', 'f'> lower_hex_digit){
-        return lower_hex_digit - s32_<'a'> + 10_s32;
+        return lower_hex_digit - s32_<'a'> + 10_cn;
     },
     [](ival_s32<'A', 'F'> upper_hex_digit){
-        return upper_hex_digit - s32_<'A'> + 10_s32;
+        return upper_hex_digit - s32_<'A'> + 10_cn;
     },
     [](){
-        return 0_s32;
+        return 0_cn;
     }
 );
 ```
@@ -602,11 +602,11 @@ value.
 safe::array<safe::s32, 10> values{};
 
 // A bare for-loop will not work. See above discussion for explanation.
-// for (safe::ival_s32<0, 9> i = 0_s32; i < 10_s32; i = i + 1_s32) {
+// for (safe::ival_s32<0, 9> i = 0_cn; i < 10_cn; i = i + 1_cn) {
 //     :'(
 // }
 
-for (auto i : safe::irange(0_s32, 10_s32)) {
+for (auto i : safe::irange(0_cn, 10_cn)) {
     // 'i' is proven to be one of 0 through 9...
     static_assert(std::is_same_v<decltype(i), safe::ival_s32<0, 9>>);
 
