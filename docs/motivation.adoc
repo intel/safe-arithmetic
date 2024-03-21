@@ -54,7 +54,6 @@ The current version of the Safe Arithmetic library supports the following value
 types:
 
 * C++20 integer primitives
-* `safe::big_integer<N>` arbitrary precision integers
 
 In the future, it is likely support for the following numeric types will be
 added:

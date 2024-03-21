@@ -18,19 +18,6 @@ function(add_test_suites)
 endfunction()
 
 add_test_suites(
-    big_integer/detail/storage.cpp
-    big_integer/detail/plus.cpp
-    big_integer/detail/minus.cpp
-    big_integer/detail/negate.cpp
-    big_integer/detail/bit_and.cpp
-    big_integer/detail/bit_or.cpp
-    big_integer/detail/bit_xor.cpp
-    big_integer/detail/bit_not.cpp
-    big_integer/detail/shift.cpp
-    big_integer/detail/multiplies.cpp
-    big_integer/detail/compare.cpp
-    big_integer/detail/divides.cpp
-    big_integer.cpp
     constrained_number.cpp
     match.cpp
     array.cpp
