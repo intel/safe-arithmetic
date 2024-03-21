@@ -2,7 +2,6 @@
 
 #include <safe/algorithm.hpp>
 #include <safe/array.hpp>
-#include <safe/big_integer.hpp>
 #include <safe/constant.hpp>
 #include <safe/dsl.hpp>
 #include <safe/int.hpp>

@@ -7,7 +7,7 @@
 #include <safe/dsl/constrain_interval.hpp>
 
 namespace safe::dsl {
-template <auto VariableBits, auto ConstantBits = 0>
+template <auto VariableBits, auto ConstantBits = 0u>
 struct constrain_mask_t : public detail::primitive {
     using type = constrain_mask_t;
 
@@ -15,13 +15,13 @@ struct constrain_mask_t : public detail::primitive {
     constexpr static auto const_bits = ConstantBits;
     constexpr static auto value = triint{var_bits, const_bits};
 
-    [[nodiscard]] SAFE_PURE constexpr static auto check(auto value) -> bool {
-        return (~var_bits & value) == (~var_bits & const_bits);
+    [[nodiscard]] SAFE_PURE constexpr static auto check(auto value_arg) -> bool {
+        return (~var_bits & value_arg) == (~var_bits & const_bits);
     }
 };
 
-template <auto VariableBits, auto ConstantBits = 0>
-constexpr constrain_mask_t<to_big_integer(VariableBits), to_big_integer(ConstantBits)>
+template <auto VariableBits, auto ConstantBits = 0u>
+constexpr constrain_mask_t<VariableBits, ConstantBits>
     constrain_mask{};
 
 namespace detail {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <safe/big_integer.hpp>
 #include <safe/detail/pure.hpp>
 #include <safe/dsl/fwd.hpp>
 
@@ -21,7 +20,7 @@ template <auto Min, auto Max> struct constrain_interval_t : public detail::primi
 };
 
 template <auto Min, auto Max>
-constexpr constrain_interval_t<to_big_integer(Min), to_big_integer(Max)> constrain_interval{};
+constexpr constrain_interval_t<Min, Max> constrain_interval{};
 
 template <typename T> constexpr bool is_ival_v = false;
 

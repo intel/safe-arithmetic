@@ -94,6 +94,12 @@ template <std::size_t NumBits> struct big_integer {
 
 template <typename L, typename R> struct common_integer;
 
+
+template <std::integral L, std::integral R>
+struct common_integer<L, R> {
+    using type = std::common_type_t<L, R>;
+};
+
 template <std::size_t LhsNumBits, std::size_t RhsNumBits>
 struct common_integer<big_integer<LhsNumBits>, big_integer<RhsNumBits>> {
     using type = big_integer<std::max(LhsNumBits, RhsNumBits)>;
@@ -330,9 +336,6 @@ template <std::size_t NumBits>
     return big_integer{result};
 }
 
-[[nodiscard]] constexpr auto to_big_integer(auto const &value) {
-    return big_integer{detail::to_storage(value)};
-}
 } // namespace safe::_big_integer::interface
 
 template <std::size_t NumBits>
