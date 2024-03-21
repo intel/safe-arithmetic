@@ -3,7 +3,7 @@
 #include <safe/constant.hpp>
 #include <safe/detail/concepts.hpp>
 #include <safe/dsl/eval.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 #include <type_traits>
 #include <utility>
@@ -59,7 +59,7 @@ constexpr inline auto plus_op = [](auto a, auto b) { return a + b; };
 template <size_t max_iter>
 [[nodiscard]] constexpr inline auto accumulate(detail::iter_like auto first,
                                                auto last, auto init, auto op) {
-    constexpr auto req = decltype((*first).requirement){};
+    constexpr auto req = decltype((*first).constraint){};
     constexpr auto sum_req = detail::fold<max_iter>(req, op);
 
     using ret_num_t = decltype((*first).unsafe_value());
@@ -72,7 +72,7 @@ template <size_t max_iter>
         iter_count++;
     }
 
-    return unsafe_cast<var<ret_num_t, sum_req>>(sum);
+    return constraint_cast<constrained_number<sum_req, ret_num_t>>(sum);
 }
 
 template <size_t max_iter>

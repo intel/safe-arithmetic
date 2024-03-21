@@ -8,7 +8,7 @@ struct unary_op {};
 struct primitive {};
 struct set_op {};
 
-// FIXME: make the min/max template vars take an arbitrary num of args
+// FIXME: make the min/max template constrained_numbers take an arbitrary num of args
 template <auto lhs, auto rhs>
 constexpr auto min2 = [] {
     if constexpr (lhs <= rhs) {

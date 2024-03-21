@@ -1,46 +1,46 @@
 
 == API Reference
 
-=== safe::var
+=== safe::constrained_number
 
 ```c++
 namespace safe {
-    template<typename T, auto Requirement>
-    struct var;
+    template<typename T, auto Constraint>
+    struct constrained_number;
 }
 ```
 
-`safe::var` wraps a runtime value with an associated `safe::dsl` requirement
-describing the set of values it must be contained in. The requirement is used
+`safe::constrained_number` wraps a runtime value with an associated `safe::dsl` constraint
+describing the set of values it must be contained in. The constraint is used
 to check the value at runtime or prove at compile-time it is satisfied.
 
 ==== Member constants
 
-===== `requirement`
+===== `constraint`
 
-The `safe::dsl` requirement describing allowed values.
+The `safe::dsl` constraint describing allowed values.
 
 ==== Member functions
 
 ===== Constructor
 
 ```c++
-constexpr var() requires(requirement >= set<0>);
+constexpr constrained_number() requires(constraint >= constrain_set<0>);
 ```
 
-Default constructor, only valid if the requirement allows a value of '0'.
+Default constructor, only valid if the constraint allows a value of '0'.
 
 ```c++
-constexpr var(Var auto const & rhs);
+constexpr constrained_number(any_constrained auto const & rhs);
 ```
 
-Construct a `safe::var` from another instance with potentially different,
+Construct a `safe::constrained_number` from another instance with potentially different,
 but compatible requirements. Assignment safety is checked at compile time.
 
 ===== operator=
 
 ```c++
-constexpr auto operator=(Var auto & rhs) -> var &;
+constexpr auto operator=(any_constrained auto & rhs) -> constrained_number &;
 ```
 
 Assign value from another instance with potentially different, but compatible
@@ -51,7 +51,7 @@ requirements. Assignment safety is checked at compile time.
 ===== operator{lt}={gt}
 
 ```c++
-[[nodiscard]] constexpr auto operator<=>(Var auto lhs, Var auto rhs) -> std::strong_ordering;
+[[nodiscard]] constexpr auto operator<=>(any_constrained auto lhs, any_constrained auto rhs) -> std::strong_ordering;
 ```
 
 Apply `operator{lt}={gt}` to `lhs` and `rhs` and return the result.
@@ -59,7 +59,7 @@ Apply `operator{lt}={gt}` to `lhs` and `rhs` and return the result.
 ===== operator==
 
 ```c++
-[[nodiscard]] constexpr auto operator==(Var auto lhs, Var auto rhs) -> bool;
+[[nodiscard]] constexpr auto operator==(any_constrained auto lhs, any_constrained auto rhs) -> bool;
 ```
 
 Apply `operator==` to `lhs` and `rhs` and return the result.
@@ -67,7 +67,7 @@ Apply `operator==` to `lhs` and `rhs` and return the result.
 ===== operator+
 
 ```c++
-[[nodiscard]] constexpr auto operator+(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator+(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Add the underlying values of `lhs` and `rhs` and return the result.
@@ -81,7 +81,7 @@ the underlying architecture, if all possible results will fit.
 ===== operator-
 
 ```c++
-[[nodiscard]] constexpr auto operator-(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator-(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Subtract the underlying values of `lhs` and `rhs` and return the result.
@@ -93,7 +93,7 @@ Value types are demoted to a narrower type, down to the natural word size of
 the underlying architecture, if all possible results will fit.
 
 ```c++
-[[nodiscard]] constexpr auto operator-(Var auto v);
+[[nodiscard]] constexpr auto operator-(any_constrained auto v);
 ```
 
 Equivalent to `0_i - v`.
@@ -101,7 +101,7 @@ Equivalent to `0_i - v`.
 ===== operator*
 
 ```c++
-[[nodiscard]] constexpr auto operator*(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator*(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Multiply the underlying values of `lhs` and `rhs` and return the result.
@@ -112,7 +112,7 @@ overflow or underflow. No wraparound for signed or unsigned types.
 ===== operator/
 
 ```c++
-[[nodiscard]] constexpr auto operator/(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator/(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Divide the underlying values of `lhs` and `rhs` and return the result.
@@ -122,13 +122,13 @@ the underlying architecture, if all possible results will fit.
 
 [WARNING]
 ====
-A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+A compilation error will result if the `rhs` constraint doesn't exclude '0'.
 ====
 
 ===== operator%
 
 ```c++
-[[nodiscard]] constexpr auto operator%(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator%(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Modulo the underlying values of `lhs` and `rhs` and return the result.
@@ -138,13 +138,13 @@ the underlying architecture, if all possible results will fit.
 
 [WARNING]
 ====
-A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+A compilation error will result if the `rhs` constraint doesn't exclude '0'.
 ====
 
 ===== operator<<
 
 ```c++
-[[nodiscard]] constexpr auto operator<<(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator<<(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Shift `lhs` left by `rhs` bit positions and return the result.
@@ -162,7 +162,7 @@ enough to represent the value.
 ===== operator>>
 
 ```c++
-[[nodiscard]] constexpr auto operator>>(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator>>(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Shift `lhs` right by `rhs` bit positions and return the result.
@@ -172,14 +172,14 @@ the underlying architecture, if all possible results will fit.
 
 [WARNING]
 ====
-A compilation error will result if the `rhs` requirement doesn't exclude
+A compilation error will result if the `rhs` constraint doesn't exclude
 all negative numbers or numbers larger than the bit width of `lhs`.
 ====
 
 ===== operator|
 
 ```c++
-[[nodiscard]] constexpr auto operator|(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator|(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Bitwise OR the underlying values of `lhs` and `rhs` and return the result.
@@ -189,7 +189,7 @@ The resulting value type is the wider type of `lhs` and `rhs`.
 ===== operator&
 
 ```c++
-[[nodiscard]] constexpr auto operator&(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator&(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Bitwise AND the underlying values of `lhs` and `rhs` and return the result.
@@ -199,7 +199,7 @@ The resulting value type is the narrower type of `lhs` and `rhs`.
 ===== operator^
 
 ```c++
-[[nodiscard]] constexpr auto operator^(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto operator^(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Bitwise XOR the underlying values of `lhs` and `rhs` and return the result.
@@ -209,7 +209,7 @@ The resulting value type is the wider type of `lhs` and `rhs`.
 ===== abs
 
 ```c++
-[[nodiscard]] constexpr auto abs(Var auto v);
+[[nodiscard]] constexpr auto abs(any_constrained auto v);
 ```
 
 Calculate the absolute value of `v` and return the result.
@@ -217,7 +217,7 @@ Calculate the absolute value of `v` and return the result.
 ===== bit_width
 
 ```c++
-[[nodiscard]] constexpr auto bit_width(Var auto v);
+[[nodiscard]] constexpr auto bit_width(any_constrained auto v);
 ```
 
 Calculate the bit width of `v` and return the result.
@@ -228,7 +228,7 @@ the underlying architecture, if all possible results will fit.
 ===== min
 
 ```c++
-[[nodiscard]] constexpr auto min(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto min(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Calculate the minimum of `lhs` and `rhs` and return the result.
@@ -238,7 +238,7 @@ The resulting value type is the narrower type of `lhs` and `rhs`.
 ===== max
 
 ```c++
-[[nodiscard]] constexpr auto max(Var auto lhs, Var auto rhs);
+[[nodiscard]] constexpr auto max(any_constrained auto lhs, any_constrained auto rhs);
 ```
 
 Calculate the maximum of `lhs` and `rhs` and return the result.
@@ -249,9 +249,9 @@ The resulting value type is the wider type of `lhs` and `rhs`.
 
 ```c++
 [[nodiscard]] constexpr auto clamp(
-    Var auto value,
-    Var auto min_val,
-    Var auto max_val
+    any_constrained auto value,
+    any_constrained auto min_val,
+    any_constrained auto max_val
 );
 ```
 
@@ -262,8 +262,8 @@ The resulting value type is the underlying type of `max_val`.
 ```c++
 [[nodiscard]] constexpr auto clamp(
     auto unsafe_value,
-    Var auto min_val,
-    Var auto max_val
+    any_constrained auto min_val,
+    any_constrained auto max_val
 );
 ```
 
@@ -304,7 +304,7 @@ Return true if the set of numbers represented by the requirements `A` and
 
 stem:[A subseteq B]
 
-Return true if the set of numbers represented by the requirement `rhs` contains
+Return true if the set of numbers represented by the constraint `rhs` contains
 all the numbers `lhs` does.
 
 ===== operator{gt}=
@@ -315,7 +315,7 @@ all the numbers `lhs` does.
 
 stem:[A supe B]
 
-Return true if the set of numbers represented by the requirement `lhs` contains
+Return true if the set of numbers represented by the constraint `lhs` contains
 all the numbers `rhs` does.
 
 ===== operator||
@@ -368,7 +368,7 @@ stem:[{a / b \| a in A, b in B}]
 
 [WARNING]
 ====
-A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+A compilation error will result if the `rhs` constraint doesn't exclude '0'.
 ====
 
 ===== operator%
@@ -381,7 +381,7 @@ stem:[{a % b \| a in A, b in B}]
 
 [WARNING]
 ====
-A compilation error will result if the `rhs` requirement doesn't exclude '0'.
+A compilation error will result if the `rhs` constraint doesn't exclude '0'.
 ====
 
 ===== abs
@@ -481,7 +481,7 @@ Member functions are same as `std::array` with the following exceptions:
 1. No C++ exceptions will be thrown by any member function.
 2. `data()` is intentionally omitted.
 3. `operator[](pos)` and `at(pos)` have different signatures to support indexing by 
-   `safe:var`.
+   `safe:constrained_number`.
 
 Only member functions significantly different from `std::array` are documented
 here.
@@ -489,8 +489,8 @@ here.
 ===== operator[]
 
 ```c++
-constexpr auto operator[](var<size_type, ival<0, Size - 1>> pos) -> reference;
-constexpr auto operator[](var<size_type, ival<0, Size - 1>> pos) const -> const_reference;
+constexpr auto operator[](constrained_number<constrain_interval<0, Size - 1>> pos) -, size_type> reference;
+constexpr auto operator[](constrained_number<constrain_interval<0, Size - 1>> pos) const -, size_type> const_reference;
 ```
 
 Access element at `pos`. The value of `pos` must be proven to be within the
@@ -499,8 +499,8 @@ range of the array at compile-time.
 ===== at
 
 ```c++
-constexpr auto at(var<size_type, ival<0, Size - 1>> pos) -> reference;
-constexpr auto at(var<size_type, ival<0, Size - 1>> pos) const -> const_reference;
+constexpr auto at(constrained_number<constrain_interval<0, Size - 1>> pos) -, size_type> reference;
+constexpr auto at(constrained_number<constrain_interval<0, Size - 1>> pos) const -, size_type> const_reference;
 ```
 
 Identical to `operator[]`. Access element at `pos`. The value of `pos` must be
@@ -509,8 +509,8 @@ proven to be within the range of the array at compile-time.
 
 === safe::match
 
-Use runtime checking to safely encapsulate values into `safe::var`s. 
-Automatically infer `safe::var` return type from multiple possible
+Use runtime checking to safely encapsulate values into `safe::constrained_number`s. 
+Automatically infer `safe::constrained_number` return type from multiple possible
 return values.
 
 ==== Examples
@@ -561,7 +561,7 @@ This implementation ensures the return type of `char_to_ord` is
 `ival_s32<0, 15>`. This minimal interval was automatically calculated by
 `safe::match`. This is the power of `safe::match`: check runtime values are 
 within a specified set of values, wrap the values in the corresponding 
-`safe::var` type, and optionally return a value whose `safe::var` requirement
+`safe::constrained_number` type, and optionally return a value whose `safe::constrained_number` constraint
 is the union of the possible values from each branch.
 
 
@@ -577,12 +577,12 @@ namespace safe {
 ```
 
 Similar to boost `irange` and Python's `range`. An iterable range of 
-`safe::var` integers.
+`safe::constrained_number` integers.
 
 ===== Discussion
 
 A drawback of Safe Arithmetic's compile-time checking strategy is apparent 
-when attempting to increment a `safe::var`. Adding `1` to a value could risk
+when attempting to increment a `safe::constrained_number`. Adding `1` to a value could risk
 overflow, and so it results in a compilation error. 
 
 There are some ways around this depending on the specific situation:
@@ -592,7 +592,7 @@ There are some ways around this depending on the specific situation:
 3. Use `safe::match` to conditionally assign the result.
 
 For a simple `for` loop, these options are not useful. `safe::irange` should be
-used instead to iterate over a series of integers with a `safe::var` index 
+used instead to iterate over a series of integers with a `safe::constrained_number` index 
 value.
 
 ===== Example
@@ -628,7 +628,7 @@ namespace safe {
         std::input_iterator<IterType> &&
         std::is_same_v<std::iterator_traits<IterType>::value_type, ValueType> &&
         std::regular_invocable<Op, ValueType, ValueType> &&
-        Var<ValueType>)
+        any_constrained<ValueType>)
     constexpr auto accumulate(
         IterType first, 
         IterType last, 
@@ -644,7 +644,7 @@ namespace safe {
         std::ranges::range<RangeType> &&
         std::is_same_v<std::ranges::range_value_t<RangeType>, ValueType> &&
         std::regular_invocable<Op, ValueType, ValueType> &&
-        Var<ValueType>)
+        any_constrained<ValueType>)
     constexpr auto accumulate(
         RangeType && range, 
         ValueType init = ValueType{}, 
@@ -654,20 +654,20 @@ namespace safe {
 
 Works like `std::accumulate`, with the following exceptions:
 
-1. Only works with ranges of `safe::var`s.
+1. Only works with ranges of `safe::constrained_number`s.
 2. Runtime execution of the function will stop when either the end of the range
    is reached, or `max_iter` is reached.
-3. The return type is a `safe::var` with the largest possible interval based on
+3. The return type is a `safe::constrained_number` with the largest possible interval based on
    the type contained in the range and the `max_iter` value.
 
 ==== safe::reduce
 
 Works like `std::reduce`, with the following exceptions:
 
-1. Only works with ranges of `safe::var`s.
+1. Only works with ranges of `safe::constrained_number`s.
 2. Runtime execution of the function will stop when either the end of the range
    is reached, or `max_iter` is reached.
-3. The return type is a `safe::var` with the largest possible interval based on
+3. The return type is a `safe::constrained_number` with the largest possible interval based on
    the type contained in the range and the `max_iter` value.
 4. The operation over the value type must satisfy the `safe::Associative` and 
    `safe::Commutative` concepts.
@@ -683,7 +683,7 @@ namespace safe {
         std::input_iterator<IterType> &&
         std::is_same_v<std::iterator_traits<IterType>::value_type, ValueType> &&
         std::regular_invocable<Op, ValueType, ValueType> &&
-        Var<ValueType> &&
+        any_constrained<ValueType> &&
         Associative<Op, ValueType> &&
         Commutative<Op, ValueType>)
     constexpr auto reduce(
@@ -701,7 +701,7 @@ namespace safe {
         std::ranges::range<RangeType> &&
         std::is_same_v<std::ranges::range_value_t<RangeType>, ValueType> &&
         std::regular_invocable<Op, ValueType, ValueType> &&
-        Var<ValueType> &&
+        any_constrained<ValueType> &&
         Associative<Op, ValueType> &&
         Commutative<Op, ValueType>)
     constexpr auto reduce(
@@ -720,7 +720,7 @@ namespace safe {
         std::input_iterator<IterType> &&
         std::is_same_v<std::iterator_traits<IterType>::value_type, ValueType> &&
         std::regular_invocable<Op, ValueType, ValueType> &&
-        Var<ValueType> &&
+        any_constrained<ValueType> &&
         Associative<Op, ValueType> &&
         Commutative<Op, ValueType>)
     auto reduce(
@@ -741,7 +741,7 @@ namespace safe {
         std::ranges::range<RangeType> &&
         std::is_same_v<std::ranges::range_value_t<RangeType>, ValueType> &&
         std::regular_invocable<Op, ValueType, ValueType> &&
-        Var<ValueType> &&
+        any_constrained<ValueType> &&
         Associative<Op, ValueType> &&
         Commutative<Op, ValueType>)
     auto reduce(

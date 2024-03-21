@@ -1,6 +1,6 @@
 #include <safe/array.hpp>
 #include <safe/int.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 using namespace safe::literals;
 

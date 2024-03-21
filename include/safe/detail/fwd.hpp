@@ -5,15 +5,15 @@
 #endif
 
 namespace safe {
-template <typename T, auto Requirement> struct var;
+template <auto Constraint, typename T> struct constrained_number;
 
 template <typename T> constexpr bool is_var_v = false;
 
-template <typename T, auto Requirement>
-constexpr bool is_var_v<var<T, Requirement>> = true;
+template <typename T, auto Constraint>
+constexpr bool is_var_v<constrained_number<Constraint, T>> = true;
 
 template <typename T>
-concept Var = is_var_v<T>;
+concept any_constrained = is_var_v<T>;
 
 [[nodiscard]] constexpr inline auto value(auto value);
 
@@ -22,12 +22,12 @@ template <typename U, U value>
 [[nodiscard]] constexpr inline auto make_constant();
 }
 
-template <typename T> struct unsafe_cast_ferry {
+template <typename T> struct constraint_cast_ferry {
   private:
     T v;
 
   public:
-    SAFE_INLINE constexpr explicit(true) unsafe_cast_ferry(T new_value)
+    SAFE_INLINE constexpr explicit(true) constraint_cast_ferry(T new_value)
         : v{new_value} {}
 
     [[nodiscard]] SAFE_INLINE constexpr auto value() const -> T { return v; }
@@ -36,13 +36,13 @@ template <typename T> struct unsafe_cast_ferry {
 } // namespace safe
 
 template <typename T>
-    requires(safe::Var<T>)
-[[nodiscard]] constexpr auto unsafe_cast(auto const &src) {
-    return T{safe::unsafe_cast_ferry{src}};
+    requires(safe::any_constrained<T>)
+[[nodiscard]] constexpr auto constraint_cast(auto const &src) {
+    return T{safe::constraint_cast_ferry{src}};
 }
 
 template <typename T>
-    requires(!safe::Var<T>)
-[[nodiscard]] constexpr auto unsafe_cast(auto const &src) {
+    requires(!safe::any_constrained<T>)
+[[nodiscard]] constexpr auto constraint_cast(auto const &src) {
     return src;
 }

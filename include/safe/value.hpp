@@ -1,7 +1,7 @@
 #pragma once
 
 #include <safe/dsl.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 #include <limits>
 
@@ -10,6 +10,6 @@ constexpr auto value(auto value) {
     using value_t = decltype(value);
     constexpr value_t min = std::numeric_limits<value_t>::lowest();
     constexpr value_t max = std::numeric_limits<value_t>::max();
-    return unsafe_cast<var<value_t, ival<min, max>>>(value);
+    return constraint_cast<constrained_number<constrain_interval<min, max>, value_t>>(value);
 }
 } // namespace safe

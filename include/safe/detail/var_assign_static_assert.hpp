@@ -15,7 +15,7 @@ template <typename LhsT, typename RhsT> struct rhs_must_be_subset_of_lhs {
 
 constexpr inline void static_assert_assign_requirements(auto lhs, auto rhs) {
     static_assert(
-        rhs_must_be_subset_of_lhs<lhs_req<decltype(lhs.requirement)>,
-                                  rhs_req<decltype(rhs.requirement)>>::value);
+        rhs_must_be_subset_of_lhs<lhs_req<decltype(lhs.constraint)>,
+                                  rhs_req<decltype(rhs.constraint)>>::value);
 }
 } // namespace safe

@@ -9,4 +9,4 @@
 #include <safe/match.hpp>
 #include <safe/object.hpp>
 #include <safe/value.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>

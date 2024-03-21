@@ -13,27 +13,27 @@
 #include <safe/dsl/is_equal.hpp>
 #include <safe/dsl/is_subset.hpp>
 #include <safe/dsl/is_superset.hpp>
-#include <safe/dsl/ival.hpp>
-#include <safe/dsl/mask.hpp>
+#include <safe/dsl/constrain_interval.hpp>
+#include <safe/dsl/constrain_mask.hpp>
 #include <safe/dsl/max.hpp>
 #include <safe/dsl/min.hpp>
 #include <safe/dsl/minus.hpp>
 #include <safe/dsl/modulo.hpp>
 #include <safe/dsl/multiply.hpp>
-#include <safe/dsl/set.hpp>
+#include <safe/dsl/constrain_set.hpp>
 #include <safe/dsl/shift_left.hpp>
 #include <safe/dsl/shift_right.hpp>
 #include <safe/dsl/union.hpp>
 
 namespace safe {
-using safe::dsl::ival;
-using safe::dsl::ival_t;
+using safe::dsl::constrain_interval;
+using safe::dsl::constrain_interval_t;
 
-using safe::dsl::mask;
-using safe::dsl::mask_t;
+using safe::dsl::constrain_mask;
+using safe::dsl::constrain_mask_t;
 
-using safe::dsl::set;
-using safe::dsl::set_t;
+using safe::dsl::constrain_set;
+using safe::dsl::constrain_set_t;
 
 using safe::dsl::intersection_t;
 using safe::dsl::union_t;

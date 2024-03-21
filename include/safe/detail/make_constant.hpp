@@ -1,11 +1,11 @@
 #pragma once
 
 #include <safe/dsl.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 namespace safe::detail {
 template <typename U, U value>
 [[nodiscard]] constexpr inline auto make_constant() {
-    return unsafe_cast<var<U, ival<value, value>>>(value);
+    return constraint_cast<constrained_number<constrain_interval<value, value>, U>>(value);
 }
 } // namespace safe::detail

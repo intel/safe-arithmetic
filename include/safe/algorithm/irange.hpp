@@ -22,7 +22,7 @@ template <typename BeginT, typename EndT> struct irange {
             : parent_{parent}, value_{value}, end_{end} {}
 
         constexpr auto operator*() const -> ret_t {
-            return unsafe_cast<ret_t>(value_);
+            return constraint_cast<ret_t>(value_);
         }
 
         constexpr auto operator++() {

@@ -11,7 +11,7 @@ using namespace safe::interval_types;
 using namespace safe::int_types;
 using namespace safe::literals;
 
-using safe::ival;
+using safe::constrain_interval;
 
 struct mock_function {
     MOCK_METHOD(void, two_safe_vars, (int, int));
@@ -104,7 +104,7 @@ TEST(safe_runtime_check_test, single_interval_var) {
 }
 
 TEST(safe_runtime_check_test, interval_union) {
-    using safe_var = safe::var<int, ival<0, 10> || ival<20, 30>>;
+    using safe_var = safe::constrained_number<constrain_interval<0, 10> || constrain_interval<20, 30>, int>;
 
     EXPECT_TRUE((safe::detail::check<safe_var>(0)));
     EXPECT_TRUE((safe::detail::check<safe_var>(5)));

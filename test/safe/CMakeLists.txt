@@ -1,5 +1,5 @@
 add_subdirectory(array)
-add_subdirectory(var)
+add_subdirectory(constrained_number)
 
 function(add_test_suites)
     foreach(test_file ${ARGN})
@@ -31,7 +31,7 @@ add_test_suites(
     big_integer/detail/compare.cpp
     big_integer/detail/divides.cpp
     big_integer.cpp
-    var.cpp
+    constrained_number.cpp
     match.cpp
     array.cpp
     dsl/add.cpp
@@ -40,7 +40,7 @@ add_test_suites(
     dsl/is_equal.cpp
     dsl/is_subset.cpp
     dsl/abs.cpp
-    dsl/mask.cpp
+    dsl/constrain_mask.cpp
     dsl/bitwise_and.cpp
     dsl/detail/triint.cpp
     dsl/bitwise_or.cpp

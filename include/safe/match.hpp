@@ -1,7 +1,7 @@
 #pragma once
 
 #include <safe/detail/function.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -15,15 +15,15 @@ template <typename F, typename... Fs> struct common_ret {
 };
 
 template <typename F, typename... Fs>
-    requires(Var<function_ret_t<F>> && ... && Var<function_ret_t<Fs>>)
+    requires(any_constrained<function_ret_t<F>> && ... && any_constrained<function_ret_t<Fs>>)
 struct common_ret<F, Fs...> {
     constexpr static auto ret_requirement =
-        (function_ret_t<F>::requirement || ... ||
-         function_ret_t<Fs>::requirement);
+        (function_ret_t<F>::constraint || ... ||
+         function_ret_t<Fs>::constraint);
 
     using value_type = typename function_ret_t<F>::value_type;
 
-    using type = var<value_type, ret_requirement>;
+    using type = constrained_number<ret_requirement, value_type>;
 };
 
 template <typename... Fs> using common_ret_t = typename common_ret<Fs...>::type;
@@ -71,7 +71,7 @@ template <typename F, typename... Fs>
                 func_arg_types{}, std::forward<decltype(args)>(args)...);
 
             if (args_satisfy_reqs) {
-                return func(unsafe_cast_ferry{
+                return func(constraint_cast_ferry{
                     detail::unwrap_var(std::forward<decltype(args)>(args))}...);
 
             } // check the remaining functions' requirements

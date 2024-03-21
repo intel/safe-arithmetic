@@ -11,8 +11,8 @@ using namespace safe::interval_types;
 using namespace safe::int_types;
 using namespace safe::literals;
 
-using safe::ival;
-using safe::mask;
+using safe::constrain_interval;
+using safe::constrain_mask;
 
 template <typename T> class safe_int_assign_test : public testing::Test {};
 
@@ -41,60 +41,60 @@ using std_int_types = ::testing::Types<uint8_t, uint16_t, uint32_t, uint64_t,
 TYPED_TEST_SUITE(safe_var_ops_test, std_int_types);
 
 TYPED_TEST(safe_var_ops_test, add_op) {
-    safe::var<TypeParam, ival<0, 50>> const a = 13_s32;
-    safe::var<TypeParam, ival<0, 50>> const b = 29_s32;
+    safe::constrained_number<constrain_interval<0, 50>, TypeParam> const a = 13_s32;
+    safe::constrained_number<constrain_interval<0, 50>, TypeParam> const b = 29_s32;
     auto const result = a + b;
     EXPECT_EQ(result.unsafe_value(), 42);
 }
 
 TYPED_TEST(safe_var_ops_test, minus_op) {
-    safe::var<TypeParam, ival<30, 100>> const a = 32_s32;
-    safe::var<TypeParam, ival<0, 30>> const b = 8_s32;
+    safe::constrained_number<constrain_interval<30, 100>, TypeParam> const a = 32_s32;
+    safe::constrained_number<constrain_interval<0, 30>, TypeParam> const b = 8_s32;
     auto const result = a - b;
     EXPECT_EQ(result.unsafe_value(), 24);
 }
 
 TYPED_TEST(safe_var_ops_test, multiply_op) {
-    safe::var<TypeParam, ival<0, 10>> const a = 6_s32;
-    safe::var<TypeParam, ival<0, 10>> const b = 8_s32;
+    safe::constrained_number<constrain_interval<0, 10>, TypeParam> const a = 6_s32;
+    safe::constrained_number<constrain_interval<0, 10>, TypeParam> const b = 8_s32;
     auto const result = a * b;
     EXPECT_EQ(result.unsafe_value(), 48);
 }
 
 TYPED_TEST(safe_var_ops_test, divide_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 45_s32;
-    safe::var<TypeParam, ival<1, 100>> const b = 5_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const a = 45_s32;
+    safe::constrained_number<constrain_interval<1, 100>, TypeParam> const b = 5_s32;
     auto const result = a / b;
     EXPECT_EQ(result.unsafe_value(), 9);
 }
 
 // FIXME: MODULO NEEDS TO BE REWRITTEN
 // TYPED_TEST(safe_var_ops_test, modulo_op) {
-//    safe::var<TypeParam, ival<0, 100>> const a = 12_s32;
-//    safe::var<TypeParam, ival<1, 100>> const b = 5_s32;
+//    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const a = 12_s32;
+//    safe::constrained_number<constrain_interval<1, 100>, TypeParam> const b = 5_s32;
 //    auto const result = a % b;
 //    EXPECT_EQ(result.unsafe_value(), 2);
 //}
 
 // FIXME: big_integer needs variable left shift support
 // TYPED_TEST(safe_var_ops_test, left_shift_op) {
-//    safe::var<TypeParam, ival<0, 8>> const a = 8_s32;
-//    safe::var<TypeParam, ival<0, 3>> const b = 2_s32;
+//    safe::constrained_number<constrain_interval<0, 8>, TypeParam> const a = 8_s32;
+//    safe::constrained_number<constrain_interval<0, 3>, TypeParam> const b = 2_s32;
 //    auto const result = a << b;
 //    EXPECT_EQ(result.unsafe_value(), 32);
 //}
 
 // FIXME: big_integer needs variable right shift support
 // TYPED_TEST(safe_var_ops_test, right_shift_op) {
-//    safe::var<TypeParam, ival<0, 100>> const a = 48_s32;
-//    safe::var<TypeParam, ival<0, 8>> const b = 2_s32;
+//    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const a = 48_s32;
+//    safe::constrained_number<constrain_interval<0, 8>, TypeParam> const b = 2_s32;
 //    auto const result = a >> b;
 //    EXPECT_EQ(result.unsafe_value(), 12);
 //}
 
 TYPED_TEST(safe_var_ops_test, spaceship_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 45_s32;
-    safe::var<TypeParam, ival<0, 100>> const b = 87_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const a = 45_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const b = 87_s32;
 
     EXPECT_TRUE(a == a);
     EXPECT_TRUE(b == b);
@@ -116,22 +116,22 @@ TYPED_TEST(safe_var_ops_test, spaceship_op) {
 }
 
 TYPED_TEST(safe_var_ops_test, max_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 48_s32;
-    safe::var<TypeParam, ival<0, 100>> const b = 32_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const a = 48_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const b = 32_s32;
     auto const result = std::max(a, b);
     EXPECT_EQ(result.unsafe_value(), 48);
 }
 
 TYPED_TEST(safe_var_ops_test, min_op) {
-    safe::var<TypeParam, ival<0, 100>> const a = 48_s32;
-    safe::var<TypeParam, ival<0, 100>> const b = 32_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const a = 48_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const b = 32_s32;
     auto const result = std::min(a, b);
     EXPECT_EQ(result.unsafe_value(), 32);
 }
 
 TYPED_TEST(safe_var_ops_test, clamp_op) {
-    safe::var<TypeParam, ival<0, 100>> const min = 32_s32;
-    safe::var<TypeParam, ival<0, 100>> const max = 48_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const min = 32_s32;
+    safe::constrained_number<constrain_interval<0, 100>, TypeParam> const max = 48_s32;
     auto const result = clamp(65, min, max);
     EXPECT_EQ(result.unsafe_value(), 48);
 }
@@ -179,24 +179,24 @@ TEST(safe_var_test, abs_op) {
 }
 
 TEST(safe_var_test, bitwise_or_op) {
-    safe::var<uint32_t, mask<0xff>> const a = 15_s32;
-    safe::var<uint32_t, mask<0xff>> const b = 9_s32;
+    safe::constrained_number<constrain_mask<0xff>, uint32_t> const a = 15_s32;
+    safe::constrained_number<constrain_mask<0xff>, uint32_t> const b = 9_s32;
     auto const result = a & b;
     EXPECT_EQ(result.unsafe_value(), 9);
 }
 
 TEST(safe_var_test, add_int_const) {
-    safe::var<uint32_t, ival<0, 100>> const a = 15_s32;
+    safe::constrained_number<constrain_interval<0, 100>, uint32_t> const a = 15_s32;
     auto const result = a + std::integral_constant<int, 10>{};
     EXPECT_EQ(result.unsafe_value(), 25);
 }
 
-// FIXME: need to automatically convert integral_constants to safe::var
+// FIXME: need to automatically convert integral_constants to safe::constrained_number
 TEST(safe_var_test, use_case_bitfield_extract_1) {
     safe::u32 const reg = u32_<0xba5eba11>;
     auto const field = (reg >> u32_<16>)&u32_<0xff>;
 
-    EXPECT_TRUE(field.requirement <= mask<0xff>);
+    EXPECT_TRUE(field.constraint <= constrain_mask<0xff>);
     EXPECT_EQ(field.unsafe_value(), 0x5e);
 }
 
@@ -204,6 +204,6 @@ TEST(safe_var_test, use_case_bitfield_extract_2) {
     auto const reg = u32_<0xba5eba11>;
     auto const field = (reg >> u32_<16>)&u32_<0xff>;
 
-    EXPECT_TRUE(field.requirement <= mask<0xff>);
+    EXPECT_TRUE(field.constraint <= constrain_mask<0xff>);
     EXPECT_EQ(field.unsafe_value(), 0x5e);
 }

@@ -4,26 +4,26 @@
 === Safe Arithmetic Environment
 
 The Safe Arithmetic library uses the C++ type system to encode and enforce
-requirements on values. A special template type, `safe::var` is used to contain
+requirements on values. A special template type, `safe::constrained_number` is used to contain
 these values.
 
 ```c++
 namespaced safe {
     template<typename ValueType, auto Requirements>
-    struct var;
+    struct constrained_number;
 }
 ```
 
-Arithmetic, bitwise, and shift operators on `safe::var` values results in
-the generation of a new `safe::var` with its requirements updated to represent
-the set of possible values the result may contain. Operations on `safe::var`
+Arithmetic, bitwise, and shift operators on `safe::constrained_number` values results in
+the generation of a new `safe::constrained_number` with its requirements updated to represent
+the set of possible values the result may contain. Operations on `safe::constrained_number`
 values are guaranteed to be safe at compile-time. There is no runtime overhead
 incurred. Only the desired operations are performed.
 
-Operations on instances of `safe::var` forms a hermetically sealed context in
+Operations on instances of `safe::constrained_number` forms a hermetically sealed context in
 which overflows, underflows, and division-by-zero are proven impossible by
 the Safe Arithmetic library implementation. If such a condition were possible
-due to an arithmetic operation on a `safe::var`, then compilation would fail.
+due to an arithmetic operation on a `safe::constrained_number`, then compilation would fail.
 
 This leaves two important questions, how to get values in and out of this "Safe
 Arithmetic Environment".
@@ -31,8 +31,8 @@ Arithmetic Environment".
 === Creating Safe Values
 
 Safe literal values can be created using the `_i` user defined literal. It will
-create a `safe::var` with the necessary integer type to contain the value and
-a requirement that matches the value. Literal values larger than 64-bits are
+create a `safe::constrained_number` with the necessary integer type to contain the value and
+a constraint that matches the value. Literal values larger than 64-bits are
 implemented using an arbitrary precision integer type built into the Safe
 Arithmetic library.
 
@@ -44,24 +44,24 @@ namespace safe::literals {
 ```
 
 Safe versions of the C++ primitive integer types are available for declaring
-runtime values. Each primitive integer type is wrapped in `safe::var` with a
-requirement describing the range of that primitive type.
+runtime values. Each primitive integer type is wrapped in `safe::constrained_number` with a
+constraint describing the range of that primitive type.
 
 ```c++
 namespace safe {
     // safe versions of C++ primitive integer types
-    using u8 = var<std::uint8_t, ...>;
-    using s8 = var<std::int8_t, ...>;
-    using u16 = var<std::uint16_t, ...>;
-    using s16 = var<std::int16_t, ...>;
-    using u32 = var<std::uint32_t, ...>;
-    using s32 = var<std::int32_t, ...>;
-    using u64 = var<std::uint64_t, ...>;
-    using s64 = var<std::int64_t, ...>;
+    using u8 = constrained_number<..., std::uint8_t>;
+    using s8 = constrained_number<..., std::int8_t>;
+    using u16 = constrained_number<..., std::uint16_t>;
+    using s16 = constrained_number<..., std::int16_t>;
+    using u32 = constrained_number<..., std::uint32_t>;
+    using s32 = constrained_number<..., std::int32_t>;
+    using u64 = constrained_number<..., std::uint64_t>;
+    using s64 = constrained_number<..., std::int64_t>;
 }
 ```
 
-Because each safe primitive integer type requirement's can contain all values
+Because each safe primitive integer type constraint's can contain all values
 that are representable by the underlying type, it is safe to directly assign
 primitive values to instances of these safe primitive types.
 
@@ -102,7 +102,7 @@ Safe Arithmetic library provides an arbitrary precision implementation,
 namespace safe {
     // safe arbitrary precision signed integer type
     template<std::size_t NumBits>
-    using integer = var<...>;
+    using integer = constrained_number<...>;
 }
 ```
 
@@ -138,12 +138,12 @@ safe::u64 reg_result_3 = (hw_reg_1 + hw_reg2) & 0xFFFF'FFFF'FFFF'FFFF_i;
 
 `safe::match` is the only mechanism in the Safe Arithmetic library that will
 produce additional runtime overhead. It creates a callable object that may be
-called with `safe::var` or naked integer values. It uses compile-time checks
+called with `safe::constrained_number` or naked integer values. It uses compile-time checks
 if possible to match the given arguments with the `matchable_funcs` arguments.
 If compile-time checks are not possible for an argument, then the value is
 checked at runtime to determine if it satisfies the requirements for one of the
 `matchable_funcs`. It is analogous to a pattern matching switch statement where
-the `matchable_funcs` arguments `safe::var` requirements are the patterns to
+the `matchable_funcs` arguments `safe::constrained_number` requirements are the patterns to
 match the callable object's input arguments against.
 
 This is the recommended way of marshalling external integer values into a safe
@@ -216,7 +216,7 @@ void event_count_interrupt_handler() {
 reference section.
 
 The final method of introducing values into the safe arithmetic environment is
-through `unsafe_cast<T>(value)`. It bypasses all compile-time and runtime
+through `constraint_cast<T>(value)`. It bypasses all compile-time and runtime
 safety checks and depends on the value to be proven to satisfy the requirements
 of `T` using mechanisms outside the visibility and scope of the Safe Arithmetic
 library. Its use is highly discouraged. The name is chosen to cause an uneasy
@@ -224,11 +224,11 @@ feeling in programmers and clearly signal a red flag for code reviewers.
 
 ```c++
 template<typename T>
-T unsafe_cast(auto value);
+T constraint_cast(auto value);
 ```
 
-`unsafe_cast<T>(value)` is used within the Safe Arithmetic library to ferry
-values into instances of `safe::var` after proving it is safe to do so. It is
+`constraint_cast<T>(value)` is used within the Safe Arithmetic library to ferry
+values into instances of `safe::constrained_number` after proving it is safe to do so. It is
 necessary for the library's construction.
 
 As always, an example is useful to illustrate how to use a particular function.
@@ -238,7 +238,7 @@ std::uint16_t some_function();
 void do_something_useful(safe::ival_u32<0, 1024> useful_value);
 
 // VERY DANGEROUS: Don't do this!
-auto dangerous_value = unsafe_cast<safe::ival_u32<0, 1024>>(some_function());
+auto dangerous_value = constraint_cast<safe::ival_u32<0, 1024>>(some_function());
 do_something_useful(dangerous_value);
 
 // SAFE: Use safe::match instead. This will only call 'do_something_useful'
@@ -246,10 +246,10 @@ do_something_useful(dangerous_value);
 // 'useful_value'. If it doesn't match, the default callable will be invoked.
 safe::match<void>(do_something_useful, [](){})(some_function());
 
-// SAFE: Don't use unsafe_cast<T>(value), try almost everything else first.
+// SAFE: Don't use constraint_cast<T>(value), try almost everything else first.
 ```
 
-If you find a case where you feel you must use `unsafe_cast`, then maybe there
+If you find a case where you feel you must use `constraint_cast`, then maybe there
 is a gap in the Safe Arithmetic API or an algorithm that is missing. Please let
 us know by filing an issue.
 
@@ -257,30 +257,27 @@ us know by filing an issue.
 
 Extracting values out of the safe arithmetic environment is not dangerous or
 unsafe in itself, but it is important to be explicit when doing so.
-`safe_cast<T>(value)` is used to extract integer values out of `safe::vars`.
+`static_cast<T>(value)` is used to extract integer values out of `safe::constrained_numbers`.
 It is an acknowledgement by the programmer they are leaving the safe
 environment and must now take on the burden of ensuring safe arithmetic
 operations manually. It is also a clear indication for code reviewers to take a
 more critical look at any following integer operations.
 
 ```c++
-template<typename T>
-T safe_cast(auto value);
-
 safe::ival_s32<-1000, 1000> my_safe_value = 42_i;
 
-// SAFE: It's OK to use safe_cast to assign to a wider primitive type
-auto innocent_value = safe_cast<std::int32_t>(my_safe_value);
+// SAFE: It's OK to use static_cast to assign to a wider primitive type
+auto innocent_value = static_cast<std::int32_t>(my_safe_value);
 
-// COMPILE ERROR: A narrowing conversion is not allowed by safe_cast
-auto another_innocent = safe_cast<std::int8_t>(my_safe_value);
+// COMPILE ERROR: A narrowing conversion is not allowed by static_cast
+auto another_innocent = static_cast<std::int8_t>(my_safe_value);
 ```
 
 
 === Safe Arithmetic Requirements DSL
 
 The Requirements Domain-Specific Language is used to define the set of valid
-values for a `safe::var<T, Requirements>` templated type. `safe_numerics` and
+values for a `safe::constrained_number<Requirements, T>` templated type. `safe_numerics` and
 `bounded::integer` both use interval arithmetic at compile time to track the
 set of valid values. The Safe Arithmetic library works with intervals, sets,
 tristate bitmasks, and set operators like union, intersection, and difference
@@ -298,14 +295,14 @@ safe::ival_s32<-100, 100> small_number{};
 Which is equivalent to the following:
 
 ```c++
-safe::var<std::int32_t, safe::ival<-100, 100>> small_number = 0_i;
+safe::constrained_number<safe::constrain_interval<-100, 100>, std::int32_t> small_number = 0_i;
 ```
 
 If we want to exclude '0' from the range, the DSL allows us to do that:
 
 ```c++
-using safe::ival;
-safe::var<std::int32_t, ival<-100, -1> || ival<1, 100>> small_nonzero_number = 1_i;
+using safe::constrain_interval;
+safe::constrained_number<constrain_interval<-100, -1> || constrain_interval<1, 100>, std::int32_t> small_nonzero_number = 1_i;
 ```
 
 This enables the library to protect against divide-by-zero at compile-time. The
@@ -319,40 +316,40 @@ auto result_1 = 10_i / small_number;
 auto result_2 = 10_i / small_nonzero_number;
 ```
 
-The DSL can be used by itself, outside of `safe::var`. This can be helpful to
+The DSL can be used by itself, outside of `safe::constrained_number`. This can be helpful to
 illustrate the rules and capabilities of the DSL itself.
 
-The assignment operator and constructors for `safe::var<T, Req>` that accept
-another `safe::var<RhsT, RhsReq>` use set inequality operators to determine
+The assignment operator and constructors for `safe::constrained_number<Req, T>` that accept
+another `safe::constrained_number<RhsReq, RhsT>` use set inequality operators to determine
 whether it is safe or not. The right-hand-side argument's requirements must
 be a subset of the left-hand-side target.
 
 ```c++
-using safe::ival;
+using safe::constrain_interval;
 
-constexpr auto non_zero_req = ival<-100, -1> || ival<1, 100>;
-constexpr auto small_num_req = ival<-100, 100>;
+constexpr auto non_zero_req = constrain_interval<-100, -1> || constrain_interval<1, 100>;
+constexpr auto small_num_req = constrain_interval<-100, 100>;
 
 // The `<=` operator is used for 'is subset of'
 static_assert(non_zero_req <= small_num_req);
 
-safe::var<std:int32_t, non_zero_req> non_zero = 1_i;
+safe::constrained_number<non_zero_req, std:int32_t> non_zero = 1_i;
 
 // The `<=` operator ensures this assignment is safe at compile-time
-safe::var<std::int32_t, small_num_req> small_num = non_zero;
+safe::constrained_number<small_num_req, std::int32_t> small_num = non_zero;
 ```
 
-When any operation is performed on a `safe::var` instance, the mirror operation
+When any operation is performed on a `safe::constrained_number` instance, the mirror operation
 is performed on the requirements.
 
 ```c++
-using safe::ival;
+using safe::constrain_interval;
 
-constexpr auto one_to_ten_req = ival<1, 10>;
-constexpr auto non_zero_req = ival<-100, -1> || ival<1, 100>;
+constexpr auto one_to_ten_req = constrain_interval<1, 10>;
+constexpr auto non_zero_req = constrain_interval<-100, -1> || constrain_interval<1, 100>;
 
-safe::var<std:int32_t, non_zero_req> a = 42_i;
-safe::var<std:int32_t, one_to_ten_req> b = 3_i;
+safe::constrained_number<non_zero_req, std:int32_t> a = 42_i;
+safe::constrained_number<one_to_ten_req, std:int32_t> b = 3_i;
 
 auto c = a * b;
 
@@ -360,30 +357,30 @@ auto c = a * b;
 assert(c == 126_i);
 
 // static requirements are also updated as expected
-static_assert(c.requirement == ival<-1000, -1> || ival<1, 1000>);
+static_assert(c.constraint == constrain_interval<-1000, -1> || constrain_interval<1, 1000>);
 ```
 
-==== Requirement DSL Primitives
+==== Constraint DSL Primitives
 
 |===
 |Name |Definition |{cpp} | Description
 
 |Interval
 |stem:[[a, b]]
-| ```safe::ival<a, b>```
+| ```safe::constrain_interval<a, b>```
 | A set of values from a to b, inclusive.
 
 |Set
 |stem:[{a, b, c, ...}]
-| ```safe::set<a, b, c, ...>```
+| ```safe::constrain_set<a, b, c, ...>```
 | A set of explicitly defined values.
 
 |Mask
 |
 stem:[{x in NN \| 0 <= x < 2^n ^^ (x\ \&\ ~V) = C))}]
 
-| ```safe::mask<V, C>```
-| V is the variable bits mask. C is the constant bits mask. `safe::mask`
+| ```safe::constrain_mask<V, C>```
+| V is the variable bits mask. C is the constant bits mask. `safe::constrain_mask`
 produces a set of integers where the binary digits match C if the corresponding
 digits of V are unset. The binary digit places that are set in V are
 unconstrained in the elements of the produced set.
@@ -391,7 +388,7 @@ unconstrained in the elements of the produced set.
 |===
 
 
-==== Requirement DSL Operators
+==== Constraint DSL Operators
 
 |===
 |Name |Definition |{cpp} Operator | Description

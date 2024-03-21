@@ -22,7 +22,7 @@ are selected:
    underflow.
 3. No C++ exceptions. Exceptional conditions will not be handled by
    `big_integer`. For user code, `big_integer` should always be wrapped in a
-   `safe::var` to provide protection from unsafe operations.
+   `safe::constrained_number` to provide protection from unsafe operations.
 4. `big_integer` shall be signed and there will be no unsigned version.
 5. Seamless interop with standard integral types.
 
