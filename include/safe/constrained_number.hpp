@@ -37,7 +37,7 @@ template <any_constraint auto C, typename T> struct constrained_number {
 
     template <typename U>
         requires(std::integral<U> &&
-                 (constraint >= dsl::constraint_of<U>))
+                 (constraint >= constraint_of<U>))
     // NOLINTNEXTLINE(google-explicit-constructor)
     SAFE_INLINE constexpr constrained_number(U rhs) : _raw_value{rhs} {}
 
@@ -69,7 +69,7 @@ template <any_constraint auto C, typename T> struct constrained_number {
     }
 
     template<std::integral U>
-    requires (constraint <= dsl::constraint_of<U>)
+    requires (constraint <= constraint_of<U>)
     [[nodiscard]] SAFE_INLINE constexpr operator U() {
         SAFE_ASSUME(constraint.check(_raw_value));
         return _raw_value;
@@ -80,17 +80,17 @@ template <any_constraint auto C, typename T> struct constrained_number {
         return _raw_value;
     }
 
-    static_assert(constraint <= dsl::constraint_of<T>);
+    static_assert(constraint <= constraint_of<T>);
 
     /// @brief Do not use. Public to support use as non-type template parameter.
     T _raw_value;
 };
 
 template<std::integral T>
-constrained_number(T) -> constrained_number<dsl::constraint_of<T>, T>;
+constrained_number(T) -> constrained_number<constraint_of<T>, T>;
 
 template<std::integral T, T v>
-constrained_number(std::integral_constant<T, v>) -> constrained_number<dsl::constrain_interval<v, v>, T>;
+constrained_number(std::integral_constant<T, v>) -> constrained_number<constrain_interval<v, v>, T>;
 
 
 template <typename... Ts> constexpr bool at_least_one_cnum = (... or any_constrained<Ts>);

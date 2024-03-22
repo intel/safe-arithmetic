@@ -21,6 +21,7 @@
 #include <safe/dsl/modulo.hpp>
 #include <safe/dsl/multiply.hpp>
 #include <safe/dsl/constrain_set.hpp>
+#include <safe/dsl/constraint_of.hpp>
 #include <safe/dsl/shift_left.hpp>
 #include <safe/dsl/shift_right.hpp>
 #include <safe/dsl/union.hpp>
@@ -37,4 +38,6 @@ using safe::dsl::constrain_set_t;
 
 using safe::dsl::intersection_t;
 using safe::dsl::union_t;
+
+using safe::dsl::constraint_of;
 } // namespace safe
