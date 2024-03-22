@@ -7,3 +7,4 @@
 #include <safe/int.hpp>
 #include <safe/match.hpp>
 #include <safe/constrained_number.hpp>
+#include <safe/make_constrained.hpp>
