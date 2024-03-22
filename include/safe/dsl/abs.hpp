@@ -30,7 +30,7 @@ template <detail::Primitive T> struct abs_t<T> : public detail::unary_op {
                         std::max(detail::abs(val::min), detail::abs(val::max))>;
 };
 
-template <Operand T> [[nodiscard]] constexpr auto abs(T) -> abs_t<T> {
+template <any_constraint T> [[nodiscard]] constexpr auto abs(T) -> abs_t<T> {
     return {};
 }
 } // namespace safe::dsl

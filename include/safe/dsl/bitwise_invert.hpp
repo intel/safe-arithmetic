@@ -15,7 +15,7 @@ struct bitwise_invert<T> : public detail::unary_op {
     using type = constrain_mask_t<value.var_bits(), value.const_bits()>;
 };
 
-template <Operand T>
+template <any_constraint T>
 [[nodiscard]] constexpr auto operator~(T) -> bitwise_invert<T> {
     return {};
 }

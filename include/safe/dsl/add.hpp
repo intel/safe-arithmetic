@@ -19,7 +19,7 @@ struct add<LhsT, RhsT> : public detail::binary_op {
     using type = constrain_mask_t<value.var_bits(), value.const_bits()>;
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator+(LhsT, RhsT) -> add<LhsT, RhsT> {
     return {};
 }

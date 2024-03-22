@@ -18,7 +18,7 @@
 #include <type_traits>
 
 namespace safe {
-template <auto C, typename T> struct constrained_number {
+template <any_constraint auto C, typename T> struct constrained_number {
   public:
     constexpr static auto constraint = C;
     using value_type = T;

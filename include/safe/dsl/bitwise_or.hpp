@@ -9,7 +9,7 @@ namespace safe::dsl {
 template <typename T, typename U>
 struct bitwise_or : public detail::binary_op {};
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator|(LhsT, RhsT) -> bitwise_or<LhsT, RhsT> {
     return {};
 }

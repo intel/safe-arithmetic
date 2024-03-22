@@ -18,7 +18,7 @@ template <detail::Primitive T> struct bit_width_t<T> : public detail::unary_op {
                         std::bit_width(val::var_bits | val::const_bits)>;
 };
 
-template <Operand T>
+template <any_constraint T>
 [[nodiscard]] constexpr auto bit_width(T) -> bit_width_t<T> {
     return {};
 }

@@ -18,7 +18,7 @@ struct min_t<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_mi
             lhs_max, rhs_max)>;
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto min(LhsT, RhsT) -> min_t<LhsT, RhsT> {
     return {};
 }

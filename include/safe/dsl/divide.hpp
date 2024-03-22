@@ -20,7 +20,7 @@ struct divide<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_m
                                     lhs_max / rhs_min, lhs_max / rhs_max>>;
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator/(LhsT, RhsT) -> divide<LhsT, RhsT> {
     return {};
 }

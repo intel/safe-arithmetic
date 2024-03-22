@@ -86,7 +86,7 @@ struct modulo<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_m
     using type = constrain_interval_t<-(rhs_max - 1), 0>;
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator%(LhsT, RhsT) -> modulo<LhsT, RhsT> {
     return {};
 }

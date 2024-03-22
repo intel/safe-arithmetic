@@ -38,7 +38,7 @@ struct shift_right<constrain_mask_t<lhs_var_bits, lhs_const_bits>,
                             shift_right<lhs_mask, constrain_interval_t<rhs_max, rhs_max>>>;
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator>>(LhsT, RhsT) -> shift_right<LhsT, RhsT> {
     return {};
 }

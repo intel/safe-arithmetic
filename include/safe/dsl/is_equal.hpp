@@ -6,7 +6,7 @@
 #include <type_traits>
 
 namespace safe::dsl {
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator==(LhsT lhs, RhsT rhs) -> bool {
     auto const simp_lhs = detail::simp(lhs);
     auto const simp_rhs = detail::simp(rhs);
@@ -14,7 +14,7 @@ template <Operand LhsT, Operand RhsT>
     return (simp_lhs <= simp_rhs) && (simp_lhs >= simp_rhs);
 }
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator!=(LhsT lhs, RhsT rhs) -> bool {
     return !(lhs == rhs);
 }

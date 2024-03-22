@@ -66,7 +66,7 @@ struct is_subset<constrain_mask_t<lhs_variable_bits, lhs_constant_bits>,
     [[nodiscard]] constexpr explicit operator bool() const { return value; }
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator<=(LhsT, RhsT) -> bool {
     return static_cast<bool>(detail::eval_v<is_subset<LhsT, RhsT>>);
 }

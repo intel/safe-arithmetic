@@ -7,7 +7,7 @@
 namespace safe::dsl {
 template <typename T, typename U> using is_superset = is_subset<U, T>;
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator>=(LhsT, RhsT) -> bool {
     return static_cast<bool>(detail::eval_v<is_superset<LhsT, RhsT>>);
 }
