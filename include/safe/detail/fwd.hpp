@@ -19,8 +19,6 @@ constexpr bool is_constrained_number_v<constrained_number<C, T>> = true;
 template <typename T>
 concept any_constrained = is_constrained_number_v<T>;
 
-[[nodiscard]] constexpr inline auto value(auto value);
-
 
 
 } // namespace safe

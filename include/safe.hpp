@@ -6,5 +6,4 @@
 #include <safe/dsl.hpp>
 #include <safe/int.hpp>
 #include <safe/match.hpp>
-#include <safe/value.hpp>
 #include <safe/constrained_number.hpp>
