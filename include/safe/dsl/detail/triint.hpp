@@ -1,6 +1,6 @@
 #pragma once
 
-#include <safe/big_integer.hpp>
+#include <safe/common_integer.hpp>
 
 #include <algorithm>
 #include <cstdint>

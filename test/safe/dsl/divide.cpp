@@ -11,9 +11,9 @@ using namespace safe;
 using namespace safe::literals;
 
 TEST(safe_dsl_divide, divide_two_ival_constants) {
-    EXPECT_EQ((ival<48, 48> / ival<4, 4>), (ival<12, 12>));
+    EXPECT_EQ((constrain_interval<48, 48> / constrain_interval<4, 4>), (constrain_interval<12, 12>));
 }
 
 TEST(safe_dsl_divide, add_two_intervals) {
-    EXPECT_EQ((ival<10, 40> / ival<1, 5>), (ival<2, 40>));
+    EXPECT_EQ((constrain_interval<10, 40> / constrain_interval<1, 5>), (constrain_interval<2, 40>));
 }

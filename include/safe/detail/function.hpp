@@ -1,6 +1,6 @@
 #pragma once
 
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -11,18 +11,18 @@ template <typename ArgT, typename InputT> struct runtime {
     [[nodiscard]] constexpr static auto check(InputT) -> bool { return true; }
 };
 
-template <Var VarT, typename InputT> struct runtime<VarT, InputT> {
+template <any_constrained VarT, typename InputT> struct runtime<VarT, InputT> {
     [[nodiscard]] constexpr static auto check(InputT const &input) -> bool {
-        return VarT::requirement.check(input);
+        return VarT::constraint.check(input);
     }
 };
 
-template <Var VarT, Var InputVarT> struct runtime<VarT, InputVarT> {
+template <any_constrained VarT, any_constrained InputVarT> struct runtime<VarT, InputVarT> {
     [[nodiscard]] constexpr static auto check(InputVarT const &input) -> bool {
-        if constexpr (VarT::requirement >= InputVarT::requirement) {
+        if constexpr (VarT::constraint >= InputVarT::constraint) {
             return true;
         } else {
-            return VarT::requirement.check(input.unsafe_value());
+            return VarT::constraint.check(input.raw_value());
         };
     }
 };
@@ -72,8 +72,8 @@ constexpr auto check(mp_list<ContractTs...>, ArgTs... args) -> bool {
 
 template <typename T>
 [[nodiscard]] constexpr auto unwrap_var(T &&v) -> decltype(auto) {
-    if constexpr (Var<std::remove_cvref_t<T>>) {
-        return v.unsafe_value();
+    if constexpr (any_constrained<std::remove_cvref_t<T>>) {
+        return v.raw_value();
     } else {
         return std::forward<decltype(v)>(v);
     }

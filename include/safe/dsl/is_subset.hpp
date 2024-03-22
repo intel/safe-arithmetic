@@ -1,14 +1,14 @@
 #pragma once
 
 #include <safe/dsl/eval_fwd.hpp>
-#include <safe/dsl/ival.hpp>
-#include <safe/dsl/mask.hpp>
+#include <safe/dsl/constrain_interval.hpp>
+#include <safe/dsl/constrain_mask.hpp>
 
 namespace safe::dsl {
 template <typename T, typename U> struct is_subset {};
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
-struct is_subset<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>> {
+struct is_subset<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>> {
     using type = is_subset;
 
     constexpr static bool value = lhs_min >= rhs_min && lhs_max <= rhs_max;
@@ -18,8 +18,8 @@ struct is_subset<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>> {
 
 template <auto lhs_variable_bits, auto lhs_constant_bits,
           auto rhs_variable_bits, auto rhs_constant_bits>
-struct is_subset<mask_t<lhs_variable_bits, lhs_constant_bits>,
-                 mask_t<rhs_variable_bits, rhs_constant_bits>> {
+struct is_subset<constrain_mask_t<lhs_variable_bits, lhs_constant_bits>,
+                 constrain_mask_t<rhs_variable_bits, rhs_constant_bits>> {
     using type = is_subset;
 
     constexpr static bool lhs_has_no_var_bits_outside_rhs_var_bits =
@@ -37,12 +37,12 @@ struct is_subset<mask_t<lhs_variable_bits, lhs_constant_bits>,
 
 template <auto lhs_min, auto lhs_max, auto rhs_variable_bits,
           auto rhs_constant_bits>
-struct is_subset<ival_t<lhs_min, lhs_max>,
-                 mask_t<rhs_variable_bits, rhs_constant_bits>> {
+struct is_subset<constrain_interval_t<lhs_min, lhs_max>,
+                 constrain_mask_t<rhs_variable_bits, rhs_constant_bits>> {
     using type = is_subset;
 
     using rhs_ival =
-        detail::to_ival<mask_t<rhs_variable_bits, rhs_constant_bits>>;
+        detail::to_ival<constrain_mask_t<rhs_variable_bits, rhs_constant_bits>>;
 
     constexpr static bool value = detail::is_basic_mask(rhs_variable_bits) &&
                                   lhs_min >= rhs_ival::min &&
@@ -53,12 +53,12 @@ struct is_subset<ival_t<lhs_min, lhs_max>,
 
 template <auto lhs_variable_bits, auto lhs_constant_bits, auto rhs_min,
           auto rhs_max>
-struct is_subset<mask_t<lhs_variable_bits, lhs_constant_bits>,
-                 ival_t<rhs_min, rhs_max>> {
+struct is_subset<constrain_mask_t<lhs_variable_bits, lhs_constant_bits>,
+                 constrain_interval_t<rhs_min, rhs_max>> {
     using type = is_subset;
 
     using lhs_ival =
-        detail::to_ival<mask_t<lhs_variable_bits, lhs_constant_bits>>;
+        detail::to_ival<constrain_mask_t<lhs_variable_bits, lhs_constant_bits>>;
 
     constexpr static bool value =
         lhs_ival::min >= rhs_min && lhs_ival::max <= rhs_max;
@@ -66,7 +66,7 @@ struct is_subset<mask_t<lhs_variable_bits, lhs_constant_bits>,
     [[nodiscard]] constexpr explicit operator bool() const { return value; }
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator<=(LhsT, RhsT) -> bool {
     return static_cast<bool>(detail::eval_v<is_subset<LhsT, RhsT>>);
 }

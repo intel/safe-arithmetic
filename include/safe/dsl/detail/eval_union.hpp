@@ -1,6 +1,6 @@
 #pragma once
 
-#include <safe/big_integer.hpp>
+#include <safe/common_integer.hpp>
 #include <safe/dsl/eval_fwd.hpp>
 #include <safe/dsl/union.hpp>
 
@@ -14,13 +14,13 @@ using namespace boost::mp11;
 template <typename LhsT, typename RhsT> struct interval_less;
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
-    struct interval_less<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>>
+    struct interval_less<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>>
     : public std::integral_constant < bool,
     lhs_min<rhs_min> {};
 
 template <typename LhsT, typename RhsT>
 using binary_interval_merge =
-    ival_t<std::min<common_integer_t<decltype(LhsT::min), decltype(RhsT::min)>>(
+    constrain_interval_t<std::min<common_integer_t<decltype(LhsT::min), decltype(RhsT::min)>>(
                LhsT::min, RhsT::min),
            std::max<common_integer_t<decltype(LhsT::max), decltype(RhsT::max)>>(
                LhsT::max, RhsT::max)>;

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <safe/big_integer.hpp>
 #include <safe/dsl/eval_fwd.hpp>
-#include <safe/dsl/ival.hpp>
+#include <safe/dsl/constrain_interval.hpp>
 #include <safe/dsl/union.hpp>
 
 #include <cstdint>
@@ -45,49 +44,49 @@ template <typename T, typename U> struct modulo : public detail::binary_op {};
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
     requires(0 < rhs_min && rhs_max < lhs_min)
-struct modulo<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>>
+struct modulo<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>>
     : public detail::binary_op {
-    using type = ival_t<0, rhs_max - 1>;
+    using type = constrain_interval_t<0, rhs_max - 1>;
 };
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
     requires(lhs_min > 0 && lhs_min == rhs_min && lhs_max == rhs_max)
-struct modulo<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>>
+struct modulo<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>>
     : public detail::binary_op {
     using type = detail::eval_t<
-        union_t<ival_t<0, lhs_max - lhs_min>, ival_t<lhs_min, lhs_max - 1>>>;
+        union_t<constrain_interval_t<0, lhs_max - lhs_min>, constrain_interval_t<lhs_min, lhs_max - 1>>>;
 };
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
     requires(0 <= lhs_min && lhs_max < rhs_min)
-struct modulo<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>>
+struct modulo<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>>
     : public detail::binary_op {
-    using type = ival_t<lhs_min, lhs_max>;
+    using type = constrain_interval_t<lhs_min, lhs_max>;
 };
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
     requires(lhs_max <= 0 && 0 < rhs_min && -lhs_min < rhs_min)
-struct modulo<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>>
+struct modulo<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>>
     : public detail::binary_op {
-    using type = ival_t<lhs_min, lhs_max>;
+    using type = constrain_interval_t<lhs_min, lhs_max>;
 };
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
     requires(0 < rhs_min && -lhs_min == rhs_max && -lhs_max == rhs_min)
-struct modulo<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>>
+struct modulo<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>>
     : public detail::binary_op {
     using type = detail::eval_t<
-        union_t<ival_t<-(lhs_max - lhs_min), 0>, ival_t<lhs_min + 1, lhs_max>>>;
+        union_t<constrain_interval_t<-(lhs_max - lhs_min), 0>, constrain_interval_t<lhs_min + 1, lhs_max>>>;
 };
 
 template <auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max>
     requires(0 < rhs_min && rhs_max < -lhs_max)
-struct modulo<ival_t<lhs_min, lhs_max>, ival_t<rhs_min, rhs_max>>
+struct modulo<constrain_interval_t<lhs_min, lhs_max>, constrain_interval_t<rhs_min, rhs_max>>
     : public detail::binary_op {
-    using type = ival_t<-(rhs_max - 1), 0>;
+    using type = constrain_interval_t<-(rhs_max - 1), 0>;
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator%(LhsT, RhsT) -> modulo<LhsT, RhsT> {
     return {};
 }

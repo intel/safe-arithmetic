@@ -13,7 +13,7 @@ template <typename... Intervals> struct union_t : public detail::set_op {
     }
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator||(LhsT, RhsT) -> union_t<LhsT, RhsT> {
     return {};
 }

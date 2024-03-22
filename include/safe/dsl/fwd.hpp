@@ -8,7 +8,7 @@ struct unary_op {};
 struct primitive {};
 struct set_op {};
 
-// FIXME: make the min/max template vars take an arbitrary num of args
+// FIXME: make the min/max template constrained_numbers take an arbitrary num of args
 template <auto lhs, auto rhs>
 constexpr auto min2 = [] {
     if constexpr (lhs <= rhs) {
@@ -34,11 +34,11 @@ template <auto a, auto b, auto c, auto d>
 constexpr auto max = [] { return max2<max2<a, b>, max2<c, d>>; }();
 } // namespace safe::dsl::detail
 
-namespace safe::dsl {
+namespace safe {
 template <typename T>
-concept Operand = std::is_base_of_v<detail::binary_op, T> ||
-                  std::is_base_of_v<detail::unary_op, T> ||
-                  std::is_base_of_v<detail::primitive, T> ||
-                  std::is_base_of_v<detail::set_op, T>;
+concept any_constraint = std::is_base_of_v<dsl::detail::binary_op, T> ||
+                         std::is_base_of_v<dsl::detail::unary_op, T> ||
+                         std::is_base_of_v<dsl::detail::primitive, T> ||
+                         std::is_base_of_v<dsl::detail::set_op, T>;
 
-}
+} // namespace safe 

@@ -2,7 +2,10 @@
 
 #include <safe/dsl/detail/triint.hpp>
 
+#include <gtest/gtest.h>
 #include <rapidcheck/gtest.h>
+
+#include <iomanip>
 
 namespace safe::dsl::detail {
 template <typename T>

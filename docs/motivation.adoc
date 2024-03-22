@@ -54,7 +54,6 @@ The current version of the Safe Arithmetic library supports the following value
 types:
 
 * C++20 integer primitives
-* `safe::big_integer<N>` arbitrary precision integers
 
 In the future, it is likely support for the following numeric types will be
 added:
@@ -79,8 +78,8 @@ differing dimensions are allowed and the resulting type represents a new unit
 and dimension.
 
 The Safe Arithmetic library also uses the {cpp} type system to enforce correct
-operations by encoding the set of possible values in a `safe::var` 's type.
-Operations on these `safe::var` s return new types with an updated set of
+operations by encoding the set of possible values in a `safe::constrained_number` 's type.
+Operations on these `safe::constrained_number` s return new types with an updated set of
 possible values. The actual runtime value is guaranteed to be within this set.
 
 The {cpp} type system essentially supports sophisticated static analysis

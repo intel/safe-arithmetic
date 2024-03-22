@@ -1,8 +1,8 @@
 #pragma once
 
 #include <safe/dsl/intersection.hpp>
-#include <safe/dsl/ival.hpp>
-#include <safe/dsl/mask.hpp>
+#include <safe/dsl/constrain_interval.hpp>
+#include <safe/dsl/constrain_mask.hpp>
 #include <safe/dsl/primitive.hpp>
 #include <safe/dsl/union.hpp>
 
