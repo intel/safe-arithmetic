@@ -20,7 +20,7 @@ endfunction()
 add_test_suites(
     constrained_number.cpp
     make_constrained.cpp
-    match.cpp
+    match_constraint.cpp
     array.cpp
     dsl/add.cpp
     dsl/divide.cpp

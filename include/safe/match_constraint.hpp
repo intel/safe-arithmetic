@@ -48,7 +48,7 @@ template <typename... Fs> using common_ret_t = typename common_ret<Fs...>::type;
  * @return A function object.
  */
 template <typename F, typename... Fs>
-[[nodiscard]] constexpr inline auto match(F func, Fs... remaining_funcs) {
+[[nodiscard]] constexpr inline auto match_constraint(F func, Fs... remaining_funcs) {
     using namespace boost::mp11;
 
     using func_arg_types = detail::function_args_t<F>;
@@ -58,14 +58,14 @@ template <typename F, typename... Fs>
     return [=](auto &&...args) -> ret_t {
         if constexpr (sizeof...(remaining_funcs) == 0) {
             static_assert(mp_size<func_arg_types>::value == 0,
-                          "Last function in `safe::match` returns the default "
+                          "Last function in `safe::match_constraint` returns the default "
                           "value and must not take any arguments.");
 
             return func();
 
         } else {
             static_assert(mp_size<func_arg_types>::value == sizeof...(args),
-                          "The number of arguments passed in must match the "
+                          "The number of arguments passed in must match_constraint the "
                           "args in func.");
 
             bool const args_satisfy_reqs = detail::check(
@@ -76,7 +76,7 @@ template <typename F, typename... Fs>
                     detail::unwrap_var(std::forward<decltype(args)>(args))}...);
 
             } // check the remaining functions' requirements
-            return match(remaining_funcs...)(
+            return match_constraint(remaining_funcs...)(
                 std::forward<decltype(args)>(args)...);
         }
     };

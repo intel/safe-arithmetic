@@ -136,15 +136,15 @@ safe::u64 reg_result_3 = (hw_reg_1 + hw_reg2) & 0xFFFF'FFFF'FFFF'FFFF_i;
 ```
 
 
-`safe::match` is the only mechanism in the Safe Arithmetic library that will
+`safe::match_constraint` is the only mechanism in the Safe Arithmetic library that will
 produce additional runtime overhead. It creates a callable object that may be
 called with `safe::constrained_number` or naked integer values. It uses compile-time checks
-if possible to match the given arguments with the `matchable_funcs` arguments.
+if possible to match_constraint the given arguments with the `matchable_funcs` arguments.
 If compile-time checks are not possible for an argument, then the value is
 checked at runtime to determine if it satisfies the requirements for one of the
 `matchable_funcs`. It is analogous to a pattern matching switch statement where
 the `matchable_funcs` arguments `safe::constrained_number` requirements are the patterns to
-match the callable object's input arguments against.
+match_constraint the callable object's input arguments against.
 
 This is the recommended way of marshalling external integer values into a safe
 arithmetic environment when the valid values are a subset of the underlying
@@ -154,7 +154,7 @@ unsigned integer, but the valid values are only 0 through 50,000. The full
 integer range is valid.
 
 ```c++
-// Pseudo C++20 to illustrate safe::match API
+// Pseudo C++20 to illustrate safe::match_constraint API
 template <typename F, typename Return, std::size_t NumArgs>
 concept Callable = requires(F f, auto... args) {
     Return retval = f(args...);
@@ -163,14 +163,14 @@ concept Callable = requires(F f, auto... args) {
 
 namespace safe {
     template<typename Return, std::size_t NumArgs>
-    Callable<Return, NumArgs> auto match(
+    Callable<Return, NumArgs> auto match_constraint(
         Callable<Return, NumArgs> auto... matchable_funcs,
         Callable<Return, 0> auto default_func
     );
 }
 ```
 
-The operation of `safe::match` is easier to understand with some examples.
+The operation of `safe::match_constraint` is easier to understand with some examples.
 
 ```c++
 // Hardware register reporting a count of some event type.
@@ -182,7 +182,7 @@ volatile std::uint32_t event_type_hw_reg;
 // Firmware array keeping track of updated event counts.
 safe::array<safe::u16, 17> event_counts{};
 
-constexpr auto process_event_count = safe::match(
+constexpr auto process_event_count = safe::match_constraint(
     [](
         safe::ival_u32<0, 1023> event_count,
         safe::ival_u32<0, 16> event_type
@@ -198,7 +198,7 @@ constexpr auto process_event_count = safe::match(
     // Multiple functions with different requirements for parameters may be
     // passed in. The first function whose argument requirements are satisified
     // by the runtime argument values is executed. The last function must be
-    // the default handler and is only executed if no prior match is found.
+    // the default handler and is only executed if no prior match_constraint is found.
 
     [](){
         // default action, handle error condition as desired
@@ -212,7 +212,7 @@ void event_count_interrupt_handler() {
 }
 ```
 
-`safe::match` is a powerful tool that is discussed in more detail in the
+`safe::match_constraint` is a powerful tool that is discussed in more detail in the
 reference section.
 
 The final method of introducing values into the safe arithmetic environment is
@@ -241,10 +241,10 @@ void do_something_useful(safe::constrain_interval<0, 1024> useful_value);
 auto dangerous_value = constraint_cast<safe::constrain_interval<0, 1024>>(some_function());
 do_something_useful(dangerous_value);
 
-// SAFE: Use safe::match instead. This will only call 'do_something_useful'
+// SAFE: Use safe::match_constraint instead. This will only call 'do_something_useful'
 // if the result of 'some_function' satisfies the requirements on
-// 'useful_value'. If it doesn't match, the default callable will be invoked.
-safe::match<void>(do_something_useful, [](){})(some_function());
+// 'useful_value'. If it doesn't match_constraint, the default callable will be invoked.
+safe::match_constraint<void>(do_something_useful, [](){})(some_function());
 
 // SAFE: Don't use constraint_cast<C, T>(value), try almost everything else first.
 ```
@@ -381,7 +381,7 @@ stem:[{x in NN \| 0 <= x < 2^n ^^ (x\ \&\ ~V) = C))}]
 
 | ```safe::constrain_mask<V, C>```
 | V is the variable bits mask. C is the constant bits mask. `safe::constrain_mask`
-produces a set of integers where the binary digits match C if the corresponding
+produces a set of integers where the binary digits match_constraint C if the corresponding
 digits of V are unset. The binary digit places that are set in V are
 unconstrained in the elements of the produced set.
 

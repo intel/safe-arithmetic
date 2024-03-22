@@ -507,7 +507,7 @@ Identical to `operator[]`. Access element at `pos`. The value of `pos` must be
 proven to be within the range of the array at compile-time.
 
 
-=== safe::match
+=== safe::match_constraint
 
 Use runtime checking to safely encapsulate values into `safe::constrained_number`s. 
 Automatically infer `safe::constrained_number` return type from multiple possible
@@ -538,10 +538,10 @@ auto char_to_ord = [](auto digit){
 ```
 
 Refactoring this code to use the Safe Arithmetic library is straight-forward 
-using the `safe::match` function.
+using the `safe::match_constraint` function.
 
 ```c++
-auto char_to_ord = safe::match(
+auto char_to_ord = safe::match_constraint(
     [](ival_s32<'0', '9'> dec_digit){
         return dec_digit - s32_<'0'>;
     }, 
@@ -559,7 +559,7 @@ auto char_to_ord = safe::match(
 
 This implementation ensures the return type of `char_to_ord` is 
 `ival_s32<0, 15>`. This minimal interval was automatically calculated by
-`safe::match`. This is the power of `safe::match`: check runtime values are 
+`safe::match_constraint`. This is the power of `safe::match_constraint`: check runtime values are 
 within a specified set of values, wrap the values in the corresponding 
 `safe::constrained_number` type, and optionally return a value whose `safe::constrained_number` constraint
 is the union of the possible values from each branch.
@@ -589,7 +589,7 @@ There are some ways around this depending on the specific situation:
 
 1. Use `safe::clamp` to restrict the result.
 2. If wraparound is acceptable, use `operator%`.
-3. Use `safe::match` to conditionally assign the result.
+3. Use `safe::match_constraint` to conditionally assign the result.
 
 For a simple `for` loop, these options are not useful. `safe::irange` should be
 used instead to iterate over a series of integers with a `safe::constrained_number` index 
