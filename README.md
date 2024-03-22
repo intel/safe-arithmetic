@@ -112,7 +112,7 @@ parameter.
 constexpr T & operator[](
     safe::constrained_number<safe::constrain_interval<0, Size - 1>, std::size_t> index
 ) {
-    return storage[index.unsafe_value()];
+    return storage[index.raw_value()];
 }
 ```
 

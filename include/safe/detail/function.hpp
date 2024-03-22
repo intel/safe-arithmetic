@@ -22,7 +22,7 @@ template <any_constrained VarT, any_constrained InputVarT> struct runtime<VarT, 
         if constexpr (VarT::constraint >= InputVarT::constraint) {
             return true;
         } else {
-            return VarT::constraint.check(input.unsafe_value());
+            return VarT::constraint.check(input.raw_value());
         };
     }
 };
@@ -73,7 +73,7 @@ constexpr auto check(mp_list<ContractTs...>, ArgTs... args) -> bool {
 template <typename T>
 [[nodiscard]] constexpr auto unwrap_var(T &&v) -> decltype(auto) {
     if constexpr (any_constrained<std::remove_cvref_t<T>>) {
-        return v.unsafe_value();
+        return v.raw_value();
     } else {
         return std::forward<decltype(v)>(v);
     }

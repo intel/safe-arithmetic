@@ -29,7 +29,7 @@ template <typename BeginT, typename EndT> struct irange {
             auto const new_unsafe_value = value_++;
 
             // FIXME: consolidate range checks between == and ++
-            if (new_unsafe_value < parent_->end_.unsafe_value()) {
+            if (new_unsafe_value < parent_->end_.raw_value()) {
                 value_ = new_unsafe_value;
 
             } else {
@@ -51,14 +51,14 @@ template <typename BeginT, typename EndT> struct irange {
     constexpr irange(BeginT begin, EndT end) : begin_{begin}, end_{end} {}
 
     constexpr auto begin() const {
-        return iterator<decltype(begin_.unsafe_value())>{
-            this, begin_.unsafe_value(), begin_ == end_};
+        return iterator<decltype(begin_.raw_value())>{
+            this, begin_.raw_value(), begin_ == end_};
     }
 
     constexpr auto end() const {
         // FIXME: need to find the right value for the end
-        return iterator<decltype(begin_.unsafe_value())>{
-            this, end_.unsafe_value() - 1, true};
+        return iterator<decltype(begin_.raw_value())>{
+            this, end_.raw_value() - 1, true};
     }
 };
 } // namespace safe

@@ -27,7 +27,7 @@ class safe_match_test : public ::testing::Test {
 };
 
 void two_safe_vars(ival_s32<0, 10> a, ival_s32<0, 10> b) {
-    mock_function_ptr->two_safe_vars(a.unsafe_value(), b.unsafe_value());
+    mock_function_ptr->two_safe_vars(a.raw_value(), b.raw_value());
 }
 
 TEST_F(safe_match_test, simple_pass) {

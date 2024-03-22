@@ -50,7 +50,7 @@ template <any_constraint auto C, typename T> struct constrained_number {
 
     // NOLINTNEXTLINE(google-explicit-constructor)
     SAFE_INLINE constexpr constrained_number(any_constrained auto const &rhs)
-        : _raw_value(rhs.unsafe_value()) // intentionally allowing narrowing
+        : _raw_value(rhs.raw_value()) // intentionally allowing narrowing
                                             // conversions
     {
         static_assert_assign_requirements(*this, rhs);
@@ -58,13 +58,13 @@ template <any_constraint auto C, typename T> struct constrained_number {
 
     SAFE_INLINE constexpr auto operator=(any_constrained auto const &rhs) -> constrained_number & {
         static_assert_assign_requirements(*this, rhs);
-        _raw_value = rhs.unsafe_value();
+        _raw_value = rhs.raw_value();
         return *this;
     }
 
     SAFE_INLINE constexpr auto operator=(any_constrained auto &&rhs) -> constrained_number & {
         static_assert_assign_requirements(*this, rhs);
-        _raw_value = rhs.unsafe_value();
+        _raw_value = rhs.raw_value();
         return *this;
     }
 
@@ -75,7 +75,7 @@ template <any_constraint auto C, typename T> struct constrained_number {
         return _raw_value;
     }
 
-    [[nodiscard]] SAFE_INLINE constexpr auto unsafe_value() const -> T {
+    [[nodiscard]] SAFE_INLINE constexpr auto raw_value() const -> T {
         SAFE_ASSUME(constraint.check(_raw_value));
         return _raw_value;
     }
@@ -113,7 +113,7 @@ bin_op(auto op, cnum_admissable auto raw_lhs, cnum_admissable auto raw_rhs) {
     // FIXME: replace with embiggening strategy; the result type is
     //        always large enough to contain its value
 
-    auto result = op(lhs.unsafe_value(), rhs.unsafe_value());
+    auto result = op(lhs.raw_value(), rhs.raw_value());
 
     return constraint_cast<result_req, decltype(result)>(result);
 }
@@ -132,7 +132,7 @@ template <cnum_admissable L, cnum_admissable R>
 }
 
 [[nodiscard]] SAFE_INLINE constexpr auto operator-(any_constrained auto v) {
-    constexpr auto zero = constrained_number<constrain_interval<0, 0>, decltype(v.unsafe_value())>{};
+    constexpr auto zero = constrained_number<constrain_interval<0, 0>, decltype(v.raw_value())>{};
     return zero - v;
 }
 
@@ -188,28 +188,28 @@ template <cnum_admissable L, cnum_admissable R>
     requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator<=>(L raw_lhs, R raw_rhs)
     -> std::compare_three_way_result_t<
-        decltype(constrained_number(raw_lhs).unsafe_value()),
-        decltype(constrained_number(raw_rhs).unsafe_value())> {
-    return constrained_number(raw_lhs).unsafe_value() <=> constrained_number(raw_rhs).unsafe_value();
+        decltype(constrained_number(raw_lhs).raw_value()),
+        decltype(constrained_number(raw_rhs).raw_value())> {
+    return constrained_number(raw_lhs).raw_value() <=> constrained_number(raw_rhs).raw_value();
 }
 
 template <cnum_admissable L, cnum_admissable R>
     requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator==(L raw_lhs, R raw_rhs)
     -> bool {
-    return constrained_number(raw_lhs).unsafe_value() == constrained_number(raw_rhs).unsafe_value();
+    return constrained_number(raw_lhs).raw_value() == constrained_number(raw_rhs).raw_value();
 }
 
 [[nodiscard]] SAFE_INLINE constexpr auto abs(any_constrained auto value) {
-    using num_t = decltype(value.unsafe_value());
-    auto result = static_cast<num_t>(std::abs(value.unsafe_value()));
+    using num_t = decltype(value.raw_value());
+    auto result = static_cast<num_t>(std::abs(value.raw_value()));
     auto result_req = dsl::detail::simp(safe::dsl::abs(value.constraint));
     return constraint_cast<result_req, num_t>(result);
 }
 
 [[nodiscard]] SAFE_INLINE constexpr auto bit_width(any_constrained auto value) {
-    using num_t = decltype(value.unsafe_value());
-    auto result = static_cast<num_t>(std::bit_width(value.unsafe_value()));
+    using num_t = decltype(value.raw_value());
+    auto result = static_cast<num_t>(std::bit_width(value.raw_value()));
     auto result_req =
         dsl::detail::simp(safe::dsl::bit_width(value.constraint));
     return constraint_cast<result_req, num_t>(result);
@@ -221,9 +221,9 @@ template <cnum_admissable L, cnum_admissable R>
     auto const lhs = constrained_number(raw_lhs);
     auto const rhs = constrained_number(raw_rhs);
 
-    using common_type = std::common_type_t<decltype(lhs.unsafe_value()),
-                                           decltype(rhs.unsafe_value())>;
-    auto result = std::min<common_type>(lhs.unsafe_value(), rhs.unsafe_value());
+    using common_type = std::common_type_t<decltype(lhs.raw_value()),
+                                           decltype(rhs.raw_value())>;
+    auto result = std::min<common_type>(lhs.raw_value(), rhs.raw_value());
     using result_t = decltype(result);
     auto result_req =
         dsl::detail::simp(dsl::min(lhs.constraint, rhs.constraint));
@@ -236,9 +236,9 @@ template <cnum_admissable L, cnum_admissable R>
     auto const lhs = constrained_number(raw_lhs);
     auto const rhs = constrained_number(raw_rhs);
 
-    using common_type = std::common_type_t<decltype(lhs.unsafe_value()),
-                                           decltype(rhs.unsafe_value())>;
-    auto result = std::max<common_type>(lhs.unsafe_value(), rhs.unsafe_value());
+    using common_type = std::common_type_t<decltype(lhs.raw_value()),
+                                           decltype(rhs.raw_value())>;
+    auto result = std::max<common_type>(lhs.raw_value(), rhs.raw_value());
     using result_t = decltype(result);
     auto result_req =
         dsl::detail::simp(dsl::max(lhs.constraint, rhs.constraint));

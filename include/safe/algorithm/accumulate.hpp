@@ -62,12 +62,12 @@ template <size_t max_iter>
     constexpr auto req = decltype((*first).constraint){};
     constexpr auto sum_req = detail::fold<max_iter>(req, op);
 
-    using ret_num_t = decltype((*first).unsafe_value());
+    using ret_num_t = decltype((*first).raw_value());
 
     auto iter_count = size_t{};
     auto sum = init;
     while ((first != last) && (iter_count < max_iter)) {
-        sum = op(sum, (*first).unsafe_value());
+        sum = op(sum, (*first).raw_value());
         first++;
         iter_count++;
     }
