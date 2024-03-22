@@ -21,8 +21,8 @@ template <typename T, auto lhs_min, auto lhs_max, auto rhs_min, auto rhs_max,
 void check_interval(constrain_interval_t<lhs_min, lhs_max> lhs, constrain_interval_t<rhs_min, rhs_max> rhs,
                     OperationT op) {
     auto const actual = safe::dsl::detail::simp(op(lhs, rhs));
-    for (T i = lhs_min; i <= lhs_max; i = constraint_cast<T>(i + 1)) {
-        for (T j = rhs_min; j <= rhs_max; j = constraint_cast<T>(j + 1)) {
+    for (T i = lhs_min; i <= lhs_max; i = reinterpret_cast<T>(i + 1)) {
+        for (T j = rhs_min; j <= rhs_max; j = reinterpret_cast<T>(j + 1)) {
             auto const v = op(i, j);
             EXPECT_GE(v, actual.min);
             EXPECT_LE(v, actual.max);

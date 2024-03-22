@@ -216,18 +216,18 @@ void event_count_interrupt_handler() {
 reference section.
 
 The final method of introducing values into the safe arithmetic environment is
-through `constraint_cast<T>(value)`. It bypasses all compile-time and runtime
+through `constraint_cast<C, T>(value)`. It bypasses all compile-time and runtime
 safety checks and depends on the value to be proven to satisfy the requirements
 of `T` using mechanisms outside the visibility and scope of the Safe Arithmetic
 library. Its use is highly discouraged. The name is chosen to cause an uneasy
 feeling in programmers and clearly signal a red flag for code reviewers.
 
 ```c++
-template<typename T>
-T constraint_cast(auto value);
+template<any_constraint auto C, std::integral T>
+constrained_number<C, T> constraint_cast(T value);
 ```
 
-`constraint_cast<T>(value)` is used within the Safe Arithmetic library to ferry
+`constraint_cast<C, T>(value)` is used within the Safe Arithmetic library to ferry
 values into instances of `safe::constrained_number` after proving it is safe to do so. It is
 necessary for the library's construction.
 
@@ -235,10 +235,10 @@ As always, an example is useful to illustrate how to use a particular function.
 
 ```c++
 std::uint16_t some_function();
-void do_something_useful(safe::ival_u32<0, 1024> useful_value);
+void do_something_useful(safe::constrain_interval<0, 1024> useful_value);
 
 // VERY DANGEROUS: Don't do this!
-auto dangerous_value = constraint_cast<safe::ival_u32<0, 1024>>(some_function());
+auto dangerous_value = constraint_cast<safe::constrain_interval<0, 1024>>(some_function());
 do_something_useful(dangerous_value);
 
 // SAFE: Use safe::match instead. This will only call 'do_something_useful'
@@ -246,7 +246,7 @@ do_something_useful(dangerous_value);
 // 'useful_value'. If it doesn't match, the default callable will be invoked.
 safe::match<void>(do_something_useful, [](){})(some_function());
 
-// SAFE: Don't use constraint_cast<T>(value), try almost everything else first.
+// SAFE: Don't use constraint_cast<C, T>(value), try almost everything else first.
 ```
 
 If you find a case where you feel you must use `constraint_cast`, then maybe there

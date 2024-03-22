@@ -21,10 +21,6 @@ concept any_constrained = is_constrained_number_v<T>;
 
 [[nodiscard]] constexpr inline auto value(auto value);
 
-namespace detail {
-template <typename U, U value>
-[[nodiscard]] constexpr inline auto make_constant();
-}
 
 
 } // namespace safe

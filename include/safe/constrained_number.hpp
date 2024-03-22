@@ -115,7 +115,7 @@ bin_op(auto op, cnum_admissable auto raw_lhs, cnum_admissable auto raw_rhs) {
 
     auto result = op(lhs.unsafe_value(), rhs.unsafe_value());
 
-    return constraint_cast<constrained_number<result_req, decltype(result)>>(result);
+    return constraint_cast<result_req, decltype(result)>(result);
 }
 } // namespace detail
 
@@ -204,7 +204,7 @@ template <cnum_admissable L, cnum_admissable R>
     using num_t = decltype(value.unsafe_value());
     auto result = static_cast<num_t>(std::abs(value.unsafe_value()));
     auto result_req = dsl::detail::simp(safe::dsl::abs(value.constraint));
-    return constraint_cast<constrained_number<result_req, num_t>>(result);
+    return constraint_cast<result_req, num_t>(result);
 }
 
 [[nodiscard]] SAFE_INLINE constexpr auto bit_width(any_constrained auto value) {
@@ -212,7 +212,7 @@ template <cnum_admissable L, cnum_admissable R>
     auto result = static_cast<num_t>(std::bit_width(value.unsafe_value()));
     auto result_req =
         dsl::detail::simp(safe::dsl::bit_width(value.constraint));
-    return constraint_cast<constrained_number<result_req, num_t>>(result);
+    return constraint_cast<result_req, num_t>(result);
 }
 
 template <cnum_admissable L, cnum_admissable R>
@@ -227,7 +227,7 @@ template <cnum_admissable L, cnum_admissable R>
     using result_t = decltype(result);
     auto result_req =
         dsl::detail::simp(dsl::min(lhs.constraint, rhs.constraint));
-    return constraint_cast<constrained_number<result_req, result_t>>(result);
+    return constraint_cast<result_req, result_t>(result);
 }
 
 template <cnum_admissable L, cnum_admissable R>
@@ -242,7 +242,7 @@ template <cnum_admissable L, cnum_admissable R>
     using result_t = decltype(result);
     auto result_req =
         dsl::detail::simp(dsl::max(lhs.constraint, rhs.constraint));
-    return constraint_cast<constrained_number<result_req, result_t>>(result);
+    return constraint_cast<result_req, result_t>(result);
 }
 
 template <cnum_admissable T, cnum_admissable MinT, cnum_admissable MaxT>

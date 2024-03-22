@@ -72,7 +72,7 @@ template <size_t max_iter>
         iter_count++;
     }
 
-    return constraint_cast<constrained_number<sum_req, ret_num_t>>(sum);
+    return constraint_cast<sum_req, ret_num_t>(sum);
 }
 
 template <size_t max_iter>

@@ -2,6 +2,8 @@
 
 #include <safe/detail/fwd.hpp>
 
+#include <concepts>
+
 namespace safe {
 namespace detail {
 template <typename T> struct constraint_cast_ferry {
@@ -16,15 +18,9 @@ template <typename T> struct constraint_cast_ferry {
 };    
 } // namespace detail
 
-template <typename T>
-    requires(any_constrained<T>)
-[[nodiscard]] constexpr auto constraint_cast(auto const &src) {
-    return T{detail::constraint_cast_ferry{src}};
+template <any_constraint auto C, std::integral T>
+[[nodiscard]] constexpr auto constraint_cast(T const & src) -> constrained_number<C, T> {
+    return {detail::constraint_cast_ferry{src}};
 }
 
-template <typename T>
-    requires(!any_constrained<T>)
-[[nodiscard]] constexpr auto constraint_cast(auto const &src) {
-    return src;
-}
 } // namespace safe

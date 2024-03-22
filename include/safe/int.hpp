@@ -74,7 +74,7 @@ template <typename T, char... Chars>
         return sum;
     }();
 
-    return make_constant<T, value>();
+    return constrained_number(std::integral_constant<T, value>{});
 }
 } // namespace detail
 
