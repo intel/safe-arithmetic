@@ -2,6 +2,7 @@
 
 #include <safe/detail/function.hpp>
 #include <safe/constrained_number.hpp>
+#include <safe/constraint_cast.hpp>
 
 #include <boost/mp11.hpp>
 
@@ -71,7 +72,7 @@ template <typename F, typename... Fs>
                 func_arg_types{}, std::forward<decltype(args)>(args)...);
 
             if (args_satisfy_reqs) {
-                return func(constraint_cast_ferry{
+                return func(detail::constraint_cast_ferry{
                     detail::unwrap_var(std::forward<decltype(args)>(args))}...);
 
             } // check the remaining functions' requirements

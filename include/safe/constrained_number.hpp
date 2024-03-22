@@ -9,6 +9,7 @@
 #include <safe/dsl.hpp>
 #include <safe/dsl/constraint_of.hpp>
 #include <safe/dsl/eval.hpp>
+#include <safe/constraint_cast.hpp>
 
 #include <bit>
 #include <compare>
@@ -17,19 +18,19 @@
 #include <type_traits>
 
 namespace safe {
-template <auto Constraint, typename T> struct constrained_number {
+template <auto C, typename T> struct constrained_number {
   public:
-    constexpr static auto constraint = Constraint;
+    constexpr static auto constraint = C;
     using value_type = T;
 
     constexpr constrained_number()
-        requires(constraint >= constrain_interval<0, 0>)
+        requires(constraint >= constrain_set<0>)
         : _raw_value(0) {}
 
     template <typename U>
         requires(std::is_convertible_v<U, T>)
     // NOLINTNEXTLINE(google-explicit-constructor)
-    SAFE_INLINE constexpr constrained_number(constraint_cast_ferry<U> ferry)
+    SAFE_INLINE constexpr constrained_number(detail::constraint_cast_ferry<U> ferry)
         : _raw_value{static_cast<T>(ferry.value())} {
         SAFE_ASSUME(constraint.check(_raw_value));
     }
@@ -67,55 +68,45 @@ template <auto Constraint, typename T> struct constrained_number {
         return *this;
     }
 
-    // template<std::integral U>
-    // requires (constraint <= dsl::constraint_of<U>)
-    // [[nodiscard]] SAFE_INLINE constexpr operator U() {
-    //     SAFE_ASSUME(constraint.check(_raw_value));
-    //     return _raw_value;
-    // }
+    template<std::integral U>
+    requires (constraint <= dsl::constraint_of<U>)
+    [[nodiscard]] SAFE_INLINE constexpr operator U() {
+        SAFE_ASSUME(constraint.check(_raw_value));
+        return _raw_value;
+    }
 
     [[nodiscard]] SAFE_INLINE constexpr auto unsafe_value() const -> T {
         SAFE_ASSUME(constraint.check(_raw_value));
         return _raw_value;
     }
 
-    using primitive_contract = detail::integral_type<T>;
-
-    static_assert(rhs_must_be_subset_of_lhs<
-                  lhs_req<decltype(primitive_contract::constraint)>,
-                  rhs_req<decltype(Constraint)>>::value);
+    static_assert(constraint <= dsl::constraint_of<T>);
 
     /// @brief Do not use. Public to support use as non-type template parameter.
     T _raw_value;
 };
 
-template <typename... Ts> constexpr bool at_least_one_var = (... or any_constrained<Ts>);
+template<std::integral T>
+constrained_number(T) -> constrained_number<dsl::constraint_of<T>, T>;
 
-[[nodiscard]] SAFE_INLINE constexpr auto to_var(any_constrained auto v) -> any_constrained auto {
-    return v;
-}
+template<std::integral T, T v>
+constrained_number(std::integral_constant<T, v>) -> constrained_number<dsl::constrain_interval<v, v>, T>;
 
-template <typename T, T v>
-[[nodiscard]] SAFE_INLINE constexpr auto to_var(std::integral_constant<T, v>)
-    -> any_constrained auto {
-    return detail::make_constant<T, v>();
-}
 
-[[nodiscard]] SAFE_INLINE constexpr auto to_var(std::integral auto v) -> any_constrained
-    auto {
-    return value(v);
-}
+template <typename... Ts> constexpr bool at_least_one_cnum = (... or any_constrained<Ts>);
+
+
 
 template <typename T>
-concept var_admissable = requires(T t) {
-    { to_var(t) } -> any_constrained;
+concept cnum_admissable = requires(T t) {
+    { constrained_number(t) } -> any_constrained;
 };
 
 namespace detail {
 [[nodiscard]] SAFE_INLINE constexpr auto
-bin_op(auto op, var_admissable auto raw_lhs, var_admissable auto raw_rhs) {
-    any_constrained auto const lhs = to_var(raw_lhs);
-    any_constrained auto const rhs = to_var(raw_rhs);
+bin_op(auto op, cnum_admissable auto raw_lhs, cnum_admissable auto raw_rhs) {
+    auto const lhs = constrained_number(raw_lhs);
+    auto const rhs = constrained_number(raw_rhs);
 
     auto result_req = dsl::detail::simp(op(lhs.constraint, rhs.constraint));
 
@@ -128,14 +119,14 @@ bin_op(auto op, var_admissable auto raw_lhs, var_admissable auto raw_rhs) {
 }
 } // namespace detail
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator+(L lhs, R rhs) {
     return detail::bin_op(std::plus<>(), lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator-(L lhs, R rhs) {
     return detail::bin_op(std::minus<>(), lhs, rhs);
 }
@@ -145,68 +136,68 @@ template <var_admissable L, var_admissable R>
     return zero - v;
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator*(L lhs, R rhs) {
     return detail::bin_op(std::multiplies<>(), lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator/(L lhs, R rhs) {
     return detail::bin_op(std::divides<>(), lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator%(L lhs, R rhs) {
     return detail::bin_op(std::modulus<>(), lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator<<(L lhs, R rhs) {
     return detail::bin_op([](auto a, auto b) { return a << b; }, lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator>>(L lhs, R rhs) {
     return detail::bin_op([](auto a, auto b) { return a >> b; }, lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator|(L lhs, R rhs) {
     return detail::bin_op(std::bit_or<>(), lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator&(L lhs, R rhs) {
     return detail::bin_op(std::bit_and<>(), lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator^(L lhs, R rhs) {
     return detail::bin_op(std::bit_xor<>(), lhs, rhs);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator<=>(L raw_lhs, R raw_rhs)
     -> std::compare_three_way_result_t<
-        decltype(to_var(raw_lhs).unsafe_value()),
-        decltype(to_var(raw_rhs).unsafe_value())> {
-    return to_var(raw_lhs).unsafe_value() <=> to_var(raw_rhs).unsafe_value();
+        decltype(constrained_number(raw_lhs).unsafe_value()),
+        decltype(constrained_number(raw_rhs).unsafe_value())> {
+    return constrained_number(raw_lhs).unsafe_value() <=> constrained_number(raw_rhs).unsafe_value();
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto operator==(L raw_lhs, R raw_rhs)
     -> bool {
-    return to_var(raw_lhs).unsafe_value() == to_var(raw_rhs).unsafe_value();
+    return constrained_number(raw_lhs).unsafe_value() == constrained_number(raw_rhs).unsafe_value();
 }
 
 [[nodiscard]] SAFE_INLINE constexpr auto abs(any_constrained auto value) {
@@ -224,11 +215,11 @@ template <var_admissable L, var_admissable R>
     return constraint_cast<constrained_number<result_req, num_t>>(result);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto min(L raw_lhs, R raw_rhs) -> any_constrained auto {
-    any_constrained auto const lhs = to_var(raw_lhs);
-    any_constrained auto const rhs = to_var(raw_rhs);
+    auto const lhs = constrained_number(raw_lhs);
+    auto const rhs = constrained_number(raw_rhs);
 
     using common_type = std::common_type_t<decltype(lhs.unsafe_value()),
                                            decltype(rhs.unsafe_value())>;
@@ -239,11 +230,11 @@ template <var_admissable L, var_admissable R>
     return constraint_cast<constrained_number<result_req, result_t>>(result);
 }
 
-template <var_admissable L, var_admissable R>
-    requires(at_least_one_var<L, R>)
+template <cnum_admissable L, cnum_admissable R>
+    requires(at_least_one_cnum<L, R>)
 [[nodiscard]] SAFE_INLINE constexpr auto max(L raw_lhs, R raw_rhs) -> any_constrained auto {
-    any_constrained auto const lhs = to_var(raw_lhs);
-    any_constrained auto const rhs = to_var(raw_rhs);
+    auto const lhs = constrained_number(raw_lhs);
+    auto const rhs = constrained_number(raw_rhs);
 
     using common_type = std::common_type_t<decltype(lhs.unsafe_value()),
                                            decltype(rhs.unsafe_value())>;
@@ -254,10 +245,10 @@ template <var_admissable L, var_admissable R>
     return constraint_cast<constrained_number<result_req, result_t>>(result);
 }
 
-template <var_admissable T, var_admissable MinT, var_admissable MaxT>
-    requires(at_least_one_var<T, MinT, MaxT>)
+template <cnum_admissable T, cnum_admissable MinT, cnum_admissable MaxT>
+    requires(at_least_one_cnum<T, MinT, MaxT>)
 [[nodiscard]] SAFE_INLINE constexpr auto clamp(T value, MinT min_val,
                                                MaxT max_val) -> any_constrained auto {
-    return min(max(to_var(value), to_var(min_val)), to_var(max_val));
+    return min(max(constrained_number(value), constrained_number(min_val)), constrained_number(max_val));
 }
 } // namespace safe
