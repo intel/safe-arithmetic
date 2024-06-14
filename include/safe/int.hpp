@@ -3,7 +3,7 @@
 #include <safe/constant.hpp>
 #include <safe/detail/integral_type.hpp>
 #include <safe/dsl.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 #include <cstdint>
 #include <limits>
@@ -38,21 +38,21 @@ using s64 = detail::integral_type<int64_t>;
 using namespace int_types;
 
 namespace interval_types {
-template <auto min, auto max> using ival_s8 = var<int8_t, ival<min, max>>;
+template <auto min, auto max> using ival_s8 = constrained_number<constrain_interval<min, max>, int8_t>;
 
-template <auto min, auto max> using ival_u8 = var<uint8_t, ival<min, max>>;
+template <auto min, auto max> using ival_u8 = constrained_number<constrain_interval<min, max>, uint8_t>;
 
-template <auto min, auto max> using ival_s16 = var<int16_t, ival<min, max>>;
+template <auto min, auto max> using ival_s16 = constrained_number<constrain_interval<min, max>, int16_t>;
 
-template <auto min, auto max> using ival_u16 = var<uint16_t, ival<min, max>>;
+template <auto min, auto max> using ival_u16 = constrained_number<constrain_interval<min, max>, uint16_t>;
 
-template <auto min, auto max> using ival_s32 = var<int32_t, ival<min, max>>;
+template <auto min, auto max> using ival_s32 = constrained_number<constrain_interval<min, max>, int32_t>;
 
-template <auto min, auto max> using ival_u32 = var<uint32_t, ival<min, max>>;
+template <auto min, auto max> using ival_u32 = constrained_number<constrain_interval<min, max>, uint32_t>;
 
-template <auto min, auto max> using ival_s64 = var<int64_t, ival<min, max>>;
+template <auto min, auto max> using ival_s64 = constrained_number<constrain_interval<min, max>, int64_t>;
 
-template <auto min, auto max> using ival_u64 = var<uint64_t, ival<min, max>>;
+template <auto min, auto max> using ival_u64 = constrained_number<constrain_interval<min, max>, uint64_t>;
 } // namespace interval_types
 
 using namespace interval_types;
@@ -61,6 +61,7 @@ namespace detail {
 template <typename T, char... Chars>
 [[nodiscard]] constexpr auto to_constant() {
     // FIXME: handle or fail at compile-time for invalid strings
+    // FIXME: select correct type ahead of time
     constexpr T value = []() {
         constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
         T sum = 0;
@@ -73,41 +74,13 @@ template <typename T, char... Chars>
         return sum;
     }();
 
-    return make_constant<T, value>();
+    return constrained_number(std::integral_constant<T, value>{});
 }
 } // namespace detail
 
 namespace literals {
-template <char... Chars> constexpr auto operator""_s8() {
-    return safe::detail::to_constant<int8_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u8() {
-    return safe::detail::to_constant<uint8_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_s16() {
-    return safe::detail::to_constant<int16_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u16() {
-    return safe::detail::to_constant<uint16_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_s32() {
-    return safe::detail::to_constant<int32_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u32() {
-    return safe::detail::to_constant<uint32_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_s64() {
+template <char... Chars> constexpr auto operator""_cn() {
     return safe::detail::to_constant<int64_t, Chars...>();
-}
-
-template <char... Chars> constexpr auto operator""_u64() {
-    return safe::detail::to_constant<uint64_t, Chars...>();
 }
 } // namespace literals
 } // namespace safe

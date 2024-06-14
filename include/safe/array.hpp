@@ -2,7 +2,7 @@
 
 #include <safe/constant.hpp>
 #include <safe/dsl.hpp>
-#include <safe/var.hpp>
+#include <safe/constrained_number.hpp>
 
 #include <array>
 #include <compare>
@@ -31,23 +31,23 @@ template <typename T, std::size_t Size> struct array {
     constexpr explicit array(Us... values) : storage({values...}) {}
 
     [[nodiscard]] constexpr auto
-    operator[](var<size_type, ival<0, Size - 1>> pos) -> reference {
-        return storage[pos.unsafe_value()];
+    operator[](constrained_number<constrain_interval<0, Size - 1>, size_type> pos) -> reference {
+        return storage[pos.raw_value()];
     }
 
     [[nodiscard]] constexpr auto
-    operator[](var<size_type, ival<0, Size - 1>> pos) const -> const_reference {
-        return storage[pos.unsafe_value()];
+    operator[](constrained_number<constrain_interval<0, Size - 1>, size_type> pos) const -> const_reference {
+        return storage[pos.raw_value()];
     }
 
-    [[nodiscard]] constexpr auto at(var<size_type, ival<0, Size - 1>> pos)
+    [[nodiscard]] constexpr auto at(constrained_number<constrain_interval<0, Size - 1>, size_type> pos)
         -> reference {
-        return storage[pos.unsafe_value()];
+        return storage[pos.raw_value()];
     }
 
-    [[nodiscard]] constexpr auto at(var<size_type, ival<0, Size - 1>> pos) const
+    [[nodiscard]] constexpr auto at(constrained_number<constrain_interval<0, Size - 1>, size_type> pos) const
         -> const_reference {
-        return storage[pos.unsafe_value()];
+        return storage[pos.raw_value()];
     }
 
     [[nodiscard]] constexpr auto front() -> reference {

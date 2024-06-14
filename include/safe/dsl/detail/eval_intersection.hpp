@@ -17,7 +17,7 @@ struct interval_intersection_merge {
 
     using type =
         mp_push_back<mp_pop_back<IntervalList>,
-                     ival_t<std::max(prev_interval::min, NextInterval::min),
+                     constrain_interval_t<std::max(prev_interval::min, NextInterval::min),
                             std::min(prev_interval::max, NextInterval::max)>>;
 };
 

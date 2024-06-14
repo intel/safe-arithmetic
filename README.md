@@ -51,20 +51,20 @@ using namespace safe::literals;
 to assign a value to this variable outside this range.
 
 ```c++
-ival_s32<0, 1023> enqueue_index = 0_s32;
+ival_s32<0, 1023> enqueue_index = 0_cn;
 ```
 
 We can perform arithmetic operations and prove we will not overflow. If we 
 try to just add '1' to enqueue_index, we could overflow
 
 ```c++
-enqueue_index = enqueue_index + 1_s32; // <- COMPILE ERROR 
+enqueue_index = enqueue_index + 1_cn; // <- COMPILE ERROR 
 ```
 Instead, we are required to keep the value in-bounds, in this case we choose
 to use the modulo operator.
 
 ```c++
-enqueue_index = (enqueue_index + 1_s32) % 1024_s32; // GOOD!
+enqueue_index = (enqueue_index + 1_cn) % 1024_cn; // GOOD!
 ```
 
 for cases in which we must index into an array, the *safe arithmetic* library
@@ -76,25 +76,25 @@ queue_data[enqueue_index] = 0xc001;
 ```
 
 It is not possible to index into the `safe::array` with a raw integral value or
-a `safe::var` with an interval outside the bounds of the array.
+a `safe::constrained_number` with an interval outside the bounds of the array.
 
 ```c++
 auto result_err = queue_data[4]; // <- COMPILE ERROR
 ```
 
-The `_u32` user-defined literal creates a `safe::var` type at compile time that
+The `_u32` user-defined literal creates a `safe::constrained_number` type at compile time that
 is constrained to the single value given to it. 
 
 ```c++
-auto result = queue_data[4_u32]; // GOOD!
+auto result = queue_data[4_cn]; // GOOD!
 ```
 
-Arithmetic operations generate a new requirement for the result-type. Adding `1`
+Arithmetic operations generate a new constraint for the result-type. Adding `1`
 to `enqueue_index` means it could be one larger than the last element of the
 array. The *safe arithmetic* library correctly produces a compilation error.
 
 ```c++
-auto result = queue_data[enqueue_index + 1_u32]; // <- COMPILE ERROR
+auto result = queue_data[enqueue_index + 1_cn]; // <- COMPILE ERROR
 ```
 
 We must prove to the `safe::array` that the index value is within bounds. 
@@ -102,42 +102,42 @@ There are many ways to do this. For this queue implementation we want
 `enqueue_index` to wrap around.
 
 ```c++
-auto result = queue_data[(enqueue_index + 1_u32) % 1024_u32]; // GOOD!
+auto result = queue_data[(enqueue_index + 1_cn) % 1024_cn]; // GOOD!
 ```
 
-The `safe::array` advertises this requirement on the `safe::var` index
+The `safe::array` advertises this constraint on the `safe::constrained_number` index
 parameter.
 
 ```c++
 constexpr T & operator[](
-    safe::var<std::size_t, safe::ival<0, Size - 1>> index
+    safe::constrained_number<safe::constrain_interval<0, Size - 1>, std::size_t> index
 ) {
-    return storage[index.unsafe_value()];
+    return storage[index.raw_value()];
 }
 ```
 
-User-code can (and should) do the same: use `safe::var` to specify the
+User-code can (and should) do the same: use `safe::constrained_number` to specify the
 requirements or assumptions about the input to the function. It is up to the
 caller to prove the values it is passing in are safe.
 
 More complex numerical requirements can be conveyed with *safe arithmetic*. For
-example, a disjoint union of intervals can be used in a requirement to exclude 
+example, a disjoint union of intervals can be used in a constraint to exclude 
 values or value ranges.
 
 For example, if a `0` is invalid, but all other values are OK, a union of 
-intervals can be used in the `safe::var`:
+intervals can be used in the `safe::constrained_number`:
 
 ```c++
 constexpr void dont_give_me_zero(
-    safe::var<int, safe::ival<-1000, -1> || safe::ival<1, 1000>> not_zero
+    safe::constrained_number<safe::constrain_interval<-1000, -1> || safe::constrain_interval<1, 1000>, int> not_zero
 ) {
     // ... do something really cool with this non-zero value ...
 }
 ```
 
-This makes it impossible to pass a value of `0` to this function. `safe::var`
+This makes it impossible to pass a value of `0` to this function. `safe::constrained_number`
 can't be created or initialized with naked integral values, so how do we pass 
-in parameters? We either need to use a `safe::var` that is already proven
+in parameters? We either need to use a `safe::constrained_number` that is already proven
 to satisfy the callees requirements, or we can use `safe::function`:
 
 ```c++

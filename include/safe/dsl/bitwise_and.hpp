@@ -1,8 +1,8 @@
 #pragma once
 
 #include <safe/dsl/fwd.hpp>
-#include <safe/dsl/ival.hpp>
-#include <safe/dsl/mask.hpp>
+#include <safe/dsl/constrain_interval.hpp>
+#include <safe/dsl/constrain_mask.hpp>
 #include <safe/dsl/primitive.hpp>
 
 namespace safe::dsl {
@@ -14,10 +14,10 @@ struct bitwise_and<LhsT, RhsT> : public detail::binary_op {
     using lhs = detail::to_mask_t<LhsT>;
     using rhs = detail::to_mask_t<RhsT>;
     constexpr static auto value = lhs::value & rhs::value;
-    using type = mask_t<value.var_bits(), value.const_bits()>;
+    using type = constrain_mask_t<value.var_bits(), value.const_bits()>;
 };
 
-template <Operand LhsT, Operand RhsT>
+template <any_constraint LhsT, any_constraint RhsT>
 [[nodiscard]] constexpr auto operator&(LhsT, RhsT) -> bitwise_and<LhsT, RhsT> {
     return {};
 }
