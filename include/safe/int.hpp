@@ -59,8 +59,8 @@ using namespace interval_types;
 
 namespace detail {
 template <typename T, char... Chars>
+    requires decimal_integer<T, Chars...>
 [[nodiscard]] constexpr auto to_constant() {
-    // FIXME: handle or fail at compile-time for invalid strings
     constexpr T value = []() {
         constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
         T sum = 0;

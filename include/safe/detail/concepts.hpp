@@ -15,4 +15,13 @@ concept range_like = requires(R r) {
     { r.begin() } -> iter_like;
     r.end();
 };
+
+template <char Char>
+constexpr bool is_decimal_digit_v = Char >= '0' && Char <= '9';
+
+template <char... Chars>
+concept decimal_number = (is_decimal_digit_v<Chars> && ...);
+
+template <typename T, char... Chars>
+concept decimal_integer = std::integral<T> && decimal_number<Chars...>;
 } // namespace safe::detail
