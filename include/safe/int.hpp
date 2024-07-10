@@ -75,6 +75,25 @@ template <typename T, char... Chars>
 
     return make_constant<T, value>();
 }
+
+template <typename T, char Char0, char Char1, char... Chars>
+    requires hex_integer<T, Char0, Char1, Chars...>
+[[nodiscard]] static constexpr auto to_constant() {
+    constexpr T value = []() {
+        constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
+        T sum = 0;
+
+        for (char c : chars) {
+            T const digit =
+                c > '9' ? c >= 'a' ? c - 'a' + 10 : c - 'A' + 10 : c - '0';
+            sum = (sum * 16) + digit;
+        }
+
+        return sum;
+    }();
+
+    return make_constant<T, value>();
+}
 } // namespace detail
 
 namespace literals {
