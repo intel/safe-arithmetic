@@ -112,8 +112,8 @@ template <std::size_t NumBits>
 }
 
 template <std::size_t NumBits>
-[[nodiscard]] constexpr auto to_storage(storage<NumBits> const &v)
-    -> auto const & {
+[[nodiscard]] constexpr auto
+to_storage(storage<NumBits> const &v) -> auto const & {
     return v;
 }
 
@@ -135,16 +135,16 @@ template <std::integral T, T value>
 
 template <std::size_t NumBits>
     requires(NumBits > 32 && NumBits <= 64)
-[[nodiscard]] constexpr auto to_integral(storage<NumBits> const &value)
-    -> int64_t {
+[[nodiscard]] constexpr auto
+to_integral(storage<NumBits> const &value) -> int64_t {
     return (static_cast<uint64_t>(value.get(1)) << 32u) |
            (static_cast<uint64_t>(value.get(0)));
 }
 
 template <std::size_t NumBits>
     requires(NumBits <= 32)
-[[nodiscard]] constexpr auto to_integral(storage<NumBits> const &value)
-    -> int32_t {
+[[nodiscard]] constexpr auto
+to_integral(storage<NumBits> const &value) -> int32_t {
     return static_cast<int32_t>(value.get(0));
 }
 
