@@ -159,9 +159,9 @@ big_integer(detail::storage<NumBits>) -> big_integer<NumBits>;
 }
 
 template <std::size_t LhsNumBits, std::size_t RhsNumBits>
-[[nodiscard]] constexpr auto operator==(big_integer<LhsNumBits> const &lhs,
-                                        big_integer<RhsNumBits> const &rhs)
-    -> bool {
+[[nodiscard]] constexpr auto
+operator==(big_integer<LhsNumBits> const &lhs,
+           big_integer<RhsNumBits> const &rhs) -> bool {
     return lhs.unsafe_storage == rhs.unsafe_storage;
 }
 
@@ -173,8 +173,8 @@ template <std::size_t LhsNumBits>
 
 template <typename L, typename R>
     requires at_least_one_big_integer<L, R>
-[[nodiscard]] constexpr auto operator<=>(L const &raw_lhs, R const &raw_rhs)
-    -> std::strong_ordering {
+[[nodiscard]] constexpr auto
+operator<=>(L const &raw_lhs, R const &raw_rhs) -> std::strong_ordering {
     auto lhs = detail::to_storage(raw_lhs);
     auto rhs = detail::to_storage(raw_rhs);
     return lhs <=> rhs;

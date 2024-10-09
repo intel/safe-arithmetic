@@ -88,8 +88,8 @@ template <typename... Ts> constexpr bool at_least_one_var = (... or Var<Ts>);
 }
 
 template <typename T, T v>
-[[nodiscard]] SAFE_INLINE constexpr auto to_var(std::integral_constant<T, v>)
-    -> Var auto {
+[[nodiscard]] SAFE_INLINE constexpr auto
+to_var(std::integral_constant<T, v>) -> Var auto {
     return detail::make_constant<T, v>();
 }
 
@@ -196,8 +196,8 @@ template <var_admissable L, var_admissable R>
 
 template <var_admissable L, var_admissable R>
     requires(at_least_one_var<L, R>)
-[[nodiscard]] SAFE_INLINE constexpr auto operator==(L raw_lhs, R raw_rhs)
-    -> bool {
+[[nodiscard]] SAFE_INLINE constexpr auto operator==(L raw_lhs,
+                                                    R raw_rhs) -> bool {
     return to_var(raw_lhs).unsafe_value() == to_var(raw_rhs).unsafe_value();
 }
 
