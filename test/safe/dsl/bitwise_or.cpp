@@ -51,3 +51,13 @@ TEST(safe_dsl_bitwise_or, const_x_var_bits) {
     EXPECT_EQ((mask<0, 0xff> | mask<0xff>), (mask<0, 0xff>));
     EXPECT_EQ((mask<0xff> | mask<0, 0xff>), (mask<0, 0xff>));
 }
+
+TEST(safe_dsl_bitwise_or, hex_u8) {
+    EXPECT_EQ((0x7_u8 | 0x3_u8 | 0x1_u8), (0x7_u8));
+    EXPECT_EQ((0x3_u8 | 0x1_u8), (0x3_u8));
+    EXPECT_EQ((0xCE_u8 | 0x0_u8), (0xCE_u8));
+    EXPECT_EQ((0xFF_u8 | 0x0_u8), (0xFF_u8));
+    EXPECT_EQ((0xAA_u8 | 0x55_u8), (0xFF_u8));
+    EXPECT_EQ((0xaa_u8 | 0xff_u8), (0xff_u8));
+    EXPECT_EQ((0x55_u8 | 0x55_u8), (0x55_u8));
+}
