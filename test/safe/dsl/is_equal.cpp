@@ -27,3 +27,8 @@ TEST(safe_dsl_is_equal, differing_ival_types) {
 
     EXPECT_EQ((ival<10ll, 20ll>), (ival<10, 20>));
 }
+
+TEST(safe_dsl_is_equal, with_delimeter) {
+    EXPECT_EQ(1'2'3'4'5_u16, 12345_u16);
+    EXPECT_EQ(0xc'0'ff'ee_u32, 0xc0ffee_u32);
+}
