@@ -36,7 +36,8 @@ constexpr bool is_hex_char_v =
     (Char >= 'A' && Char <= 'F' || Char >= 'a' && Char <= 'f');
 
 template <char Char>
-constexpr bool is_hex_digit_v = is_decimal_digit_v<Char> || is_hex_char_v<Char>;
+constexpr bool is_hex_digit_v =
+    is_decimal_digit_v<Char> || is_hex_char_v<Char> || is_delimiter_v<Char>;
 
 template <char Char0, char Char1, char... Chars>
 concept hex_number =

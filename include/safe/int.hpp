@@ -90,9 +90,11 @@ template <typename T, char Char0, char Char1, char... Chars>
         T sum = 0;
 
         for (char c : chars) {
-            T const digit =
-                c > '9' ? c >= 'a' ? c - 'a' + 10 : c - 'A' + 10 : c - '0';
-            sum = (sum * 16) + digit;
+            if (not is_delimiter(c)) {
+                T const digit =
+                    c > '9' ? c >= 'a' ? c - 'a' + 10 : c - 'A' + 10 : c - '0';
+                sum = (sum * 16) + digit;
+            }
         }
 
         return sum;
