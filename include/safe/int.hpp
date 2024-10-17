@@ -58,6 +58,10 @@ template <auto min, auto max> using ival_u64 = var<uint64_t, ival<min, max>>;
 using namespace interval_types;
 
 namespace detail {
+constexpr static auto is_delimiter = [](char const c) -> bool {
+    return c == '\'';
+};
+
 template <typename T, char... Chars>
     requires decimal_integer<T, Chars...>
 [[nodiscard]] constexpr auto to_constant() {
@@ -66,8 +70,10 @@ template <typename T, char... Chars>
         T sum = 0;
 
         for (char c : chars) {
-            T const digit = c - '0';
-            sum = (sum * 10) + digit;
+            if (not is_delimiter(c)) {
+                T const digit = c - '0';
+                sum = (sum * 10) + digit;
+            }
         }
 
         return sum;

@@ -19,8 +19,11 @@ concept range_like = requires(R r) {
 template <char Char>
 constexpr bool is_decimal_digit_v = Char >= '0' && Char <= '9';
 
+template <char Char> constexpr bool is_delimiter_v = Char == '\'';
+
 template <char... Chars>
-concept decimal_number = (is_decimal_digit_v<Chars> && ...);
+concept decimal_number =
+    ((is_decimal_digit_v<Chars> or is_delimiter_v<Chars>) and ...);
 
 template <typename T, char... Chars>
 concept decimal_integer = std::integral<T> && decimal_number<Chars...>;
