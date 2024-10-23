@@ -91,8 +91,10 @@ template <typename T, char Char0, char Char1, char... Chars>
 
         for (char c : chars) {
             if (not is_delimiter(c)) {
+                /* The difference between upper and lower case in ascii table is
+                 * the presence of the 6th bit */
                 T const digit =
-                    c > '9' ? c >= 'a' ? c - 'a' + 10 : c - 'A' + 10 : c - '0';
+                    c <= '9' ? c - '0' : (c & 0b1101'1111) - 'A' + 10;
                 sum = (sum * 16) + digit;
             }
         }
