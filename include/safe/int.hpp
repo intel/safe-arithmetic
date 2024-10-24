@@ -58,16 +58,45 @@ template <auto min, auto max> using ival_u64 = var<uint64_t, ival<min, max>>;
 using namespace interval_types;
 
 namespace detail {
+constexpr static auto is_delimiter = [](char const c) -> bool {
+    return c == '\'';
+};
+
 template <typename T, char... Chars>
+    requires decimal_integer<T, Chars...>
 [[nodiscard]] constexpr auto to_constant() {
-    // FIXME: handle or fail at compile-time for invalid strings
     constexpr T value = []() {
         constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
         T sum = 0;
 
         for (char c : chars) {
-            T const digit = c - '0';
-            sum = (sum * 10) + digit;
+            if (not is_delimiter(c)) {
+                T const digit = c - '0';
+                sum = (sum * 10) + digit;
+            }
+        }
+
+        return sum;
+    }();
+
+    return make_constant<T, value>();
+}
+
+template <typename T, char Char0, char Char1, char... Chars>
+    requires hex_integer<T, Char0, Char1, Chars...>
+[[nodiscard]] static constexpr auto to_constant() {
+    constexpr T value = []() {
+        constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
+        T sum = 0;
+
+        for (char c : chars) {
+            if (not is_delimiter(c)) {
+                /* The difference between upper and lower case in ascii table is
+                 * the presence of the 6th bit */
+                T const digit =
+                    c <= '9' ? c - '0' : (c & 0b1101'1111) - 'A' + 10;
+                sum = (sum * 16) + digit;
+            }
         }
 
         return sum;

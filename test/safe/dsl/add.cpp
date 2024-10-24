@@ -66,3 +66,12 @@ TEST(safe_dsl_add, union_simplification) {
         ((ival<0, 10> || ival<100, 200>)+(ival<20, 30> || ival<400, 800>)),
         (ival<20, 40> || ival<120, 230> || ival<400, 1000>));
 }
+
+TEST(safe_dsl_add, hex_u8) {
+    EXPECT_EQ((0x4_u8 + 0x2_u8 + 0x1_u8), (0x7_u8));
+    EXPECT_EQ((0x3_u8 + 0x1_u8), (0x4_u8));
+    EXPECT_EQ((0xCE_u8 + 0x0_u8), (0xCE_u8));
+    EXPECT_EQ((0xFF_u8 + 0x0_u8), (0xFF_u8));
+    EXPECT_EQ((0xAA_u8 + 0x55_u8), (0xFF_u8));
+    EXPECT_EQ((0xf0_u8 + 0x0f_u8), (0xff_u8));
+}
