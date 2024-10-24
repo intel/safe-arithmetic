@@ -1,5 +1,7 @@
 #pragma once
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #if defined(SAFE_TESTING)
 // if testing is turned on, turn assumptions into the appropriate framework's
 // assertion
@@ -42,3 +44,5 @@
 #define SAFE_ASSUME(expr) __assume(expr)
 #endif
 #endif
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
