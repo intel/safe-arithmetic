@@ -10,7 +10,7 @@ Luke Valenty <luke.valenty@intel.com>
 :toclevels: 4
 :sectnums:
 :sectnumlevels: 4
-
+:mermaid-puppeteer-config: puppeteer_config.json
 
 include::motivation.adoc[]
 include::overview.adoc[]
