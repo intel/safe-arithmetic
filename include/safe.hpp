@@ -8,5 +8,6 @@
 #include <safe/int.hpp>
 #include <safe/match.hpp>
 #include <safe/object.hpp>
+#include <safe/safe_cast.hpp>
 #include <safe/value.hpp>
 #include <safe/var.hpp>
