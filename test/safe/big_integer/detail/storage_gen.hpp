@@ -5,7 +5,12 @@
 #include <gtest/gtest.h>
 #include <rapidcheck/gtest.h>
 
-#include <iostream>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <iomanip>
+#include <ios>
+#include <ostream>
 
 namespace safe::_big_integer::detail {
 template <std::size_t NumBits>
