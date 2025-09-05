@@ -40,13 +40,13 @@ template <typename T, std::size_t Size> struct array {
         return storage[pos.unsafe_value()];
     }
 
-    [[nodiscard]] constexpr auto
-    at(var<size_type, ival<0, Size - 1>> pos) -> reference {
+    [[nodiscard]] constexpr auto at(var<size_type, ival<0, Size - 1>> pos)
+        -> reference {
         return storage[pos.unsafe_value()];
     }
 
-    [[nodiscard]] constexpr auto
-    at(var<size_type, ival<0, Size - 1>> pos) const -> const_reference {
+    [[nodiscard]] constexpr auto at(var<size_type, ival<0, Size - 1>> pos) const
+        -> const_reference {
         return storage[pos.unsafe_value()];
     }
 
@@ -152,14 +152,14 @@ template <std::size_t I, class T, std::size_t N>
 }
 
 template <std::size_t I, class T, std::size_t N>
-[[nodiscard]] constexpr auto
-get(safe::array<T, N> const &a) noexcept -> T const & {
+[[nodiscard]] constexpr auto get(safe::array<T, N> const &a) noexcept
+    -> T const & {
     return a[safe::constant<std::size_t, I>];
 }
 
 template <std::size_t I, class T, std::size_t N>
-[[nodiscard]] constexpr auto
-get(safe::array<T, N> const &&a) noexcept -> T const && {
+[[nodiscard]] constexpr auto get(safe::array<T, N> const &&a) noexcept
+    -> T const && {
     return a[safe::constant<std::size_t, I>];
 }
 
