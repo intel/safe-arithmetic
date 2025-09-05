@@ -7,9 +7,10 @@
 #include <functional>
 
 namespace safe::_big_integer::detail {
-constexpr static auto plus =
-    stateful_zip_transform(elem_t{}, [](elem_t &carry, double_elem_t const &lhs,
-                                        double_elem_t const &rhs) {
+constexpr static auto plus = stateful_zip_transform(
+    elem_t{},
+    [](elem_t &carry, double_elem_t const &lhs,
+       double_elem_t const &rhs) -> double_elem_t {
         double_elem_t const result =
             lhs + rhs + static_cast<double_elem_t>(carry);
 
