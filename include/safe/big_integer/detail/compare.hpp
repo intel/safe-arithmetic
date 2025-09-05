@@ -8,9 +8,9 @@
 
 namespace safe::_big_integer::detail {
 template <std::size_t LhsNumBits, std::size_t RhsNumBits>
-[[nodiscard]] constexpr auto
-unsigned_compare(storage<LhsNumBits> const &lhs,
-                 storage<RhsNumBits> const &rhs) -> std::strong_ordering {
+[[nodiscard]] constexpr auto unsigned_compare(storage<LhsNumBits> const &lhs,
+                                              storage<RhsNumBits> const &rhs)
+    -> std::strong_ordering {
     for (auto i = std::max(lhs.num_elems, rhs.num_elems); i > std::size_t{};) {
         --i;
         auto const l = lhs.get(i);
@@ -26,9 +26,9 @@ unsigned_compare(storage<LhsNumBits> const &lhs,
 }
 
 template <std::size_t LhsNumBits, std::size_t RhsNumBits>
-[[nodiscard]] constexpr auto
-operator<=>(storage<LhsNumBits> const &lhs,
-            storage<RhsNumBits> const &rhs) -> std::strong_ordering {
+[[nodiscard]] constexpr auto operator<=>(storage<LhsNumBits> const &lhs,
+                                         storage<RhsNumBits> const &rhs)
+    -> std::strong_ordering {
     if (lhs.negative()) {
         if (rhs.negative()) {
             return unsigned_compare(lhs, rhs);

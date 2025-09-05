@@ -2,10 +2,10 @@
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
-#if defined(SAFE_TESTING)
+#ifdef SAFE_TESTING
 // if testing is turned on, turn assumptions into the appropriate framework's
 // assertion
-#if defined(RC_ASSERT)
+#ifdef RC_ASSERT
 // RapidCheck
 #define SAFE_ASSUME(expr) RC_ASSERT(expr)
 
@@ -23,7 +23,7 @@
 #else
 // adapted from section 4 in
 // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p1774r4.pdf
-#if defined(__cpp_assume)
+#ifdef __cpp_assume
 #define SAFE_ASSUME(expr) [[assume(expr)]]
 #elif defined(__clang__)
 // https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume

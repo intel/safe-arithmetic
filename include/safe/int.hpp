@@ -84,7 +84,7 @@ template <typename T, char... Chars>
 
 template <typename T, char Char0, char Char1, char... Chars>
     requires hex_integer<T, Char0, Char1, Chars...>
-[[nodiscard]] static constexpr auto to_constant() {
+[[nodiscard]] constexpr static auto to_constant() {
     constexpr T value = []() {
         constexpr std::array<char, sizeof...(Chars)> chars{Chars...};
         T sum = 0;
@@ -94,7 +94,10 @@ template <typename T, char Char0, char Char1, char... Chars>
                 /* The difference between upper and lower case in ascii table is
                  * the presence of the 6th bit */
                 T const digit =
-                    c <= '9' ? c - '0' : (c & 0b1101'1111) - 'A' + 10;
+                    c <= '9' ? c - '0'
+                             : static_cast<char>((static_cast<unsigned int>(c) &
+                                                  0b1101'1111u) -
+                                                 'A' + 10);
                 sum = (sum * 16) + digit;
             }
         }

@@ -25,8 +25,8 @@ template <typename T> struct triint {
 };
 
 template <typename LhsT, typename RhsT>
-[[nodiscard]] constexpr auto operator==(triint<LhsT> lhs,
-                                        triint<RhsT> rhs) -> bool {
+[[nodiscard]] constexpr auto operator==(triint<LhsT> lhs, triint<RhsT> rhs)
+    -> bool {
     return (lhs.var_bits() == rhs.var_bits()) &&
            (lhs.const_bits() == rhs.const_bits());
 }
@@ -63,14 +63,14 @@ template <typename U>
 }
 
 template <typename U>
-[[nodiscard]] constexpr auto operator<<(triint<U> val,
-                                        auto shamt) -> triint<U> {
+[[nodiscard]] constexpr auto operator<<(triint<U> val, auto shamt)
+    -> triint<U> {
     return {val.var_bits() << shamt, val.const_bits() << shamt};
 }
 
 template <typename U>
-[[nodiscard]] constexpr auto operator>>(triint<U> val,
-                                        auto shamt) -> triint<U> {
+[[nodiscard]] constexpr auto operator>>(triint<U> val, auto shamt)
+    -> triint<U> {
     return {val.var_bits() >> shamt, val.const_bits() >> shamt};
 }
 
