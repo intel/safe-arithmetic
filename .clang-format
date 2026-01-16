@@ -1,0 +1,28 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^".*'
+    Priority: 1
+  - Regex: '^<safe/.*'
+    Priority: 2
+  - Regex: '^<(cib|flow|interrupt|log|log_binary|log_fmt|lookup|match|msg|nexus|seq)/.*'
+    Priority: 3
+  - Regex: '^<groov/.*'
+    Priority: 4
+  - Regex: '^<async/.*'
+    Priority: 6
+  - Regex: '^<stdx/.*'
+    Priority: 7
+  - Regex: '^<conc/.*'
+    Priority: 8
+  - Regex: '^<(boost|catch2|fmt|fuzztest|gmock|gtest|rapidcheck|snitch)/.*'
+    Priority: 9
+  - Regex: '^<GUnit.h>'
+    Priority: 9
+  - Regex: '<([a-z_])+>'
+    Priority: 10
+
+QualifierAlignment: Custom
+QualifierOrder: ['friend', 'constexpr', 'static', 'inline', 'type', 'const', 'volatile']
