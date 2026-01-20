@@ -17,6 +17,7 @@ target_include_directories(safe_arithmetic INTERFACE include)
 target_link_libraries_system(safe_arithmetic INTERFACE boost_mp11)
 
 if(PROJECT_IS_TOP_LEVEL)
+    include(CTest)
     add_docs(docs)
     clang_tidy_interface(safe_arithmetic)
     add_subdirectory(test)
