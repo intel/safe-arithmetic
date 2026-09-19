@@ -1,5 +1,6 @@
 add_subdirectory(array)
 add_subdirectory(var)
+add_subdirectory(safe_cast)
 
 function(add_test_suites)
     foreach(test_file ${ARGN})
@@ -34,6 +35,7 @@ add_test_suites(
     var.cpp
     match.cpp
     array.cpp
+    safe_cast.cpp
     dsl/add.cpp
     dsl/divide.cpp
     dsl/intersection.cpp

@@ -37,12 +37,12 @@ template <typename T> struct unsafe_cast_ferry {
 
 template <typename T>
     requires(safe::Var<T>)
-[[nodiscard]] constexpr auto unsafe_cast(auto const &src) {
+[[nodiscard]] SAFE_INLINE constexpr auto unsafe_cast(auto const &src) {
     return T{safe::unsafe_cast_ferry{src}};
 }
 
 template <typename T>
     requires(!safe::Var<T>)
-[[nodiscard]] constexpr auto unsafe_cast(auto const &src) {
+[[nodiscard]] SAFE_INLINE constexpr auto unsafe_cast(auto const &src) {
     return src;
 }
